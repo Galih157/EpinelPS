@@ -879,58 +879,26 @@ Normalizes `Users[*].UserPassInfo` (keyed by `PassId`).
 - **`UserLostSectorClearedStages`** (`LostSectorData[*].ClearedStages`): `Id` (ULID PK), `UserId` (FK), `LostSectorId` (ULID FK), `StageKey` (String), `ClearState` (Integer). Unique: (`LostSectorId`, `StageKey`).
 - **`UserLostSectorObjects`** (`LostSectorData[*].Objects`): `Id` (ULID PK), `UserId` (FK), `LostSectorId` (ULID FK), `ObjectKey` (String), `ActionAt` (Integer 64-bit), `Type` (Integer), `PositionId` (String), `Json` (Text), `TeamPositionsJson` (Text). Unique: (`LostSectorId`, `ObjectKey`).
 
+### Minigames and leaderboards
+
+- **`UserMinigames`** (`ArcadeInTheMirrorData`, `BBQInfoData`, `BtgData`, `BubbleMarchDatas`, `DDRDatas`, `DessertRushData`, `IsLandBreakerDatas`, `MiniGameAzxInfo`, `MiniGameScenarios`, `MiniGameStoryChoice`, `Nksv2Datas`, `PirateCafeData`, `RebuildEdenDatas`, `SortOutData`, `StellarBladeDatas`, `TTSGameData`, `TowerDefenseDatas`, `ArcadePlaySodaInfoList`, `PlaySodaInfoData`): `Id` (ULID PK), `UserId` (FK to `Users.ID`), `MinigameType` (String), `ArcadeId` (Integer, `0` for single-instance minigames or dictionary key for keyed minigames), `DataJson` (Text, serialized using `JsonDb`-compatible settings for `Timestamp`/`Duration`/protobuf types), `UpdatedAt` (Integer 64-bit). Unique: (`UserId`, `MinigameType`, `ArcadeId`).
+- **`MiniGameLeaderboards`** (`RankDatas.ArcadeScore` and non-TTS minigame guild/server rankings): `Id` (ULID PK), `MinigameType` (String, e.g., `"Arcade"`, `"Nksv2"`, `"StellarBlade"`, `"TowerDefense"`, `"PlaySoda"`), `ArcadeId` (Integer, `0` if unused), `ModeId` (Integer, `0` if unused), `UserId` (Integer 64-bit, FK to `Users.ID`), `GuildId` (Integer 64-bit, `0` when not guild-scoped), `Score` (Integer 64-bit), `UpdatedAt` (Integer 64-bit). Indexes on (`MinigameType`, `ArcadeId`, `ModeId`, `Score`) and (`MinigameType`, `GuildId`, `ArcadeId`, `Score`). TTS leaderboards remain in `TtsSongScores` and `TtsTotalScores`.
+
+### Remaining user data (field maps, mail, jukebox, wishlist, and misc)
+
+- **`Users` profile/guild extension** (`userPointData`, `Guild`): Add `UserLevel` (Integer, default `1`), `ExperiencePoint` (Integer, default `0`), `GuildId` (Integer, nullable), and `GuildLeaveAt` (Integer 64-bit, nullable) directly to `Users`.
+- **`UserFieldMaps`** (`FieldInfoNew`; legacy `FieldInfo` is backwards-compatibility only and dropped from migration): `Id` (ULID PK), `UserId` (FK to `Users.ID`), `MapId` (String), `DataJson` (Text, serialized `FieldInfoNew`), `UpdatedAt` (Integer 64-bit). Unique: (`UserId`, `MapId`).
+- **`UserSubQuests`** (`SubQuestData`): `Id` (ULID PK), `UserId` (FK), `SubQuestId` (Integer), `ReceivedReward` (Boolean). Unique: (`UserId`, `SubQuestId`).
+- **`UserStageClearHistory`** (`StageClearHistorys`): `Id` (ULID PK), `UserId` (FK), `TeamCombat` (Integer), `ClearedAt` (Integer 64-bit), `UserJson` (Text, serialized `NetWholeUserData`), `SlotsJson` (Text, serialized `NetStageClearInfoTeam[]`). Index on (`UserId`, `ClearedAt`).
+- **`UserClearedOutpostScenarios`** (`ClearedOutpostScenarioIds`): `Id` (ULID PK), `UserId` (FK), `ScenarioId` (Integer). Unique: (`UserId`, `ScenarioId`).
+- **`UserTacticAcademyLessons`** (`CompletedTacticAcademyLessons`): `Id` (ULID PK), `UserId` (FK), `LessonId` (Integer). Unique: (`UserId`, `LessonId`).
+- **`UserUnlockedCosmetics` extension** (`BackgroundList`, `IconList`, `StickerList`, `LiveWallpaperList`, `LobbyDecoBackgroundList`, `JukeboxBgm`, `JukeboxThemeList`): Reuse existing `UserUnlockedCosmetics` table with `Kind` values `"Background"`, `"Icon"`, `"Sticker"`, `"LiveWallpaper"`, `"LobbyDecoBackground"`, `"JukeboxBgm"`, and `"JukeboxTheme"`.
+- **`UserLobbyPrivateBanners`** (`LobbyPrivateBannerIds`): `Id` (ULID PK), `UserId` (FK), `BannerId` (Integer). Unique: (`UserId`, `BannerId`).
+- **`UserJukeboxPlaylists`** (`PlayLists` + `FavoriteSongs`): `Id` (ULID PK), `UserId` (FK), `PlaylistUid` (Integer 64-bit, `0` for `FavoriteSongs`), `IsFavorite` (Boolean), `Title` (String, default `""`), `SongsJson` (Text, serialized `NetJukeboxPlaylistSong[]`). Unique: (`UserId`, `IsFavorite`, `PlaylistUid`).
+- **`UserCharacterWishlists`** (`CharacterWishlist`): `Id` (ULID PK), `UserId` (FK), `BannerId` (Integer), `CharacterId` (Integer). Unique: (`UserId`, `BannerId`, `CharacterId`).
+- **`UserMails`** (`MailDatas`): `Id` (ULID PK), `UserId` (FK), `Msn` (Integer 64-bit), `Sender` (Integer), `Type` (Integer), `State` (Integer), `TitleJson` (Text, serialized `LocaleableText`), `TextJson` (Text, serialized `LocaleableText`), `CreatedAt` (Integer 64-bit), `Nickname` (String), `AppNoticeId` (String), `HasReward` (Boolean), `ItemsJson` (Text, serialized `NetMailRewardItem[]`), `Period` (Integer). Unique: (`UserId`, `Msn`).
+- **`UserMessengerRepairHistory`** (`MessengerRepairHistory`): `Id` (ULID PK), `UserId` (FK), `AuditId` (String), `CreatedAtUtc` (DateTime / Integer 64-bit ticks), `Action` (String), `Note` (String), `MessageJson` (Text, serialized `NetMessage`). Unique: (`UserId`, `AuditId`).
+
 ## User JSON key inventory
 
-Observed from the Release publish `data/db.json` copy (1 user record). This lists the remaining top-level keys not yet assigned to relational columns or tables. Keys assigned to `UserBans`, `Users`, and `SdkUsers` above are omitted. Object and array contents are not expanded. Keys are grouped by observed JSON shape.
-
-### Top-level object keys
-
-| Key | JSON type |
-|---|---|
-| `ArcadeInTheMirrorData` | Object |
-| `BBQInfoData` | Object |
-| `BtgData` | Object |
-| `BubbleMarchDatas` | Object |
-| `DDRDatas` | Object |
-| `DessertRushData` | Object |
-| `FavoriteSongs` | Object |
-| `FieldInfo` | Object |
-| `FieldInfoNew` | Object |
-| `Guild` | Object |
-| `IsLandBreakerDatas` | Object |
-| `MailDatas` | Object |
-| `MiniGameAzxInfo` | Object |
-| `MiniGameScenarios` | Object |
-| `MiniGameStoryChoice` | Object |
-| `Nksv2Datas` | Object |
-| `PirateCafeData` | Object |
-| `RebuildEdenDatas` | Object |
-| `SoloRaidData` | Object |
-| `SoloRaidMuseumData` | Object |
-| `SortOutData` | Object |
-| `StellarBladeDatas` | Object |
-| `SubQuestData` | Object |
-| `TTSGameData` | Object |
-| `TowerDefenseDatas` | Object |
-| `userPointData` | Object |
-
-### Top-level array keys
-
-| Key | JSON type |
-|---|---|
-| `ArcadePlaySodaInfoList` | Array |
-| `BackgroundList` | Array |
-| `CharacterWishlist` | Array |
-| `ClearedOutpostScenarioIds` | Array |
-| `CompletedTacticAcademyLessons` | Array |
-| `IconList` | Array |
-| `JukeboxBgm` | Array |
-| `JukeboxThemeList` | Array |
-| `LiveWallpaperList` | Array |
-| `LobbyDecoBackgroundList` | Array |
-| `LobbyPrivateBannerIds` | Array |
-| `MessengerRepairHistory` | Array |
-| `PlayLists` | Array |
-| `PlaySodaInfoData` | Array |
-| `StageClearHistorys` | Array |
-| `StickerList` | Array |
+All top-level `db.json` user keys have now been assigned to target relational columns or tables (with legacy `FieldInfo` intentionally dropped as unused backwards-compatibility data). No unplanned top-level keys remain.

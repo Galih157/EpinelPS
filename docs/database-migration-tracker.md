@@ -51,64 +51,18 @@ Priority order reflects the live login-to-lobby load sequence:
 | Planned | Secondary | `SoloRaidMuseumStages`, `SoloRaidMuseumModes`, `SoloRaidMuseumMissionClaims`, `SoloRaidMuseumTeams`, `SoloRaidMuseumTeamSlots`, `SoloRaidMuseumOpenTeams`, `SoloRaidMuseumLogs`, `SoloRaidMuseumLogCharacters` | `SoloRaidMuseumData` |
 | Planned | Secondary | `UserMapStates` | `MapJson` |
 | Planned | Secondary | `TtsSongScores`, `TtsTotalScores`, `ArcadeScores` | `RankDatas` |
+| Planned | Secondary | `UserMinigames`, `MiniGameLeaderboards` | `ArcadeInTheMirrorData`, `BBQInfoData`, `BtgData`, `BubbleMarchDatas`, `DDRDatas`, `DessertRushData`, `IsLandBreakerDatas`, `MiniGameAzxInfo`, `MiniGameScenarios`, `MiniGameStoryChoice`, `Nksv2Datas`, `PirateCafeData`, `RebuildEdenDatas`, `SortOutData`, `StellarBladeDatas`, `TTSGameData`, `TowerDefenseDatas`, `ArcadePlaySodaInfoList`, `PlaySodaInfoData`, and non-TTS minigame rankings |
+| Planned | Secondary | `Users` point & guild columns | `userPointData` (`UserLevel`, `ExperiencePoint`), `Guild` (`GuildId`, `GuildLeaveAt`) |
+| Planned | Secondary | `UserFieldMaps`, `UserSubQuests`, `UserStageClearHistory` | `FieldInfoNew` (legacy `FieldInfo` dropped), `SubQuestData`, `StageClearHistorys` |
+| Planned | Secondary | `UserClearedOutpostScenarios`, `UserTacticAcademyLessons` | `ClearedOutpostScenarioIds`, `CompletedTacticAcademyLessons` |
+| Planned | Secondary | `UserUnlockedCosmetics` extension, `UserLobbyPrivateBanners`, `UserJukeboxPlaylists` | `BackgroundList`, `IconList`, `StickerList`, `LiveWallpaperList`, `LobbyDecoBackgroundList`, `JukeboxBgm`, `JukeboxThemeList`, `LobbyPrivateBannerIds`, `PlayLists`, `FavoriteSongs` |
+| Planned | Secondary | `UserCharacterWishlists`, `UserMails`, `UserMessengerRepairHistory` | `CharacterWishlist`, `MailDatas`, `MessengerRepairHistory` |
 
 `SdkUsers` and `Triggers` already exist in SQLite. Their overlapping JSON state and any remaining compatibility behavior must be tracked to full cutover before considering those fields Implemented.
 
 ## Remaining JSON keys
 
-These are the keys still in the JSON inventory without target designs. They remain `Unplanned` until assigned to a designed table in dedicated planning sessions. Keys marked `Lobby-critical` are read during the initial login → `User/Get` → lobby hydration flow and should be planned first. The shapes are from the Release publish sample; confirm against the actual database before migration because the sample contained one user.
-
-### Top-level objects
-
-| Status | Priority | Key | JSON type |
-|---|---|---|---|
-| Unplanned | Standard | `ArcadeInTheMirrorData` | Object |
-| Unplanned | Standard | `BBQInfoData` | Object |
-| Unplanned | Standard | `BtgData` | Object |
-| Unplanned | Standard | `BubbleMarchDatas` | Object |
-| Unplanned | Standard | `DDRDatas` | Object |
-| Unplanned | Standard | `DessertRushData` | Object |
-| Unplanned | Standard | `FavoriteSongs` | Object |
-| Unplanned | Standard | `FieldInfo` | Object |
-| Unplanned | Standard | `FieldInfoNew` | Object |
-| Unplanned | Standard | `Guild` | Object |
-| Unplanned | Standard | `IsLandBreakerDatas` | Object |
-| Unplanned | Standard | `MailDatas` | Object |
-| Unplanned | Standard | `MiniGameAzxInfo` | Object |
-| Unplanned | Standard | `MiniGameScenarios` | Object |
-| Unplanned | Standard | `MiniGameStoryChoice` | Object |
-| Unplanned | Standard | `Nksv2Datas` | Object |
-| Unplanned | Standard | `PirateCafeData` | Object |
-| Unplanned | Standard | `RebuildEdenDatas` | Object |
-| Unplanned | Standard | `SoloRaidData` | Object |
-| Unplanned | Standard | `SoloRaidMuseumData` | Object |
-| Unplanned | Standard | `SortOutData` | Object |
-| Unplanned | Standard | `StellarBladeDatas` | Object |
-| Unplanned | Standard | `SubQuestData` | Object |
-| Unplanned | Standard | `TTSGameData` | Object |
-| Unplanned | Standard | `TowerDefenseDatas` | Object |
-| Unplanned | Standard | `userPointData` | Object |
-
-### Top-level arrays
-
-| Status | Priority | Key | JSON type |
-|---|---|---|---|
-| Unplanned | Standard | `ArcadePlaySodaInfoList` | Array |
-| Unplanned | Standard | `BackgroundList` | Array |
-| Unplanned | Standard | `CharacterWishlist` | Array |
-| Unplanned | Standard | `ClearedOutpostScenarioIds` | Array |
-| Unplanned | Standard | `CompletedTacticAcademyLessons` | Array |
-| Unplanned | Standard | `IconList` | Array |
-| Unplanned | Standard | `JukeboxBgm` | Array |
-| Unplanned | Standard | `JukeboxThemeList` | Array |
-| Unplanned | Standard | `LiveWallpaperList` | Array |
-| Unplanned | Standard | `LobbyDecoBackgroundList` | Array |
-| Unplanned | Standard | `LobbyPrivateBannerIds` | Array |
-| Unplanned | Standard | `MessengerRepairHistory` | Array |
-| Unplanned | Standard | `PlayLists` | Array |
-| Unplanned | Standard | `PlaySodaInfoData` | Array |
-| Unplanned | Standard | `StageClearHistorys` | Array |
-| Unplanned | Standard | `StickerList` | Array |
+All top-level `db.json` user keys have now been assigned to target designs (legacy `FieldInfo` is intentionally dropped as unused backwards-compatibility data). No `Unplanned` keys remain.
 
 ## Migration path and rollback
 
@@ -132,3 +86,5 @@ Before SQLite accepts writes after cutover, rollback can restore the backed-up J
 | 2026-11-15 | Planned all 50 `Lobby-critical` user keys into relational table designs using `../save-data/db.json`, `../save-data/epinelps.db`, `UserModel.cs`, `DbModels.cs`, and protobuf definitions. | All 50 `Lobby-critical` keys moved to `Planned` in `database-design.md` and tracker. |
 | 2026-11-16 | Implemented all 12 `Lobby-critical` table groups, EF Core migration `AddLobbyCriticalTables`, `LobbyUserStore` runtime read/write cutover, `TowerHelper.cs` `GameContext.Triggers` cutover, `[JsonIgnore]` on migrated `User` properties, and `EpinelPS.DBMigration` support (with `--contract` option). | Runtime cutover complete for all `Lobby-critical` tables; `Secondary` and `Unplanned` tables remain on `db.json`. |
 | 2026-11-16 | Refactored `GameContext` to use standard EF Core `IEntityTypeConfiguration<T>` classes under `EpinelPS/Database/Configurations/` via `ApplyConfigurationsFromAssembly`, removing `GameContext.LobbyPart1.cs` and `GameContext.LobbyPart2.cs`. | Verified build and zero pending model changes (`dotnet ef migrations has-pending-model-changes`). |
+| 2026-11-16 | Planned minigame state (`UserMinigames`) and non-TTS leaderboard (`MiniGameLeaderboards`) designs in `database-design.md`, moved all 19 minigame keys to `Planned` (`Secondary`), and removed duplicate `SoloRaidData`/`SoloRaidMuseumData` entries from `Unplanned`. | Design documented; implementation pending. |
+| 2026-11-16 | Planned all remaining 21 `Unplanned` keys (`Users` point/guild columns, `UserFieldMaps`, `UserSubQuests`, `UserStageClearHistory`, `UserClearedOutpostScenarios`, `UserTacticAcademyLessons`, `UserUnlockedCosmetics` extension, `UserLobbyPrivateBanners`, `UserJukeboxPlaylists`, `UserCharacterWishlists`, `UserMails`, `UserMessengerRepairHistory`; legacy `FieldInfo` dropped). | All `db.json` keys planned; 0 `Unplanned` keys remain. |
