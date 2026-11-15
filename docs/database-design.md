@@ -572,6 +572,313 @@ Awakening state belongs to an item instance and is matched by its `Isn`. The run
 
 The protocol has exactly three option slots, read and updated together, so fixed columns avoid a child table and joins. Resolve each awakening's `Isn` to its item row during migration; preserve or reconcile orphan awakenings explicitly rather than dropping them.
 
+## Lobby-critical user data
+
+The following sections specify relational tables for the 50 `Lobby-critical` user keys read during initial login → `User/Get` → lobby hydration, verified against `../save-data/db.json` and `UserModel.cs` / `DbModels.cs` / protobuf models. All user-owned tables use 26-character ULID `Id` primary keys and `UserId` (`ulong`, 64-bit integer) foreign keys to `Users.ID`.
+
+### Currency and progress unlocks
+
+#### UserCurrencies
+
+One row per `(UserId, CurrencyType)` pair (`Users[*].Currency`).
+
+| Column | Type | Constraints | Source |
+|---|---|---|---|
+| `Id` | ULID (26-character string) | Primary key | New identifier |
+| `UserId` | Integer (64-bit) | Not null; foreign key to `Users.ID` | `Users[*].ID` |
+| `CurrencyType` | Integer | Not null; unique with `UserId` | `Currency` map key (`CurrencyType` enum) |
+| `Amount` | Integer (64-bit) | Not null | `Currency[CurrencyType]` |
+
+Unique constraint: (`UserId`, `CurrencyType`).
+
+#### UserMainQuests
+
+One row per main quest entry (`Users[*].MainQuestData`).
+
+| Column | Type | Constraints | Source |
+|---|---|---|---|
+| `Id` | ULID (26-character string) | Primary key | New identifier |
+| `UserId` | Integer (64-bit) | Not null; foreign key to `Users.ID` | `Users[*].ID` |
+| `QuestTid` | Integer | Not null; unique with `UserId` | `MainQuestData` map key |
+| `ReceivedReward` | Boolean | Not null | `MainQuestData[QuestTid]` |
+
+Unique constraint: (`UserId`, `QuestTid`).
+
+#### UserTowerProgress
+
+One row per corporation tower (`Users[*].TowerProgress`).
+
+| Column | Type | Constraints | Source |
+|---|---|---|---|
+| `Id` | ULID (26-character string) | Primary key | New identifier |
+| `UserId` | Integer (64-bit) | Not null; foreign key to `Users.ID` | `Users[*].ID` |
+| `CorporationType` | Integer | Not null; unique with `UserId` | `TowerProgress` map key (`CorporationTowerType` enum) |
+| `ClearedFloor` | Integer | Not null | `TowerProgress[CorporationType]` |
+
+Unique constraint: (`UserId`, `CorporationType`).
+
+#### UserClearedTutorials
+
+One row per cleared tutorial group (`Users[*].ClearedTutorialDataNew`).
+
+| Column | Type | Constraints | Source |
+|---|---|---|---|
+| `Id` | ULID (26-character string) | Primary key | New identifier |
+| `UserId` | Integer (64-bit) | Not null; foreign key to `Users.ID` | `Users[*].ID` |
+| `TutorialGroupId` | Integer | Not null; unique with `UserId` | `ClearedTutorialDataNew` map key |
+| `TutorialId` | Integer | Not null | `ClearedTutorialData.Id` |
+| `VersionGroup` | Integer | Not null | `ClearedTutorialData.VersionGroup` |
+
+Unique constraint: (`UserId`, `TutorialGroupId`).
+
+#### UserContentsUnlocks
+
+One row per unlocked content entry (`Users[*].ContentsOpenUnlocked`).
+
+| Column | Type | Constraints | Source |
+|---|---|---|---|
+| `Id` | ULID (26-character string) | Primary key | New identifier |
+| `UserId` | Integer (64-bit) | Not null; foreign key to `Users.ID` | `Users[*].ID` |
+| `ContentsOpenId` | Integer | Not null; unique with `UserId` | `ContentsOpenUnlocked` map key |
+| `ButtonAnimationPlayed` | Boolean | Not null | `UnlockData.ButtonAnimationPlayed` |
+| `PopupAnimationPlayed` | Boolean | Not null | `UnlockData.PopupAnimationPlayed` |
+
+Unique constraint: (`UserId`, `ContentsOpenId`).
+
+#### UserViewedNoticePopups
+
+One row per viewed notice popup (`Users[*].ViewedNoticePopupTableIds`).
+
+| Column | Type | Constraints | Source |
+|---|---|---|---|
+| `Id` | ULID (26-character string) | Primary key | New identifier |
+| `UserId` | Integer (64-bit) | Not null; foreign key to `Users.ID` | `Users[*].ID` |
+| `CategoryId` | Integer | Not null | `ViewedNoticePopupTableIds` map key |
+| `NoticePopupTableId` | Integer | Not null | `ViewedNoticePopupTableIds[CategoryId][*]` |
+
+Unique constraint: (`UserId`, `CategoryId`, `NoticePopupTableId`).
+
+### Daily and weekly reset state
+
+#### UserResetStates
+
+One row per user combining scalar fields from `ResetableData` and `WeeklyResetableData`. `SimRoomData` (secondary mode state) is stored as JSON in `SimRoomStateJson` until Simulation Room is decomposed separately.
+
+| Column | Type | Constraints | Source |
+|---|---|---|---|
+| `Id` | ULID (26-character string) | Primary key | New identifier |
+| `UserId` | Integer (64-bit) | Not null; unique; foreign key to `Users.ID` | `Users[*].ID` |
+| `WipeoutCount` | Integer | Not null; default `0` | `ResetableData.WipeoutCount` |
+| `ClearedSimulationRoom` | Boolean | Not null; default `false` | `ResetableData.ClearedSimulationRoom` |
+| `InterceptionTickets` | Integer | Not null; default `3` | `ResetableData.InterceptionTickets` |
+| `DailyMissionPoints` | Integer | Not null; default `0` | `ResetableData.DailyMissionPoints` |
+| `DispatchCount` | Integer | Not null; default `0` | `ResetableData.DispatchCount` |
+| `WeeklyMissionPoints` | Integer | Not null; default `0` | `WeeklyResetableData.WeeklyMissionPoints` |
+| `SimRoomStateJson` | Text | Not null | Serialized `ResetableData.SimRoomData` |
+
+#### UserCompletedDailyMissions and UserCompletedWeeklyMissions
+
+One row per completed mission ID in `ResetableData.CompletedDailyMissions` and `WeeklyResetableData.CompletedWeeklyMissions`.
+
+- `UserCompletedDailyMissions`: `Id` (ULID PK), `UserId` (FK), `MissionId` (Integer, not null). Unique: (`UserId`, `MissionId`).
+- `UserCompletedWeeklyMissions`: `Id` (ULID PK), `UserId` (FK), `MissionId` (Integer, not null). Unique: (`UserId`, `MissionId`).
+
+#### UserDailyTowerCounts
+
+One row per corporation tower daily count (`ResetableData.TowerCount`).
+
+| Column | Type | Constraints | Source |
+|---|---|---|---|
+| `Id` | ULID (26-character string) | Primary key | New identifier |
+| `UserId` | Integer (64-bit) | Not null; foreign key to `Users.ID` | `Users[*].ID` |
+| `CorporationType` | Integer | Not null; unique with `UserId` | `TowerCount` map key (`CorporationTowerType`) |
+| `UsedCount` | Integer | Not null | `TowerCount[CorporationType]` |
+
+Unique constraint: (`UserId`, `CorporationType`).
+
+#### UserDailyCounselCounts
+
+One row per entry in `ResetableData.DailyCounselCount`.
+
+| Column | Type | Constraints | Source |
+|---|---|---|---|
+| `Id` | ULID (26-character string) | Primary key | New identifier |
+| `UserId` | Integer (64-bit) | Not null; foreign key to `Users.ID` | `Users[*].ID` |
+| `KeyId` | Integer | Not null; unique with `UserId` | `DailyCounselCount` map key |
+| `Count` | Integer | Not null | `DailyCounselCount[KeyId]` |
+
+Unique constraint: (`UserId`, `KeyId`).
+
+### Teams and representation
+
+#### UserTeamGroups
+
+One row per team type (`Users[*].UserTeams`).
+
+| Column | Type | Constraints | Source |
+|---|---|---|---|
+| `Id` | ULID (26-character string) | Primary key | New identifier |
+| `UserId` | Integer (64-bit) | Not null; foreign key to `Users.ID` | `Users[*].ID` |
+| `TeamType` | Integer | Not null; unique with `UserId` | `UserTeams` map key / `NetUserTeamData.Type` |
+| `LastContentsTeamNumber` | Integer | Not null | `NetUserTeamData.LastContentsTeamNumber` |
+
+Unique constraint: (`UserId`, `TeamType`).
+
+#### UserTeamSlots
+
+One row per slot in `NetUserTeamData.Teams[*].Slots[*]`.
+
+| Column | Type | Constraints | Source |
+|---|---|---|---|
+| `Id` | ULID (26-character string) | Primary key | New identifier |
+| `UserId` | Integer (64-bit) | Not null; foreign key to `Users.ID` | `Users[*].ID` |
+| `TeamGroupId` | ULID (26-character string) | Not null; foreign key to `UserTeamGroups.Id` | Parent team group |
+| `TeamNumber` | Integer | Not null | `NetTeamData.TeamNumber` |
+| `Slot` | Integer | Not null | `NetTeamSlot.Slot` |
+| `Value` | Integer (64-bit) | Not null | `NetTeamSlot.Value` |
+| `ValueType` | Integer | Not null | `NetTeamSlot.ValueType` |
+
+Unique constraint: (`TeamGroupId`, `TeamNumber`, `Slot`).
+
+#### UserRepresentationTeamSlots
+
+One row per slot in `Users[*].RepresentationTeamDataNew` (ordered array of character `Csn`s).
+
+| Column | Type | Constraints | Source |
+|---|---|---|---|
+| `Id` | ULID (26-character string) | Primary key | New identifier |
+| `UserId` | Integer (64-bit) | Not null; foreign key to `Users.ID` | `Users[*].ID` |
+| `Slot` | Integer | Not null; unique with `UserId` | Array index (0-based) |
+| `CharacterCsn` | Integer (64-bit) | Not null | `RepresentationTeamDataNew[Slot]` |
+
+Unique constraint: (`UserId`, `Slot`).
+
+### Profile, cosmetics, wallpapers, and lobby music
+
+#### UserProfileCardDecorations and UserProfileCardStickers
+
+One 1:1 row per user for `ProfileCardDecoration` and child rows for `StickerPlacements`.
+
+- `UserProfileCardDecorations`: `Id` (ULID PK), `UserId` (unique FK), `ShowCharacterSpine` (Boolean, not null), `BackgroundId` (Integer, not null).
+- `UserProfileCardStickers`: `Id` (ULID PK), `UserId` (FK), `Position` (Integer, not null; array index), `StickerId` (Integer, not null), `Layer` (Integer, not null), `NormalizedX` (Float/Real, not null), `NormalizedY` (Float/Real, not null), `RotationRadian` (Float/Real, not null), `Scale` (Float/Real, not null). Unique: (`UserId`, `Position`).
+
+#### UserUnlockedCosmetics
+
+Unified unlock set for `CostumeList`, `FrameList`, `TitleList`, `ProfileCardsData`, and `Memorial`. Avoids five identical `(UserId, ItemId)` tables; can also absorb `Standard` cosmetic lists (`BackgroundList`, `IconList`, `StickerList`, `JukeboxThemeList`, `LiveWallpaperList`, `LobbyDecoBackgroundList`) later without schema changes.
+
+| Column | Type | Constraints | Source |
+|---|---|---|---|
+| `Id` | ULID (26-character string) | Primary key | New identifier |
+| `UserId` | Integer (64-bit) | Not null; foreign key to `Users.ID` | `Users[*].ID` |
+| `Category` | String | Not null | `"Costume"`, `"Frame"`, `"Title"`, `"ProfileCard"`, `"Memorial"` |
+| `CosmeticId` | Integer | Not null | Element value in the corresponding list |
+
+Unique constraint: (`UserId`, `Category`, `CosmeticId`).
+
+#### UserJukeboxSettings
+
+One row per `(UserId, Location)` covering `LobbyMusic` (`Location = 1`) and `CommanderMusic` (`Location = 0`).
+
+| Column | Type | Constraints | Source |
+|---|---|---|---|
+| `Id` | ULID (26-character string) | Primary key | New identifier |
+| `UserId` | Integer (64-bit) | Not null; foreign key to `Users.ID` | `Users[*].ID` |
+| `Location` | Integer | Not null; unique with `UserId` | `JukeBoxSetting.Location` (`NetJukeboxLocation`) |
+| `BgmType` | Integer | Not null | `JukeBoxSetting.Type` (`NetJukeboxBgmType`) |
+| `TableId` | Integer | Not null | `JukeBoxSetting.TableId` |
+| `IsShuffle` | Boolean | Not null | `JukeBoxSetting.IsShuffle` |
+
+Unique constraint: (`UserId`, `Location`).
+
+#### UserClaimedJukeboxRewards
+
+One row per claimed trigger ID in `Users[*].ClaimedJukeboxRewardTriggers`.
+
+| Column | Type | Constraints | Source |
+|---|---|---|---|
+| `Id` | ULID (26-character string) | Primary key | New identifier |
+| `UserId` | Integer (64-bit) | Not null; foreign key to `Users.ID` | `Users[*].ID` |
+| `TriggerId` | Integer | Not null; unique with `UserId` | `ClaimedJukeboxRewardTriggers[*]` |
+
+Unique constraint: (`UserId`, `TriggerId`).
+
+#### Wallpaper configuration tables
+
+Each wallpaper array is keyed by `(UserId, OrderIndex)` where `OrderIndex` is the proto `Order` field.
+
+- **`UserWallpaperSlots`** (`WallpaperList`): `Id` (ULID PK), `UserId` (FK), `OrderIndex` (Integer), `Type` (Integer, `LiveWallpaperType`), `WallpaperId` (Integer, `Id`), `UseCharacterBackground` (Boolean). Unique: (`UserId`, `OrderIndex`).
+- **`UserWallpaperBackgrounds`** (`WallpaperBackground`): `Id` (ULID PK), `UserId` (FK), `OrderIndex` (Integer), `LobbyDecoBackgroundId` (Integer). Unique: (`UserId`, `OrderIndex`).
+- **`UserWallpaperJukeboxes`** (`WallpaperJukeboxList`): `Id` (ULID PK), `UserId` (FK), `OrderIndex` (Integer), `JukeboxListTableId` (Integer). Unique: (`UserId`, `OrderIndex`).
+- **`UserWallpaperFavorites`** (`WallpaperFavoriteList`): `Id` (ULID PK), `UserId` (FK), `OrderIndex` (Integer), `IsShuffled` (Boolean). Unique: (`UserId`, `OrderIndex`).
+- **`UserWallpaperPlaylists`** (`WallpaperPlaylistList`): `Id` (ULID PK), `UserId` (FK), `OrderIndex` (Integer), `PlaylistUId` (Integer 64-bit), `IsShuffled` (Boolean). Unique: (`UserId`, `OrderIndex`).
+
+### Gacha, normal shop, and passes
+
+#### Gacha per-banner and free-pull tables
+
+- **`UserGachaBannerPulls`** (`GachaBannerMaxPulls`): `Id` (ULID PK), `UserId` (FK), `BannerId` (Integer), `MaxPulls` (Integer). Unique: (`UserId`, `BannerId`). Preserve the startup compatibility conversion from legacy `GachaTutorialPlayCount` during migration.
+- **`UserGachaPityCounts`** (`GachaPityBannerExecuteCount`): `Id` (ULID PK), `UserId` (FK), `BannerId` (Integer), `ExecuteCount` (Integer). Unique: (`UserId`, `BannerId`).
+- **`UserGachaSelectupChoices`** (`GachaSelectupChoices`): `Id` (ULID PK), `UserId` (FK), `BannerId` (Integer), `CharacterTid` (Integer). Unique: (`UserId`, `BannerId`).
+- **`UserGachaDailyFreePulls`** (`GachaDailyFreePulls`): `Id` (ULID PK), `UserId` (FK), `GachaId` (Integer). Unique: (`UserId`, `GachaId`).
+
+#### UserGachaPaybacks and UserGachaPaybackRewards
+
+- **`UserGachaPaybacks`** (`GachaPaybackData`): `Id` (ULID PK), `UserId` (FK), `GachaId` (Integer), `GachaCount` (Integer). Unique: (`UserId`, `GachaId`).
+- **`UserGachaPaybackRewards`** (`GachaPaybackData.RewardedStepList`): `Id` (ULID PK), `UserId` (FK), `PaybackId` (ULID FK to `UserGachaPaybacks.Id`), `StepId` (Integer). Unique: (`PaybackId`, `StepId`).
+
+#### UserNormalShopStates, UserNormalShopOrders, and UserNormalShopPinnedBuys
+
+Normalizes `Users[*].NormalShopStates` (keyed by `ShopCategory`).
+
+- **`UserNormalShopStates`**: `Id` (ULID PK), `UserId` (FK), `ShopCategory` (Integer), `RenewCount` (Integer), `RenewAt` (Integer 64-bit ticks), `NextRenewAt` (Integer 64-bit ticks). Unique: (`UserId`, `ShopCategory`).
+- **`UserNormalShopOrders`**: `Id` (ULID PK), `UserId` (FK), `ShopStateId` (ULID FK), `OrderIndex` (Integer), `ProductId` (Integer, from `ProductIdsByOrder`), `BuyCount` (Integer, from `BuyCountsByOrder`, default `0`). Unique: (`ShopStateId`, `OrderIndex`).
+- **`UserNormalShopPinnedBuys`**: `Id` (ULID PK), `UserId` (FK), `ShopStateId` (ULID FK), `ProductId` (Integer, key of `PinnedBuyCounts`), `BuyCount` (Integer). Unique: (`ShopStateId`, `ProductId`).
+
+#### UserPasses, UserPassRanks, and UserPassMissions
+
+Normalizes `Users[*].UserPassInfo` (keyed by `PassId`).
+
+- **`UserPasses`**: `Id` (ULID PK), `UserId` (FK), `PassId` (Integer), `PassPoint` (Integer), `PassSkipCount` (Integer), `PremiumActive` (Boolean), `LastCompleteAt` (String, not null, default `""`). Unique: (`UserId`, `PassId`).
+- **`UserPassRanks`**: `Id` (ULID PK), `UserId` (FK), `UserPassId` (ULID FK), `PassRank` (Integer), `IsNormalRewarded` (Boolean), `IsPremiumRewarded` (Boolean). Unique: (`UserPassId`, `PassRank`).
+- **`UserPassMissions`**: `Id` (ULID PK), `UserId` (FK), `UserPassId` (ULID FK), `PassMissionId` (Integer), `IsComplete` (Boolean). Unique: (`UserPassId`, `PassMissionId`).
+
+### Events and login events
+
+- **`UserEvents`** (`EventInfo`): `Id` (ULID PK), `UserId` (FK), `EventId` (Integer), `Diff` (Integer), `LastStage` (Integer), `LastDay` (Integer), `FreeTicket` (Integer). Unique: (`UserId`, `EventId`).
+- **`UserEventCompletedScenarios`** (`EventInfo[*].CompletedScenarios`): `Id` (ULID PK), `UserId` (FK), `UserEventId` (ULID FK), `ScenarioId` (String). Unique: (`UserEventId`, `ScenarioId`).
+- **`UserEventClearedStages`** (`EventInfo[*].ClearedStages`): `Id` (ULID PK), `UserId` (FK), `UserEventId` (ULID FK), `StageId` (Integer). Unique: (`UserEventId`, `StageId`).
+- **`UserLoginEvents`** (`LoginEventInfo`): `Id` (ULID PK), `UserId` (FK), `EventId` (Integer), `LastDay` (Integer), `LastDate` (Integer 64-bit). Unique: (`UserId`, `EventId`).
+- **`UserLoginEventDays`** (`LoginEventInfo[*].Days`): `Id` (ULID PK), `UserId` (FK), `UserLoginEventId` (ULID FK), `Day` (Integer). Unique: (`UserLoginEventId`, `Day`).
+- **`UserEventMissions`** (`EventMissionInfo`): `Id` (ULID PK), `UserId` (FK), `EventId` (Integer), `LastDay` (Integer), `LastDate` (Integer 64-bit), `AllClear` (Boolean). Unique: (`UserId`, `EventId`).
+- **`UserEventMissionEntries`** (`EventMissionInfo[*].MissionIdList` / `DailyMissionIdList`): `Id` (ULID PK), `UserId` (FK), `UserEventMissionId` (ULID FK), `IsDaily` (Boolean), `MissionId` (Integer). Unique: (`UserEventMissionId`, `IsDaily`, `MissionId`).
+- **`UserEventShopBuys`** (`EventShopBuyCountInfo`): `Id` (ULID PK), `UserId` (FK), `EventId` (Integer), `ProductTid` (Integer), `BuyCount` (Integer). Unique: (`UserId`, `EventId`, `ProductTid`).
+
+### Bonds, favorite items, and liberation
+
+- **`UserBonds`** (`BondInfo`): `Id` (ULID PK), `UserId` (FK), `NameCode` (Integer), `Lv` (Integer), `Exp` (Integer), `CanCounselToday` (Boolean), `IsFavorites` (Boolean), `CounseledCount` (Integer), `CompleteRewardStatus` (Integer). Unique: (`UserId`, `NameCode`).
+- **`UserBondProgressItems`** (`BondInfo[*].FlushableWatchedDialogIds`, `ObtainedRewardLevels`, `CounselDialogCompleteIds`): `Id` (ULID PK), `UserId` (FK), `BondId` (ULID FK to `UserBonds.Id`), `Kind` (String: `"FlushableWatchedDialog"`, `"ObtainedRewardLevel"`, `"CounselDialogComplete"`), `ItemId` (Integer). Unique: (`BondId`, `Kind`, `ItemId`).
+- **`UserFavoriteItems`** (`FavoriteItems`): `Id` (ULID PK), `UserId` (FK), `FavoriteItemId` (Integer 64-bit), `Tid` (Integer), `Csn` (Integer 64-bit), `Lv` (Integer), `Exp` (Integer). Unique: (`UserId`, `FavoriteItemId`).
+- **`UserFavoriteItemQuests`** (`FavoriteItemQuests`): `Id` (ULID PK), `UserId` (FK), `QuestId` (Integer), `Clear` (Boolean), `Received` (Boolean). Unique: (`UserId`, `QuestId`).
+- **`UserLiberations`** (`LiberateDatas`): `Id` (ULID PK), `UserId` (FK), `CharacterId` (Integer), `Step` (Integer), `ProgressPoint` (Integer), `RewardedCount` (Integer), `IsCompleted` (Boolean). Unique: (`UserId`, `CharacterId`).
+- **`UserLiberationMissions`** (`LiberateDatas[*].MissionData`): `Id` (ULID PK), `UserId` (FK), `LiberationId` (ULID FK), `MissionId` (Integer 64-bit), `MissionTid` (Integer), `LiberateCharacterId` (Integer), `MissionState` (Integer), `CreatedAt` (Integer 64-bit), `TriggerStartAt` (Integer 64-bit), `TriggerEndAt` (Integer 64-bit), `ReceivedAt` (Integer 64-bit). Unique: (`LiberationId`, `MissionId`).
+- **`UserOpenLiberateTypes`** (`OpenLiberateTypeIdList`): `Id` (ULID PK), `UserId` (FK), `LiberateTypeId` (Integer). Unique: (`UserId`, `LiberateTypeId`).
+
+### Messenger, badges, and triggers
+
+- **`UserMessages`** (`MessengerData`): `Id` (ULID PK), `UserId` (FK), `Seq` (Integer 64-bit), `ConversationId` (String), `MessageId` (String), `CreatedAt` (Integer 64-bit ticks), `State` (Integer). Unique: (`UserId`, `Seq`).
+- **`UserPickedMessages`** (`PickedMessages`): `Id` (ULID PK), `UserId` (FK), `ConversationId` (String), `CreatedAtSeconds` (Integer 64-bit), `CreatedAtNanos` (Integer). Unique: (`UserId`, `ConversationId`).
+- **`UserBadges`** (`Badges`): `Id` (ULID PK), `UserId` (FK), `Seq` (Integer 64-bit), `Location` (String), `BadgeContent` (Integer, `BadgeContents` enum), `BadgeGuid` (String). Unique: (`UserId`, `Seq`).
+- **`Triggers`** (existing SQLite table `TriggerModelNew`): `Id` (Integer 64-bit PK), `UserId` (FK), `Type` (Integer, `Trigger` enum), `CreatedAt` (Integer 64-bit ticks), `ConditionId` (Integer), `Value` (Integer). Most handlers already read/write `GameContext.Triggers`; `TowerHelper.cs` still reads the `[Obsolete]` `user.Triggers` JSON list and must be cut over to `GameContext.Triggers` before removing `Triggers` from `db.json`.
+
+### Achievements, side story, archive, and Lost Sector
+
+- **`UserCompletedAchievements`** (`CompletedAchievements`): `Id` (ULID PK), `UserId` (FK), `AchievementId` (Integer). Unique: (`UserId`, `AchievementId`).
+- **`UserSideStoryStages`** (`CompletedSideStoryStages` + `ViewedSideStoryStages`): `Id` (ULID PK), `UserId` (FK), `StageId` (Integer), `IsCompleted` (Boolean), `IsViewed` (Boolean). Unique: (`UserId`, `StageId`).
+- **`UserArchiveUnlocks`** (`UnlockedArchiveRecordIds` + `UnlockedArchiveEventQuestIds`): `Id` (ULID PK), `UserId` (FK), `Kind` (String: `"Record"`, `"EventQuest"`), `TargetId` (Integer). Unique: (`UserId`, `Kind`, `TargetId`).
+- **`UserLostSectors`** (`LostSectorData`): `Id` (ULID PK), `UserId` (FK), `SectorId` (Integer), `IsOpen` (Boolean), `IsPlaying` (Boolean), `StateJson` (Text, `LostSectorData.Json`), `TeamPositionsJson` (Text, serialized `LostSectorData.TeamPositions`), `ObtainedRewards` (Integer), `ReceivedFinalReward` (Boolean), `CompletedPerfectly` (Boolean). Unique: (`UserId`, `SectorId`).
+- **`UserLostSectorClearedStages`** (`LostSectorData[*].ClearedStages`): `Id` (ULID PK), `UserId` (FK), `LostSectorId` (ULID FK), `StageKey` (String), `ClearState` (Integer). Unique: (`LostSectorId`, `StageKey`).
+- **`UserLostSectorObjects`** (`LostSectorData[*].Objects`): `Id` (ULID PK), `UserId` (FK), `LostSectorId` (ULID FK), `ObjectKey` (String), `ActionAt` (Integer 64-bit), `Type` (Integer), `PositionId` (String), `Json` (Text), `TeamPositionsJson` (Text). Unique: (`LostSectorId`, `ObjectKey`).
+
 ## User JSON key inventory
 
 Observed from the Release publish `data/db.json` copy (1 user record). This lists the remaining top-level keys not yet assigned to relational columns or tables. Keys assigned to `UserBans`, `Users`, and `SdkUsers` above are omitted. Object and array contents are not expanded. Keys are grouped by observed JSON shape.
@@ -584,39 +891,20 @@ Observed from the Release publish `data/db.json` copy (1 user record). This list
 | `BBQInfoData` | Object |
 | `BtgData` | Object |
 | `BubbleMarchDatas` | Object |
-| `ClearedTutorialDataNew` | Object |
-| `CommanderMusic` | Object |
-| `ContentsOpenUnlocked` | Object |
-| `Currency` | Object |
 | `DDRDatas` | Object |
 | `DessertRushData` | Object |
-| `EventInfo` | Object |
-| `EventMissionInfo` | Object |
-| `EventShopBuyCountInfo` | Object |
 | `FavoriteSongs` | Object |
 | `FieldInfo` | Object |
 | `FieldInfoNew` | Object |
-| `GachaBannerMaxPulls` | Object |
-| `GachaPaybackData` | Object |
-| `GachaPityBannerExecuteCount` | Object |
-| `GachaSelectupChoices` | Object |
 | `Guild` | Object |
 | `IsLandBreakerDatas` | Object |
-| `LiberateDatas` | Object |
-| `LobbyMusic` | Object |
-| `LoginEventInfo` | Object |
-| `LostSectorData` | Object |
 | `MailDatas` | Object |
-| `MainQuestData` | Object |
 | `MiniGameAzxInfo` | Object |
 | `MiniGameScenarios` | Object |
 | `MiniGameStoryChoice` | Object |
 | `Nksv2Datas` | Object |
-| `NormalShopStates` | Object |
 | `PirateCafeData` | Object |
-| `ProfileCardDecoration` | Object |
 | `RebuildEdenDatas` | Object |
-| `ResetableData` | Object |
 | `SoloRaidData` | Object |
 | `SoloRaidMuseumData` | Object |
 | `SortOutData` | Object |
@@ -624,14 +912,7 @@ Observed from the Release publish `data/db.json` copy (1 user record). This list
 | `SubQuestData` | Object |
 | `TTSGameData` | Object |
 | `TowerDefenseDatas` | Object |
-| `TowerProgress` | Object |
-| `UserPassInfo` | Object |
-| `UserTeams` | Object |
-| `ViewedNoticePopupTableIds` | Object |
-| `WeeklyResetableData` | Object |
 | `userPointData` | Object |
-
-When designing/migrating `GachaBannerMaxPulls`, preserve the startup compatibility conversion from legacy `GachaTutorialPlayCount`: if this map is empty and the legacy count is positive, derive the tutorial and premium counts as `JsonDb.ValidateDb` currently does. The Release sample count is `0`; do not add a persistent column for the legacy counter.
 
 ### Top-level array keys
 
@@ -639,43 +920,17 @@ When designing/migrating `GachaBannerMaxPulls`, preserve the startup compatibili
 |---|---|
 | `ArcadePlaySodaInfoList` | Array |
 | `BackgroundList` | Array |
-| `Badges` | Array |
-| `BondInfo` | Array |
 | `CharacterWishlist` | Array |
-| `ClaimedJukeboxRewardTriggers` | Array |
 | `ClearedOutpostScenarioIds` | Array |
-| `CompletedAchievements` | Array |
-| `CompletedSideStoryStages` | Array |
 | `CompletedTacticAcademyLessons` | Array |
-| `CostumeList` | Array |
-| `FavoriteItemQuests` | Array |
-| `FavoriteItems` | Array |
-| `FrameList` | Array |
-| `GachaDailyFreePulls` | Array |
 | `IconList` | Array |
 | `JukeboxBgm` | Array |
 | `JukeboxThemeList` | Array |
 | `LiveWallpaperList` | Array |
 | `LobbyDecoBackgroundList` | Array |
 | `LobbyPrivateBannerIds` | Array |
-| `Memorial` | Array |
-| `MessengerData` | Array |
 | `MessengerRepairHistory` | Array |
-| `OpenLiberateTypeIdList` | Array |
-| `PickedMessages` | Array |
 | `PlayLists` | Array |
 | `PlaySodaInfoData` | Array |
-| `ProfileCardsData` | Array |
-| `RepresentationTeamDataNew` | Array |
 | `StageClearHistorys` | Array |
 | `StickerList` | Array |
-| `TitleList` | Array |
-| `Triggers` | Array |
-| `UnlockedArchiveEventQuestIds` | Array |
-| `UnlockedArchiveRecordIds` | Array |
-| `ViewedSideStoryStages` | Array |
-| `WallpaperBackground` | Array |
-| `WallpaperFavoriteList` | Array |
-| `WallpaperJukeboxList` | Array |
-| `WallpaperList` | Array |
-| `WallpaperPlaylistList` | Array |

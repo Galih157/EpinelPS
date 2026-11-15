@@ -38,6 +38,15 @@ Priority order reflects the live login-to-lobby load sequence:
 | Planned | Lobby-critical | `Items`, `ItemCharacterAssignments`, `Characters`, `EquipmentAwakenings` | Corresponding owned inventory and character state (`inventory/get`, `character/get`, `character/costume/get`) |
 | Planned | Lobby-critical | `Outposts`, `DispatchClearItems`, `SelectableDispatches`, `Dispatches`, `InfraCoreRewards`, `SynchroSlots`, `ResearchProgress`, `OutpostBuildings` | Dispatch, Infra, and Synchro state (`outpost/dispatch/get`, `character/synchrodevice/get`, `outpost/recycleroom/get`, `User/Get`) |
 | Planned | Lobby-critical | `UserCompletedScenarios` | `CompletedScenarios` (`user/scenario/exist`) |
+| Planned | Lobby-critical | `UserCurrencies`, `UserMainQuests`, `UserTowerProgress`, `UserClearedTutorials`, `UserContentsUnlocks`, `UserViewedNoticePopups` | `Currency`, `MainQuestData`, `TowerProgress`, `ClearedTutorialDataNew`, `ContentsOpenUnlocked`, `ViewedNoticePopupTableIds` |
+| Planned | Lobby-critical | `UserResetStates`, `UserCompletedDailyMissions`, `UserCompletedWeeklyMissions`, `UserDailyTowerCounts`, `UserDailyCounselCounts` | `ResetableData`, `WeeklyResetableData` |
+| Planned | Lobby-critical | `UserTeamGroups`, `UserTeamSlots`, `UserRepresentationTeamSlots` | `UserTeams`, `RepresentationTeamDataNew` |
+| Planned | Lobby-critical | `UserProfileCardDecorations`, `UserProfileCardStickers`, `UserUnlockedCosmetics`, `UserJukeboxSettings`, `UserClaimedJukeboxRewards`, `UserWallpaperSlots`, `UserWallpaperBackgrounds`, `UserWallpaperJukeboxes`, `UserWallpaperFavorites`, `UserWallpaperPlaylists` | `ProfileCardDecoration`, `CostumeList`, `FrameList`, `TitleList`, `ProfileCardsData`, `Memorial`, `LobbyMusic`, `CommanderMusic`, `ClaimedJukeboxRewardTriggers`, `WallpaperList`, `WallpaperBackground`, `WallpaperJukeboxList`, `WallpaperFavoriteList`, `WallpaperPlaylistList` |
+| Planned | Lobby-critical | `UserGachaBannerPulls`, `UserGachaPityCounts`, `UserGachaSelectupChoices`, `UserGachaDailyFreePulls`, `UserGachaPaybacks`, `UserGachaPaybackRewards`, `UserNormalShopStates`, `UserNormalShopOrders`, `UserNormalShopPinnedBuys`, `UserPasses`, `UserPassRanks`, `UserPassMissions` | `GachaBannerMaxPulls` (incl. `GachaTutorialPlayCount` compatibility), `GachaPityBannerExecuteCount`, `GachaSelectupChoices`, `GachaDailyFreePulls`, `GachaPaybackData`, `NormalShopStates`, `UserPassInfo` |
+| Planned | Lobby-critical | `UserEvents`, `UserEventCompletedScenarios`, `UserEventClearedStages`, `UserLoginEvents`, `UserLoginEventDays`, `UserEventMissions`, `UserEventMissionEntries`, `UserEventShopBuys` | `EventInfo`, `LoginEventInfo`, `EventMissionInfo`, `EventShopBuyCountInfo` |
+| Planned | Lobby-critical | `UserBonds`, `UserBondProgressItems`, `UserFavoriteItems`, `UserFavoriteItemQuests`, `UserLiberations`, `UserLiberationMissions`, `UserOpenLiberateTypes` | `BondInfo`, `FavoriteItems`, `FavoriteItemQuests`, `LiberateDatas`, `OpenLiberateTypeIdList` |
+| Planned | Lobby-critical | `UserMessages`, `UserPickedMessages`, `UserBadges`, `Triggers` | `MessengerData`, `PickedMessages`, `Badges`, `Triggers` (existing SQLite table; `TowerHelper.cs` cutover pending) |
+| Planned | Lobby-critical | `UserCompletedAchievements`, `UserSideStoryStages`, `UserArchiveUnlocks`, `UserLostSectors`, `UserLostSectorClearedStages`, `UserLostSectorObjects` | `CompletedAchievements`, `CompletedSideStoryStages`, `ViewedSideStoryStages`, `UnlockedArchiveRecordIds`, `UnlockedArchiveEventQuestIds`, `LostSectorData` |
 | Planned | Secondary | `SoloRaids`, `SoloRaidLevels`, `SoloRaidLogs`, `SoloRaidLogCharacters` | `SoloRaidData` (`soloraid/getperiod` / Solo Raid mode) |
 | Planned | Secondary | `SoloRaidMuseumStages`, `SoloRaidMuseumModes`, `SoloRaidMuseumMissionClaims`, `SoloRaidMuseumTeams`, `SoloRaidMuseumTeamSlots`, `SoloRaidMuseumOpenTeams`, `SoloRaidMuseumLogs`, `SoloRaidMuseumLogCharacters` | `SoloRaidMuseumData` |
 | Planned | Secondary | `UserMapStates` | `MapJson` |
@@ -57,39 +66,20 @@ These are the keys still in the JSON inventory without target designs. They rema
 | Unplanned | Standard | `BBQInfoData` | Object |
 | Unplanned | Standard | `BtgData` | Object |
 | Unplanned | Standard | `BubbleMarchDatas` | Object |
-| Unplanned | Lobby-critical | `ClearedTutorialDataNew` | Object |
-| Unplanned | Lobby-critical | `CommanderMusic` | Object |
-| Unplanned | Lobby-critical | `ContentsOpenUnlocked` | Object |
-| Unplanned | Lobby-critical | `Currency` | Object |
 | Unplanned | Standard | `DDRDatas` | Object |
 | Unplanned | Standard | `DessertRushData` | Object |
-| Unplanned | Lobby-critical | `EventInfo` | Object |
-| Unplanned | Lobby-critical | `EventMissionInfo` | Object |
-| Unplanned | Lobby-critical | `EventShopBuyCountInfo` | Object |
 | Unplanned | Standard | `FavoriteSongs` | Object |
 | Unplanned | Standard | `FieldInfo` | Object |
 | Unplanned | Standard | `FieldInfoNew` | Object |
-| Unplanned | Lobby-critical | `GachaBannerMaxPulls` | Object |
-| Unplanned | Lobby-critical | `GachaPaybackData` | Object |
-| Unplanned | Lobby-critical | `GachaPityBannerExecuteCount` | Object |
-| Unplanned | Lobby-critical | `GachaSelectupChoices` | Object |
 | Unplanned | Standard | `Guild` | Object |
 | Unplanned | Standard | `IsLandBreakerDatas` | Object |
-| Unplanned | Lobby-critical | `LiberateDatas` | Object |
-| Unplanned | Lobby-critical | `LobbyMusic` | Object |
-| Unplanned | Lobby-critical | `LoginEventInfo` | Object |
-| Unplanned | Lobby-critical | `LostSectorData` | Object |
 | Unplanned | Standard | `MailDatas` | Object |
-| Unplanned | Lobby-critical | `MainQuestData` | Object |
 | Unplanned | Standard | `MiniGameAzxInfo` | Object |
 | Unplanned | Standard | `MiniGameScenarios` | Object |
 | Unplanned | Standard | `MiniGameStoryChoice` | Object |
 | Unplanned | Standard | `Nksv2Datas` | Object |
-| Unplanned | Lobby-critical | `NormalShopStates` | Object |
 | Unplanned | Standard | `PirateCafeData` | Object |
-| Unplanned | Lobby-critical | `ProfileCardDecoration` | Object |
 | Unplanned | Standard | `RebuildEdenDatas` | Object |
-| Unplanned | Lobby-critical | `ResetableData` | Object |
 | Unplanned | Standard | `SoloRaidData` | Object |
 | Unplanned | Standard | `SoloRaidMuseumData` | Object |
 | Unplanned | Standard | `SortOutData` | Object |
@@ -97,14 +87,7 @@ These are the keys still in the JSON inventory without target designs. They rema
 | Unplanned | Standard | `SubQuestData` | Object |
 | Unplanned | Standard | `TTSGameData` | Object |
 | Unplanned | Standard | `TowerDefenseDatas` | Object |
-| Unplanned | Lobby-critical | `TowerProgress` | Object |
-| Unplanned | Lobby-critical | `UserPassInfo` | Object |
-| Unplanned | Lobby-critical | `UserTeams` | Object |
-| Unplanned | Lobby-critical | `ViewedNoticePopupTableIds` | Object |
-| Unplanned | Lobby-critical | `WeeklyResetableData` | Object |
 | Unplanned | Standard | `userPointData` | Object |
-
-The legacy `GachaTutorialPlayCount` scalar is a migration input for `GachaBannerMaxPulls`, not a standalone table or remaining field-design item. Preserve its startup conversion when that object is designed and migrated; see [database-design.md](database-design.md#user-json-key-inventory).
 
 ### Top-level arrays
 
@@ -112,48 +95,20 @@ The legacy `GachaTutorialPlayCount` scalar is a migration input for `GachaBanner
 |---|---|---|---|
 | Unplanned | Standard | `ArcadePlaySodaInfoList` | Array |
 | Unplanned | Standard | `BackgroundList` | Array |
-| Unplanned | Lobby-critical | `Badges` | Array |
-| Unplanned | Lobby-critical | `BondInfo` | Array |
 | Unplanned | Standard | `CharacterWishlist` | Array |
-| Unplanned | Lobby-critical | `ClaimedJukeboxRewardTriggers` | Array |
 | Unplanned | Standard | `ClearedOutpostScenarioIds` | Array |
-| Unplanned | Lobby-critical | `CompletedAchievements` | Array |
-| Unplanned | Lobby-critical | `CompletedSideStoryStages` | Array |
 | Unplanned | Standard | `CompletedTacticAcademyLessons` | Array |
-| Unplanned | Lobby-critical | `CostumeList` | Array |
-| Unplanned | Lobby-critical | `FavoriteItemQuests` | Array |
-| Unplanned | Lobby-critical | `FavoriteItems` | Array |
-| Unplanned | Lobby-critical | `FrameList` | Array |
-| Unplanned | Lobby-critical | `GachaDailyFreePulls` | Array |
 | Unplanned | Standard | `IconList` | Array |
 | Unplanned | Standard | `JukeboxBgm` | Array |
 | Unplanned | Standard | `JukeboxThemeList` | Array |
 | Unplanned | Standard | `LiveWallpaperList` | Array |
 | Unplanned | Standard | `LobbyDecoBackgroundList` | Array |
 | Unplanned | Standard | `LobbyPrivateBannerIds` | Array |
-| Unplanned | Lobby-critical | `Memorial` | Array |
-| Unplanned | Lobby-critical | `MessengerData` | Array |
 | Unplanned | Standard | `MessengerRepairHistory` | Array |
-| Unplanned | Lobby-critical | `OpenLiberateTypeIdList` | Array |
-| Unplanned | Lobby-critical | `PickedMessages` | Array |
 | Unplanned | Standard | `PlayLists` | Array |
 | Unplanned | Standard | `PlaySodaInfoData` | Array |
-| Unplanned | Lobby-critical | `ProfileCardsData` | Array |
-| Unplanned | Lobby-critical | `RepresentationTeamDataNew` | Array |
 | Unplanned | Standard | `StageClearHistorys` | Array |
 | Unplanned | Standard | `StickerList` | Array |
-| Unplanned | Lobby-critical | `TitleList` | Array |
-| Unplanned | Lobby-critical | `Triggers` | Array |
-| Unplanned | Lobby-critical | `UnlockedArchiveEventQuestIds` | Array |
-| Unplanned | Lobby-critical | `UnlockedArchiveRecordIds` | Array |
-| Unplanned | Lobby-critical | `ViewedSideStoryStages` | Array |
-| Unplanned | Lobby-critical | `WallpaperBackground` | Array |
-| Unplanned | Lobby-critical | `WallpaperFavoriteList` | Array |
-| Unplanned | Lobby-critical | `WallpaperJukeboxList` | Array |
-| Unplanned | Lobby-critical | `WallpaperList` | Array |
-| Unplanned | Lobby-critical | `WallpaperPlaylistList` | Array |
-
-`Triggers` has a SQLite table used by current trigger operations, but it remains Unplanned as a JSON field until the legacy array's contents and compatibility role are reconciled and the JSON value is empty or removed.
 
 ## Migration path and rollback
 
@@ -174,3 +129,4 @@ Before SQLite accepts writes after cutover, rollback can restore the backed-up J
 | 2026-11-15 | Created tracker from current design document, SQLite models/migrations, runtime ownership, and Release JSON inventory. | Current snapshot recorded; no data migration performed. |
 | 2026-11-15 | Implemented SQLite tables, EF Core migration `20261115222500_AddServerConfigUserProfileAndBans`, lowercase MD5 credential unification, and runtime cutover for `ServerSettings`, `ServerSecrets`, `EventBanners`, `SdkUsers`, `UserBans`, and `Users` profile/gameplay-state columns. | Runtime cutover complete; `EpinelPS.DBMigration` & `db.json` contraction deferred. |
 | 2026-11-15 | Prioritized `Planned` tables and marked `Lobby-critical` `Unplanned` JSON keys based on live login → `User/Get` → lobby hydration logs. | Tracker updated; `Lobby-critical` unplanned keys queued for separate planning sessions. |
+| 2026-11-15 | Planned all 50 `Lobby-critical` user keys into relational table designs using `../save-data/db.json`, `../save-data/epinelps.db`, `UserModel.cs`, `DbModels.cs`, and protobuf definitions. | All 50 `Lobby-critical` keys moved to `Planned` in `database-design.md` and tracker. |
