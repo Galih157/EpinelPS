@@ -142,6 +142,8 @@ internal class Program
             using IServiceScope gameContextScope = app.Services.CreateScope();
             GameContext.SetInstance(gameContextScope.ServiceProvider.GetRequiredService<GameContext>());
 
+            LobbyUserStore.LoadAllUsers(JsonDb.Instance.Users);
+
             foreach (var user in JsonDb.Instance.Users)
             {
                 if (UserDbHelper.GetOrCreateGameUser(user.ID).LastNormalStageCleared >= 6000002)

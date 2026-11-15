@@ -169,8 +169,8 @@ internal class JsonDb
             if (user == null)
             {
                 user = new User { ID = id };
+                LobbyUserStore.LoadUser(db, user);
                 Instance.Users.Add(user);
-                Save();
             }
         }
         return user;
@@ -185,6 +185,8 @@ internal class JsonDb
     {
         if (Instance != null)
         {
+            if (GameContext.Options != null)
+                LobbyUserStore.SaveAll(Instance.Users);
             File.WriteAllText(DatabasePaths.JsonConfiguration, JsonConvert.SerializeObject(Instance, Formatting.Indented));
         }
     }

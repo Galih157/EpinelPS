@@ -2,7 +2,7 @@
 
 Tracks the move from the Release `data/db.json` user state to relational tables in SQLite. The table designs are in [database-design.md](database-design.md). This tracker describes the current state; it does not implement or run a data migration.
 
-Last reconciled: 2026-11-15.
+Last reconciled: 2026-11-16.
 
 ## Status definitions
 
@@ -130,3 +130,5 @@ Before SQLite accepts writes after cutover, rollback can restore the backed-up J
 | 2026-11-15 | Implemented SQLite tables, EF Core migration `20261115222500_AddServerConfigUserProfileAndBans`, lowercase MD5 credential unification, and runtime cutover for `ServerSettings`, `ServerSecrets`, `EventBanners`, `SdkUsers`, `UserBans`, and `Users` profile/gameplay-state columns. | Runtime cutover complete; `EpinelPS.DBMigration` & `db.json` contraction deferred. |
 | 2026-11-15 | Prioritized `Planned` tables and marked `Lobby-critical` `Unplanned` JSON keys based on live login → `User/Get` → lobby hydration logs. | Tracker updated; `Lobby-critical` unplanned keys queued for separate planning sessions. |
 | 2026-11-15 | Planned all 50 `Lobby-critical` user keys into relational table designs using `../save-data/db.json`, `../save-data/epinelps.db`, `UserModel.cs`, `DbModels.cs`, and protobuf definitions. | All 50 `Lobby-critical` keys moved to `Planned` in `database-design.md` and tracker. |
+| 2026-11-16 | Implemented all 12 `Lobby-critical` table groups, EF Core migration `AddLobbyCriticalTables`, `LobbyUserStore` runtime read/write cutover, `TowerHelper.cs` `GameContext.Triggers` cutover, `[JsonIgnore]` on migrated `User` properties, and `EpinelPS.DBMigration` support (with `--contract` option). | Runtime cutover complete for all `Lobby-critical` tables; `Secondary` and `Unplanned` tables remain on `db.json`. |
+| 2026-11-16 | Refactored `GameContext` to use standard EF Core `IEntityTypeConfiguration<T>` classes under `EpinelPS/Database/Configurations/` via `ApplyConfigurationsFromAssembly`, removing `GameContext.LobbyPart1.cs` and `GameContext.LobbyPart2.cs`. | Verified build and zero pending model changes (`dotnet ef migrations has-pending-model-changes`). |

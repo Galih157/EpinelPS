@@ -1,6 +1,7 @@
 using EpinelPS.Data;
 using EpinelPS.Database;
 using EpinelPS.Utils;
+using Newtonsoft.Json;
 
 namespace EpinelPS.Models;
 
@@ -43,41 +44,41 @@ public class User
     public DateTime LastWeeklyReset { get; set; } = DateTime.MinValue;
 
     // Game data
-    public List<string> CompletedScenarios { get; set; } = [];
+    [JsonIgnore] public List<string> CompletedScenarios { get; set; } = [];
     public Dictionary<string, FieldInfo> FieldInfo { get; set; } = []; // here for backwards compatibility
 
     public Dictionary<string, FieldInfoNew> FieldInfoNew { get; set; } = [];
-    public Dictionary<int, List<int>> ViewedNoticePopupTableIds { get; set; } = [];
+    [JsonIgnore] public Dictionary<int, List<int>> ViewedNoticePopupTableIds { get; set; } = [];
     public Dictionary<string, string> MapJson { get; set; } = [];
-    public Dictionary<CurrencyType, long> Currency { get; set; } = new() {
+    [JsonIgnore] public Dictionary<CurrencyType, long> Currency { get; set; } = new() {
             { CurrencyType.ContentStamina, 2 }
         };
-    public List<SynchroSlot> SynchroSlots { get; set; } = [];
-    public bool SynchroDeviceUpgraded { get; set; } = false;
-    public int SynchroDeviceLevel { get; set; } = 200;
-    public Dictionary<int, RecycleRoomResearchProgress> ResearchProgress { get; set; } = [];
+    [JsonIgnore] public List<SynchroSlot> SynchroSlots { get; set; } = [];
+    [JsonIgnore] public bool SynchroDeviceUpgraded { get; set; } = false;
+    [JsonIgnore] public int SynchroDeviceLevel { get; set; } = 200;
+    [JsonIgnore] public Dictionary<int, RecycleRoomResearchProgress> ResearchProgress { get; set; } = [];
 
-    public ResetableData ResetableData { get; set; } = new();
-    public WeeklyResetableData WeeklyResetableData { get; set; } = new();
-    public List<DbItemData> Items { get; set; } = [];
-    public List<CharacterModel> Characters { get; set; } = [];
-    public List<EquipmentAwakeningData> EquipmentAwakenings { get; set; } = [];
-    public long[] RepresentationTeamDataNew { get; set; } = [];
-    public Dictionary<int, ClearedTutorialData> ClearedTutorialDataNew { get; set; } = [];
+    [JsonIgnore] public ResetableData ResetableData { get; set; } = new();
+    [JsonIgnore] public WeeklyResetableData WeeklyResetableData { get; set; } = new();
+    [JsonIgnore] public List<DbItemData> Items { get; set; } = [];
+    [JsonIgnore] public List<CharacterModel> Characters { get; set; } = [];
+    [JsonIgnore] public List<EquipmentAwakeningData> EquipmentAwakenings { get; set; } = [];
+    [JsonIgnore] public long[] RepresentationTeamDataNew { get; set; } = [];
+    [JsonIgnore] public Dictionary<int, ClearedTutorialData> ClearedTutorialDataNew { get; set; } = [];
 
     // Outpost buildings data
-    public List<NetUserOutpostData> OutpostBuildings { get; set; } = [];
+    [JsonIgnore] public List<NetUserOutpostData> OutpostBuildings { get; set; } = [];
 
-    public NetWallpaperData[] WallpaperList { get; set; } = [];
-    public NetWallpaperBackground[] WallpaperBackground { get; set; } = [];
-    public NetWallpaperJukeboxFavorite[] WallpaperFavoriteList { get; set; } = [];
-    public NetWallpaperPlaylist[] WallpaperPlaylistList { get; set; } = [];
-    public NetWallpaperJukebox[] WallpaperJukeboxList { get; set; } = [];
+    [JsonIgnore] public NetWallpaperData[] WallpaperList { get; set; } = [];
+    [JsonIgnore] public NetWallpaperBackground[] WallpaperBackground { get; set; } = [];
+    [JsonIgnore] public NetWallpaperJukeboxFavorite[] WallpaperFavoriteList { get; set; } = [];
+    [JsonIgnore] public NetWallpaperPlaylist[] WallpaperPlaylistList { get; set; } = [];
+    [JsonIgnore] public NetWallpaperJukebox[] WallpaperJukeboxList { get; set; } = [];
     public List<int> LobbyDecoBackgroundList { get; set; } = [];
     public List<int> LiveWallpaperList { get; set; } = [];
 
     //角色时装
-    public List<int> CostumeList { get; set; } = [];
+    [JsonIgnore] public List<int> CostumeList { get; set; } = [];
 
     public List<int> JukeboxThemeList { get; set; } = [];
 
@@ -85,83 +86,85 @@ public class User
     public List<int> StickerList { get; set; } = [];
     public List<int> BackgroundList { get; set; } = [];
     public List<int> IconList { get; set; } = [];
-    public List<int> FrameList { get; set; } = [];
-    public List<int> TitleList { get; set; } = [];
+    [JsonIgnore] public List<int> FrameList { get; set; } = [];
+    [JsonIgnore] public List<int> TitleList { get; set; } = [];
     public Dictionary<long, NetUserMailData> MailDatas { get; set; } = [];       
 
-    public Dictionary<int, NetUserTeamData> UserTeams { get; set; } = [];
-    public Dictionary<int, bool> MainQuestData { get; set; } = [];
+    [JsonIgnore] public Dictionary<int, NetUserTeamData> UserTeams { get; set; } = [];
+    [JsonIgnore] public Dictionary<int, bool> MainQuestData { get; set; } = [];
     public Dictionary<int, bool> SubQuestData { get; set; } = [];
-    public int InfraCoreExp { get; set; } = 0;
-    public int InfraCoreLvl { get; set; } = 1;
-    public Dictionary<int, bool> InfraCoreRewardReceived { get; set; } = [];
+    [JsonIgnore] public int InfraCoreExp { get; set; } = 0;
+    [JsonIgnore] public int InfraCoreLvl { get; set; } = 1;
+    [JsonIgnore] public Dictionary<int, bool> InfraCoreRewardReceived { get; set; } = [];
     public UserPointData userPointData { get; set; } = new();
     public DateTime LastLogin { get; set; } = DateTime.UtcNow;
     public DateTime BattleTime { get; set; } = DateTime.UtcNow;
 
-    public NetOutpostBattleLevel OutpostBattleLevel { get; set; } = new() { Level = 1 };
+    [JsonIgnore] public NetOutpostBattleLevel OutpostBattleLevel { get; set; } = new() { Level = 1 };
     
+    [JsonIgnore]
     [Obsolete("This is left for compatibility purpose. Use AddTutorialPullCount(int pullCount) and GetGachaCountForType(GachaPremiumType.GachaTutorial)")]
     public int GachaTutorialPlayCount { get; set; } = 0;
-    public Dictionary<int, int> GachaBannerMaxPulls { get; set; } = new();
-    public Dictionary<int,int> GachaPityBannerExecuteCount { get; set; } = new();
+    [JsonIgnore] public Dictionary<int, int> GachaBannerMaxPulls { get; set; } = new();
+    [JsonIgnore] public Dictionary<int,int> GachaPityBannerExecuteCount { get; set; } = new();
 
     public List<int> CompletedTacticAcademyLessons { get; set; } = [];
-    public List<int> CompletedSideStoryStages { get; set; } = [];
-    public List<int> ViewedSideStoryStages { get; set; } = [];
+    [JsonIgnore] public List<int> CompletedSideStoryStages { get; set; } = [];
+    [JsonIgnore] public List<int> ViewedSideStoryStages { get; set; } = [];
     public List<int> ClearedOutpostScenarioIds { get; set; } = [];
 
-    public List<int> Memorial { get; set; } = [];
+    [JsonIgnore] public List<int> Memorial { get; set; } = [];
     public List<int> JukeboxBgm { get; set; } = [];
-    public List<int> ClaimedJukeboxRewardTriggers { get; set; } = [];
-    public List<NetUserFavoriteItemData> FavoriteItems { get; set; } = [];
+    [JsonIgnore] public List<int> ClaimedJukeboxRewardTriggers { get; set; } = [];
+    [JsonIgnore] public List<NetUserFavoriteItemData> FavoriteItems { get; set; } = [];
 
-    public List<NetUserFavoriteItemQuestData> FavoriteItemQuests { get; set; } = [];
-    public Dictionary<CorporationTowerType, int> TowerProgress { get; set; } = [];    
+    [JsonIgnore] public List<NetUserFavoriteItemQuestData> FavoriteItemQuests { get; set; } = [];
+    [JsonIgnore] public Dictionary<CorporationTowerType, int> TowerProgress { get; set; } = [];    
 
-    public JukeBoxSetting LobbyMusic { get; set; } = new() { Location = NetJukeboxLocation.Lobby, TableId = 2, Type = NetJukeboxBgmType.JukeboxTableId };
-    public JukeBoxSetting CommanderMusic { get; set; } = new() { Location = NetJukeboxLocation.CommanderRoom, TableId = 5, Type = NetJukeboxBgmType.JukeboxTableId };
-    public OutpostBuffs OutpostBuffs { get; set; } = new();
-    public Dictionary<int, UnlockData> ContentsOpenUnlocked { get; set; } = [];
+    [JsonIgnore] public JukeBoxSetting LobbyMusic { get; set; } = new() { Location = NetJukeboxLocation.Lobby, TableId = 2, Type = NetJukeboxBgmType.JukeboxTableId };
+    [JsonIgnore] public JukeBoxSetting CommanderMusic { get; set; } = new() { Location = NetJukeboxLocation.CommanderRoom, TableId = 5, Type = NetJukeboxBgmType.JukeboxTableId };
+    [JsonIgnore] public OutpostBuffs OutpostBuffs { get; set; } = new();
+    [JsonIgnore] public Dictionary<int, UnlockData> ContentsOpenUnlocked { get; set; } = [];
 
     public List<NetStageClearInfo> StageClearHistorys { get; set; } = [];
 
-    public List<BadgeModel> Badges { get; set; } = [];
+    [JsonIgnore] public List<BadgeModel> Badges { get; set; } = [];
 
-    public List<NetUserAttractiveData> BondInfo { get; set; } = [];
+    [JsonIgnore] public List<NetUserAttractiveData> BondInfo { get; set; } = [];
+    [JsonIgnore]
     [Obsolete]
     public List<TriggerModel> Triggers { get; set; } = [];
     public int LastTriggerId { get; set; } = 1;
-    public List<int> CompletedAchievements { get; set; } = [];
-    public List<NetMessage> MessengerData { get; set; } = [];
+    [JsonIgnore] public List<int> CompletedAchievements { get; set; } = [];
+    [JsonIgnore] public List<NetMessage> MessengerData { get; set; } = [];
     // Manual admin repairs only.  Keeping the original message makes a repair reversible.
     public List<MessengerRepairAuditEntry> MessengerRepairHistory { get; set; } = [];
     public ulong LastMessageId { get; set; } = 1;
-    public List<NetPickedMessage> PickedMessages { get; set; } = [];
+    [JsonIgnore] public List<NetPickedMessage> PickedMessages { get; set; } = [];
     public long LastBadgeSeq { get; set; } = 1;
-    public Dictionary<int, LostSectorData> LostSectorData { get; set; } = [];
+    [JsonIgnore] public Dictionary<int, LostSectorData> LostSectorData { get; set; } = [];
 
     // Event data
-    public Dictionary<int, EventData> EventInfo { get; set; } = [];
-    public Dictionary<int, LoginEventData> LoginEventInfo { get; set; } = [];
-    public Dictionary<int, EventMissionData> EventMissionInfo { get; set; } = []; // key: eventId
-    public Dictionary<int, EventShopBuyCountData> EventShopBuyCountInfo { get; set; } = []; // key: eventId
+    [JsonIgnore] public Dictionary<int, EventData> EventInfo { get; set; } = [];
+    [JsonIgnore] public Dictionary<int, LoginEventData> LoginEventInfo { get; set; } = [];
+    [JsonIgnore] public Dictionary<int, EventMissionData> EventMissionInfo { get; set; } = []; // key: eventId
+    [JsonIgnore] public Dictionary<int, EventShopBuyCountData> EventShopBuyCountInfo { get; set; } = []; // key: eventId
 
     // Archive unlock state. These are persisted in db.json with the rest of the user.
-    public List<int> UnlockedArchiveRecordIds { get; set; } = [];
-    public List<int> UnlockedArchiveEventQuestIds { get; set; } = [];
+    [JsonIgnore] public List<int> UnlockedArchiveRecordIds { get; set; } = [];
+    [JsonIgnore] public List<int> UnlockedArchiveEventQuestIds { get; set; } = [];
 
-    public Dictionary<int, NormalShopState> NormalShopStates { get; set; } = []; // key: shop category    
+    [JsonIgnore] public Dictionary<int, NormalShopState> NormalShopStates { get; set; } = []; // key: shop category    
     public List<NetPlaySodaEachGameInfo> ArcadePlaySodaInfoList { get; set; } = [];
     public NetArcadeMvgData ArcadeInTheMirrorData { get; set; } = new();
 
-    public Dictionary<int, PassData> UserPassInfo = []; // user pass data, key is PassId
+    [JsonIgnore] public Dictionary<int, PassData> UserPassInfo = []; // user pass data, key is PassId
 
     public List<int> LobbyPrivateBannerIds = [];
 
-    public Dictionary<int, GachaPaybackData> GachaPaybackData {get;set;} = new();
-    public List<int> GachaDailyFreePulls { get; set; } = new();
-    public Dictionary<int, int> GachaSelectupChoices { get; set; } = [];
+    [JsonIgnore] public Dictionary<int, GachaPaybackData> GachaPaybackData {get;set;} = new();
+    [JsonIgnore] public List<int> GachaDailyFreePulls { get; set; } = new();
+    [JsonIgnore] public Dictionary<int, int> GachaSelectupChoices { get; set; } = [];
 
     public bool DailyDiscountUsed { get; set; } = false;
 
@@ -171,22 +174,22 @@ public class User
 
 
     //OutpostConditionTable
-    public List<int> OutpostConditionList { get; set; } = [];
+    [JsonIgnore] public List<int> OutpostConditionList { get; set; } = [];
 
     // Outpost dispatch
-    public int DispatchLv { get; set; } = 1;
-    public int DispatchCollectionLv { get; set; } = 0;
-    public int DispatchFavoriteLv { get; set; } = 0;
-    public int DispatchResetCount { get; set; } = 0;
-    public List<int> DispatchClearList { get; set; } = [];
-    public List<NetSelectableDispatchData> SelectableDispatchData { get; set; } = [];
-    public DispatchData UserDispatchData { get; set; } = new();
+    [JsonIgnore] public int DispatchLv { get; set; } = 1;
+    [JsonIgnore] public int DispatchCollectionLv { get; set; } = 0;
+    [JsonIgnore] public int DispatchFavoriteLv { get; set; } = 0;
+    [JsonIgnore] public int DispatchResetCount { get; set; } = 0;
+    [JsonIgnore] public List<int> DispatchClearList { get; set; } = [];
+    [JsonIgnore] public List<NetSelectableDispatchData> SelectableDispatchData { get; set; } = [];
+    [JsonIgnore] public DispatchData UserDispatchData { get; set; } = new();
 
     public GuildData Guild { get; set; } = new();
 
     //解放
-    public Dictionary<int, NetLiberateData> LiberateDatas { get; set; } = [];
-    public List<int> OpenLiberateTypeIdList { get; set; } = [];
+    [JsonIgnore] public Dictionary<int, NetLiberateData> LiberateDatas { get; set; } = [];
+    [JsonIgnore] public List<int> OpenLiberateTypeIdList { get; set; } = [];
     public int CurCharacterIdId { get; set; } = 0;
 
     // Minigame data
@@ -217,8 +220,8 @@ public class User
     public List<CharacterWishlistData> CharacterWishlist { get; set; } = [];
 
     // Profile Cards
-    public List<int> ProfileCardsData { get; set; } = [];
-    public ProfileCardDecorationLayout ProfileCardDecoration { get; set; } = new();
+    [JsonIgnore] public List<int> ProfileCardsData { get; set; } = [];
+    [JsonIgnore] public ProfileCardDecorationLayout ProfileCardDecoration { get; set; } = new();
     
     public TriggerModelNew AddTrigger(Trigger type, int value, int conditionId = 0, bool logToConsole = true)
     {

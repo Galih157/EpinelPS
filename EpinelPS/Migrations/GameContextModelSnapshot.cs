@@ -17,6 +17,147 @@ namespace EpinelPS.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.9");
 
+            modelBuilder.Entity("EpinelPS.Models.CharacterEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CostumeId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("Csn")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Grade")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsMainForce")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Skill1Lvl")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Skill2Lvl")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Tid")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("UltimateLevel")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Csn")
+                        .IsUnique();
+
+                    b.ToTable("Characters");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.DispatchClearItemEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("DispatchId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "DispatchId")
+                        .IsUnique();
+
+                    b.ToTable("DispatchClearItems");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.DispatchEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("EndAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("IsRun")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("StartAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Tid")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Tid")
+                        .IsUnique();
+
+                    b.ToTable("Dispatches");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.EquipmentAwakeningEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsNewData")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsOption1DisposableLock")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsOption2DisposableLock")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsOption3DisposableLock")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ItemId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Option1Id")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Option1Lock")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Option2Id")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Option2Lock")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Option3Id")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Option3Lock")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ItemId");
+
+                    b.ToTable("EquipmentAwakenings");
+                });
+
             modelBuilder.Entity("EpinelPS.Models.EventBanner", b =>
                 {
                     b.Property<string>("BannerId")
@@ -103,6 +244,217 @@ namespace EpinelPS.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("EpinelPS.Models.InfraCoreRewardEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("InfraCoreLevel")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "InfraCoreLevel")
+                        .IsUnique();
+
+                    b.ToTable("InfraCoreRewards");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.ItemCharacterAssignmentEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("CharacterCsn")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ItemId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ItemId", "CharacterCsn")
+                        .IsUnique();
+
+                    b.HasIndex("ItemId", "Position")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "CharacterCsn");
+
+                    b.ToTable("ItemCharacterAssignments");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.ItemEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Corp")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("Csn")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Exp")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("Isn")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ItemType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Isn")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "ItemType");
+
+                    b.ToTable("Items");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.OutpostBuildingEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("BuildingId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("CompleteAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsDone")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SlotId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("StartAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "SlotId")
+                        .IsUnique();
+
+                    b.ToTable("OutpostBuildings");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.OutpostEntity", b =>
+                {
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DispatchCollectionLv")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DispatchFavoriteLv")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DispatchLv")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DispatchResetCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DispatchToday")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("InfraCoreExp")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("InfraCoreLvl")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("OutpostBattleExp")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("OutpostBattleLevel")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("OutpostBuffs")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("OutpostConditionList")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("SynchroDeviceLevel")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("SynchroDeviceUpgraded")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("Outposts");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.ResearchProgressEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Attack")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Defense")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Hp")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ResearchId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "ResearchId")
+                        .IsUnique();
+
+                    b.ToTable("ResearchProgress");
+                });
+
             modelBuilder.Entity("EpinelPS.Models.SdkUser", b =>
                 {
                     b.Property<ulong>("ID")
@@ -135,6 +487,40 @@ namespace EpinelPS.Migrations
                     b.HasIndex("Email");
 
                     b.ToTable("SdkUsers");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.SelectableDispatchEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("DispatchGroupId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("EndAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsRun")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SelectSlotId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SelectTid")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("StartAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "SelectTid");
+
+                    b.ToTable("SelectableDispatches");
                 });
 
             modelBuilder.Entity("EpinelPS.Models.ServerSecrets", b =>
@@ -174,6 +560,32 @@ namespace EpinelPS.Migrations
                     b.ToTable("ServerSettings");
                 });
 
+            modelBuilder.Entity("EpinelPS.Models.SynchroSlotEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("AvailableAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("CharacterSerialNumber")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Slot")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Slot")
+                        .IsUnique();
+
+                    b.ToTable("SynchroSlots");
+                });
+
             modelBuilder.Entity("EpinelPS.Models.TriggerModelNew", b =>
                 {
                     b.Property<long>("Id")
@@ -200,6 +612,62 @@ namespace EpinelPS.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Triggers");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserArchiveUnlock", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("TargetId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Kind", "TargetId")
+                        .IsUnique();
+
+                    b.ToTable("UserArchiveUnlocks");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserBadge", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("BadgeContent")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("BadgeGuid")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Location")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("Seq")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Seq")
+                        .IsUnique();
+
+                    b.ToTable("UserBadges");
                 });
 
             modelBuilder.Entity("EpinelPS.Models.UserBan", b =>
@@ -230,10 +698,1821 @@ namespace EpinelPS.Migrations
                     b.ToTable("UserBans");
                 });
 
+            modelBuilder.Entity("EpinelPS.Models.UserBond", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("CanCounselToday")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CompleteRewardStatus")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CounseledCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Exp")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsFavorites")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Lv")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NameCode")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "NameCode")
+                        .IsUnique();
+
+                    b.ToTable("UserBonds");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserBondProgressItem", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("BondId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("BondId", "Kind", "ItemId")
+                        .IsUnique();
+
+                    b.ToTable("UserBondProgressItems");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserClaimedJukeboxReward", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("TriggerId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "TriggerId")
+                        .IsUnique();
+
+                    b.ToTable("UserClaimedJukeboxRewards");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserClearedTutorialEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("TutorialGroupId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TutorialId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("VersionGroup")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "TutorialGroupId")
+                        .IsUnique();
+
+                    b.ToTable("UserClearedTutorials");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserCompletedAchievement", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("AchievementId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "AchievementId")
+                        .IsUnique();
+
+                    b.ToTable("UserCompletedAchievements");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserCompletedDailyMissionEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("MissionId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "MissionId")
+                        .IsUnique();
+
+                    b.ToTable("UserCompletedDailyMissions");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserCompletedScenarioEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ScenarioId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "ScenarioId")
+                        .IsUnique();
+
+                    b.ToTable("UserCompletedScenarios");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserCompletedWeeklyMissionEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("MissionId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "MissionId")
+                        .IsUnique();
+
+                    b.ToTable("UserCompletedWeeklyMissions");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserContentsUnlockEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("ButtonAnimationPlayed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ContentsOpenId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("PopupAnimationPlayed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "ContentsOpenId")
+                        .IsUnique();
+
+                    b.ToTable("UserContentsUnlocks");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserCurrencyEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("Amount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CurrencyType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "CurrencyType")
+                        .IsUnique();
+
+                    b.ToTable("UserCurrencies");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserDailyCounselCountEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("KeyId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "KeyId")
+                        .IsUnique();
+
+                    b.ToTable("UserDailyCounselCounts");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserDailyTowerCountEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CorporationType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("UsedCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "CorporationType")
+                        .IsUnique();
+
+                    b.ToTable("UserDailyTowerCounts");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserEvent", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Diff")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("EventId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("FreeTicket")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("LastDay")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("LastStage")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "EventId")
+                        .IsUnique();
+
+                    b.ToTable("UserEvents");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserEventClearedStage", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("StageId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UserEventId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserEventId", "StageId")
+                        .IsUnique();
+
+                    b.ToTable("UserEventClearedStages");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserEventCompletedScenario", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ScenarioId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserEventId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserEventId", "ScenarioId")
+                        .IsUnique();
+
+                    b.ToTable("UserEventCompletedScenarios");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserEventMission", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("AllClear")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("EventId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("LastDate")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("LastDay")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "EventId")
+                        .IsUnique();
+
+                    b.ToTable("UserEventMissions");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserEventMissionEntry", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsDaily")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("MissionId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UserEventMissionId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserEventMissionId", "IsDaily", "MissionId")
+                        .IsUnique();
+
+                    b.ToTable("UserEventMissionEntries");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserEventShopBuy", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("BuyCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("EventId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ProductTid")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "EventId", "ProductTid")
+                        .IsUnique();
+
+                    b.ToTable("UserEventShopBuys");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserFavoriteItem", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("Csn")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Exp")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("FavoriteItemId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Lv")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Tid")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "FavoriteItemId")
+                        .IsUnique();
+
+                    b.ToTable("UserFavoriteItems");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserFavoriteItemQuest", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("Clear")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("QuestId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Received")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "QuestId")
+                        .IsUnique();
+
+                    b.ToTable("UserFavoriteItemQuests");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserGachaBannerPull", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("BannerId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("MaxPulls")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "BannerId")
+                        .IsUnique();
+
+                    b.ToTable("UserGachaBannerPulls");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserGachaDailyFreePull", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("GachaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "GachaId")
+                        .IsUnique();
+
+                    b.ToTable("UserGachaDailyFreePulls");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserGachaPayback", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("GachaCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("GachaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "GachaId")
+                        .IsUnique();
+
+                    b.ToTable("UserGachaPaybacks");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserGachaPaybackReward", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PaybackId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("StepId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("PaybackId", "StepId")
+                        .IsUnique();
+
+                    b.ToTable("UserGachaPaybackRewards");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserGachaPityCount", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("BannerId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ExecuteCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "BannerId")
+                        .IsUnique();
+
+                    b.ToTable("UserGachaPityCounts");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserGachaSelectupChoice", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("BannerId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CharacterTid")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "BannerId")
+                        .IsUnique();
+
+                    b.ToTable("UserGachaSelectupChoices");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserJukeboxSetting", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("BgmType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsShuffle")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Location")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TableId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Location")
+                        .IsUnique();
+
+                    b.ToTable("UserJukeboxSettings");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserLiberation", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CharacterId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ProgressPoint")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RewardedCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Step")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "CharacterId")
+                        .IsUnique();
+
+                    b.ToTable("UserLiberations");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserLiberationMission", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("LiberateCharacterId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("LiberationId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("MissionId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("MissionState")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("MissionTid")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("ReceivedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("TriggerEndAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("TriggerStartAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("LiberationId", "MissionId")
+                        .IsUnique();
+
+                    b.ToTable("UserLiberationMissions");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserLoginEvent", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("EventId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("LastDate")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("LastDay")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "EventId")
+                        .IsUnique();
+
+                    b.ToTable("UserLoginEvents");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserLoginEventDay", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Day")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UserLoginEventId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserLoginEventId", "Day")
+                        .IsUnique();
+
+                    b.ToTable("UserLoginEventDays");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserLostSector", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("CompletedPerfectly")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsOpen")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsPlaying")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ObtainedRewards")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("ReceivedFinalReward")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SectorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("StateJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TeamPositionsJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "SectorId")
+                        .IsUnique();
+
+                    b.ToTable("UserLostSectors");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserLostSectorClearedStage", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ClearState")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("LostSectorId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("StageKey")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("LostSectorId", "StageKey")
+                        .IsUnique();
+
+                    b.ToTable("UserLostSectorClearedStages");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserLostSectorObject", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("ActionAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Json")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LostSectorId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ObjectKey")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PositionId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TeamPositionsJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("LostSectorId", "ObjectKey")
+                        .IsUnique();
+
+                    b.ToTable("UserLostSectorObjects");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserMainQuestEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("QuestTid")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("ReceivedReward")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "QuestTid")
+                        .IsUnique();
+
+                    b.ToTable("UserMainQuests");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserMessage", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ConversationId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("MessageId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("Seq")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("State")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Seq")
+                        .IsUnique();
+
+                    b.ToTable("UserMessages");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserNormalShopOrder", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("BuyCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ShopStateId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("ShopStateId", "OrderIndex")
+                        .IsUnique();
+
+                    b.ToTable("UserNormalShopOrders");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserNormalShopPinnedBuy", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("BuyCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ShopStateId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("ShopStateId", "ProductId")
+                        .IsUnique();
+
+                    b.ToTable("UserNormalShopPinnedBuys");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserNormalShopState", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("NextRenewAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("RenewAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RenewCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ShopCategory")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "ShopCategory")
+                        .IsUnique();
+
+                    b.ToTable("UserNormalShopStates");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserOpenLiberateType", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("LiberateTypeId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "LiberateTypeId")
+                        .IsUnique();
+
+                    b.ToTable("UserOpenLiberateTypes");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserPass", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LastCompleteAt")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("");
+
+                    b.Property<int>("PassId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PassPoint")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PassSkipCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("PremiumActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "PassId")
+                        .IsUnique();
+
+                    b.ToTable("UserPasses");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserPassMission", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsComplete")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PassMissionId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UserPassId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserPassId", "PassMissionId")
+                        .IsUnique();
+
+                    b.ToTable("UserPassMissions");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserPassRank", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsNormalRewarded")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsPremiumRewarded")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PassRank")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UserPassId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserPassId", "PassRank")
+                        .IsUnique();
+
+                    b.ToTable("UserPassRanks");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserPickedMessage", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ConversationId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CreatedAtNanos")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("CreatedAtSeconds")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "ConversationId")
+                        .IsUnique();
+
+                    b.ToTable("UserPickedMessages");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserProfileCardDecoration", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("BackgroundId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("ShowCharacterSpine")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("UserProfileCardDecorations");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserProfileCardSticker", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Layer")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<float>("NormalizedX")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("NormalizedY")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<float>("RotationRadian")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("Scale")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("StickerId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Position")
+                        .IsUnique();
+
+                    b.ToTable("UserProfileCardStickers");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserRepresentationTeamSlotEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("CharacterCsn")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Slot")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Slot")
+                        .IsUnique();
+
+                    b.ToTable("UserRepresentationTeamSlots");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserResetStateEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("ClearedSimulationRoom")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DailyMissionPoints")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DispatchCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("InterceptionTickets")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SimRoomStateJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("WeeklyMissionPoints")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("WipeoutCount")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("UserResetStates");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserSideStoryStage", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsViewed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("StageId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "StageId")
+                        .IsUnique();
+
+                    b.ToTable("UserSideStoryStages");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserTeamGroupEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("LastContentsTeamNumber")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TeamType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "TeamType")
+                        .IsUnique();
+
+                    b.ToTable("UserTeamGroups");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserTeamSlotEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Slot")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("TeamGroupId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("TeamNumber")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("Value")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ValueType")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("TeamGroupId", "TeamNumber", "Slot")
+                        .IsUnique();
+
+                    b.ToTable("UserTeamSlots");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserTowerProgressEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ClearedFloor")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CorporationType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "CorporationType")
+                        .IsUnique();
+
+                    b.ToTable("UserTowerProgress");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserUnlockedCosmetic", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CosmeticId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Category", "CosmeticId")
+                        .IsUnique();
+
+                    b.ToTable("UserUnlockedCosmetics");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserViewedNoticePopupEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NoticePopupTableId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "CategoryId", "NoticePopupTableId")
+                        .IsUnique();
+
+                    b.ToTable("UserViewedNoticePopups");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserWallpaperBackground", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("LobbyDecoBackgroundId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "OrderIndex")
+                        .IsUnique();
+
+                    b.ToTable("UserWallpaperBackgrounds");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserWallpaperFavorite", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsShuffled")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "OrderIndex")
+                        .IsUnique();
+
+                    b.ToTable("UserWallpaperFavorites");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserWallpaperJukebox", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("JukeboxListTableId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "OrderIndex")
+                        .IsUnique();
+
+                    b.ToTable("UserWallpaperJukeboxes");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserWallpaperPlaylist", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsShuffled")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("PlaylistUId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "OrderIndex")
+                        .IsUnique();
+
+                    b.ToTable("UserWallpaperPlaylists");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserWallpaperSlot", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("UseCharacterBackground")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("WallpaperId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "OrderIndex")
+                        .IsUnique();
+
+                    b.ToTable("UserWallpaperSlots");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.CharacterEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.DispatchClearItemEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.OutpostEntity", "Outpost")
+                        .WithMany("DispatchClearItems")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Outpost");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.DispatchEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.OutpostEntity", "Outpost")
+                        .WithMany("Dispatches")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Outpost");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.EquipmentAwakeningEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.ItemEntity", "Item")
+                        .WithMany("EquipmentAwakenings")
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Item");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.InfraCoreRewardEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.OutpostEntity", "Outpost")
+                        .WithMany("InfraCoreRewards")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Outpost");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.ItemCharacterAssignmentEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.ItemEntity", "Item")
+                        .WithMany("CharacterAssignments")
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EpinelPS.Models.CharacterEntity", "Character")
+                        .WithMany("ItemAssignments")
+                        .HasForeignKey("UserId", "CharacterCsn")
+                        .HasPrincipalKey("UserId", "Csn")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Character");
+
+                    b.Navigation("Item");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.ItemEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.OutpostBuildingEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.OutpostEntity", "Outpost")
+                        .WithMany("OutpostBuildings")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Outpost");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.OutpostEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithOne()
+                        .HasForeignKey("EpinelPS.Models.OutpostEntity", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.ResearchProgressEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.OutpostEntity", "Outpost")
+                        .WithMany("ResearchProgress")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Outpost");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.SelectableDispatchEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.OutpostEntity", "Outpost")
+                        .WithMany("SelectableDispatches")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Outpost");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.SynchroSlotEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.OutpostEntity", "Outpost")
+                        .WithMany("SynchroSlots")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Outpost");
+                });
+
             modelBuilder.Entity("EpinelPS.Models.TriggerModelNew", b =>
                 {
                     b.HasOne("EpinelPS.Models.GameUser", "User")
                         .WithMany("Triggers")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserArchiveUnlock", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserBadge", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -252,11 +2531,859 @@ namespace EpinelPS.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("EpinelPS.Models.UserBond", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserBondProgressItem", b =>
+                {
+                    b.HasOne("EpinelPS.Models.UserBond", "Bond")
+                        .WithMany("ProgressItems")
+                        .HasForeignKey("BondId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Bond");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserClaimedJukeboxReward", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserClearedTutorialEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserCompletedAchievement", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserCompletedDailyMissionEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserCompletedScenarioEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserCompletedWeeklyMissionEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserContentsUnlockEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserCurrencyEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserDailyCounselCountEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserDailyTowerCountEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserEvent", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserEventClearedStage", b =>
+                {
+                    b.HasOne("EpinelPS.Models.UserEvent", "UserEvent")
+                        .WithMany("ClearedStages")
+                        .HasForeignKey("UserEventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+
+                    b.Navigation("UserEvent");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserEventCompletedScenario", b =>
+                {
+                    b.HasOne("EpinelPS.Models.UserEvent", "UserEvent")
+                        .WithMany("CompletedScenarios")
+                        .HasForeignKey("UserEventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+
+                    b.Navigation("UserEvent");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserEventMission", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserEventMissionEntry", b =>
+                {
+                    b.HasOne("EpinelPS.Models.UserEventMission", "UserEventMission")
+                        .WithMany("Entries")
+                        .HasForeignKey("UserEventMissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+
+                    b.Navigation("UserEventMission");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserEventShopBuy", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserFavoriteItem", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserFavoriteItemQuest", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserGachaBannerPull", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserGachaDailyFreePull", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserGachaPayback", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserGachaPaybackReward", b =>
+                {
+                    b.HasOne("EpinelPS.Models.UserGachaPayback", "Payback")
+                        .WithMany("Rewards")
+                        .HasForeignKey("PaybackId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Payback");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserGachaPityCount", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserGachaSelectupChoice", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserJukeboxSetting", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserLiberation", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserLiberationMission", b =>
+                {
+                    b.HasOne("EpinelPS.Models.UserLiberation", "Liberation")
+                        .WithMany("Missions")
+                        .HasForeignKey("LiberationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Liberation");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserLoginEvent", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserLoginEventDay", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EpinelPS.Models.UserLoginEvent", "UserLoginEvent")
+                        .WithMany("Days")
+                        .HasForeignKey("UserLoginEventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+
+                    b.Navigation("UserLoginEvent");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserLostSector", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserLostSectorClearedStage", b =>
+                {
+                    b.HasOne("EpinelPS.Models.UserLostSector", "LostSector")
+                        .WithMany("ClearedStages")
+                        .HasForeignKey("LostSectorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("LostSector");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserLostSectorObject", b =>
+                {
+                    b.HasOne("EpinelPS.Models.UserLostSector", "LostSector")
+                        .WithMany("Objects")
+                        .HasForeignKey("LostSectorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("LostSector");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserMainQuestEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserMessage", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserNormalShopOrder", b =>
+                {
+                    b.HasOne("EpinelPS.Models.UserNormalShopState", "ShopState")
+                        .WithMany("Orders")
+                        .HasForeignKey("ShopStateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ShopState");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserNormalShopPinnedBuy", b =>
+                {
+                    b.HasOne("EpinelPS.Models.UserNormalShopState", "ShopState")
+                        .WithMany("PinnedBuys")
+                        .HasForeignKey("ShopStateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ShopState");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserNormalShopState", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserOpenLiberateType", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserPass", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserPassMission", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EpinelPS.Models.UserPass", "UserPass")
+                        .WithMany("Missions")
+                        .HasForeignKey("UserPassId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+
+                    b.Navigation("UserPass");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserPassRank", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EpinelPS.Models.UserPass", "UserPass")
+                        .WithMany("Ranks")
+                        .HasForeignKey("UserPassId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+
+                    b.Navigation("UserPass");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserPickedMessage", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserProfileCardDecoration", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserProfileCardSticker", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserRepresentationTeamSlotEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserResetStateEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithOne()
+                        .HasForeignKey("EpinelPS.Models.UserResetStateEntity", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserSideStoryStage", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserTeamGroupEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserTeamSlotEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.UserTeamGroupEntity", "TeamGroup")
+                        .WithMany("Slots")
+                        .HasForeignKey("TeamGroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TeamGroup");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserTowerProgressEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserUnlockedCosmetic", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserViewedNoticePopupEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserWallpaperBackground", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserWallpaperFavorite", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserWallpaperJukebox", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserWallpaperPlaylist", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserWallpaperSlot", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.CharacterEntity", b =>
+                {
+                    b.Navigation("ItemAssignments");
+                });
+
             modelBuilder.Entity("EpinelPS.Models.GameUser", b =>
                 {
                     b.Navigation("Bans");
 
                     b.Navigation("Triggers");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.ItemEntity", b =>
+                {
+                    b.Navigation("CharacterAssignments");
+
+                    b.Navigation("EquipmentAwakenings");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.OutpostEntity", b =>
+                {
+                    b.Navigation("DispatchClearItems");
+
+                    b.Navigation("Dispatches");
+
+                    b.Navigation("InfraCoreRewards");
+
+                    b.Navigation("OutpostBuildings");
+
+                    b.Navigation("ResearchProgress");
+
+                    b.Navigation("SelectableDispatches");
+
+                    b.Navigation("SynchroSlots");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserBond", b =>
+                {
+                    b.Navigation("ProgressItems");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserEvent", b =>
+                {
+                    b.Navigation("ClearedStages");
+
+                    b.Navigation("CompletedScenarios");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserEventMission", b =>
+                {
+                    b.Navigation("Entries");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserGachaPayback", b =>
+                {
+                    b.Navigation("Rewards");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserLiberation", b =>
+                {
+                    b.Navigation("Missions");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserLoginEvent", b =>
+                {
+                    b.Navigation("Days");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserLostSector", b =>
+                {
+                    b.Navigation("ClearedStages");
+
+                    b.Navigation("Objects");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserNormalShopState", b =>
+                {
+                    b.Navigation("Orders");
+
+                    b.Navigation("PinnedBuys");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserPass", b =>
+                {
+                    b.Navigation("Missions");
+
+                    b.Navigation("Ranks");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserTeamGroupEntity", b =>
+                {
+                    b.Navigation("Slots");
                 });
 #pragma warning restore 612, 618
         }

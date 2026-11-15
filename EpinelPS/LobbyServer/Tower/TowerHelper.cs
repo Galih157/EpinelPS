@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using EpinelPS.Data;
+using EpinelPS.Database;
 using EpinelPS.Utils;
 
 namespace EpinelPS.LobbyServer.Tower;
@@ -38,17 +39,21 @@ public class TowerHelper
         if (user.TowerProgress.TryGetValue(record.Type, out int progress) && progress >= maxFloor)
             throw new Exception($"tower {record.Type} already fully cleared (progress={progress}, max={maxFloor})");
 
-        if (user.Triggers.Any(x => x.ConditionId == towerId && x.Value == 1))
-            throw new Exception("floor already cleared");
-
-        // Sequential progression: previous floor must be cleared (unless this is floor 1)
-        if (record.Floor > 1)
+        var triggerType = TowerClearTriggers[record.Type];
+        using (var ctx = GameContext.CreateNew())
         {
-            var prev = GameData.Instance.towerTable.Values
-                .FirstOrDefault(t => t.Type == record.Type && t.Floor == record.Floor - 1);
+            if (ctx.Triggers.Any(x => x.UserId == user.ID && x.Type == triggerType && x.ConditionId == towerId && x.Value == 1))
+                throw new Exception("floor already cleared");
 
-            if (prev != null && !user.Triggers.Any(x => x.ConditionId == prev.Id && x.Value == 1))
-                throw new Exception($"previous floor {record.Floor - 1} not cleared");
+            // Sequential progression: previous floor must be cleared (unless this is floor 1)
+            if (record.Floor > 1)
+            {
+                var prev = GameData.Instance.towerTable.Values
+                    .FirstOrDefault(t => t.Type == record.Type && t.Floor == record.Floor - 1);
+
+                if (prev != null && !ctx.Triggers.Any(x => x.UserId == user.ID && x.Type == triggerType && x.ConditionId == prev.Id && x.Value == 1))
+                    throw new Exception($"previous floor {record.Floor - 1} not cleared");
+            }
         }
 
         if (!user.TowerProgress.TryGetValue(record.Type, out int value) || value < record.Floor)
@@ -83,8 +88,18 @@ public class TowerHelper
         if (progress >= maxFloor)
             throw new Exception($"tower {record.Type} already fully cleared (progress={progress}, max={maxFloor})");
 
-        if (user.Triggers.Any(x => x.ConditionId == towerId && x.Value == 1))
-            throw new Exception("floor already cleared");
+        var triggerType = TowerClearTriggers[record.Type];
+        HashSet<int> clearedTowerIds;
+        using (var ctx = GameContext.CreateNew())
+        {
+            if (ctx.Triggers.Any(x => x.UserId == user.ID && x.Type == triggerType && x.ConditionId == towerId && x.Value == 1))
+                throw new Exception("floor already cleared");
+
+            clearedTowerIds = ctx.Triggers
+                .Where(x => x.UserId == user.ID && x.Type == triggerType && x.Value == 1)
+                .Select(x => x.ConditionId)
+                .ToHashSet();
+        }
 
         NetRewardData totalReward = new NetRewardData();
         int totalFloorsCleared = 0;
@@ -96,7 +111,7 @@ public class TowerHelper
             .Where(t => t.Type == record.Type
                 && t.Floor >= startFloor
                 && t.Floor <= record.Floor
-                && !user.Triggers.Any(x => x.ConditionId == t.Id && x.Value == 1))
+                && !clearedTowerIds.Contains(t.Id))
             .OrderBy(t => t.Floor)
             .ToList();
 
