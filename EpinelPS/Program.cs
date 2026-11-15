@@ -66,7 +66,11 @@ internal class Program
             LobbyHandler.Init();
 
             Logging.WriteLine("Starting ASP.NET core on ports 80 and 443");
-            WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+            WebApplicationBuilder builder = WebApplication.CreateBuilder(new WebApplicationOptions
+            {
+                Args = args,
+                ContentRootPath = AppDomain.CurrentDomain.BaseDirectory
+            });
 
             // Configure HTTPS
             HttpsConnectionAdapterOptions httpsConnectionAdapterOptions = new()
