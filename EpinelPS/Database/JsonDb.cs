@@ -16,7 +16,11 @@ internal class JsonDb
 
     static JsonDb()
     {
-        if (!File.Exists(AppDomain.CurrentDomain.BaseDirectory + "/db.json"))
+        DatabasePaths.EnsureDataDirectory();
+        if (!File.Exists(DatabasePaths.JsonConfiguration) && File.Exists(DatabasePaths.LegacyJsonConfiguration))
+            File.Copy(DatabasePaths.LegacyJsonConfiguration, DatabasePaths.JsonConfiguration);
+
+        if (!File.Exists(DatabasePaths.JsonConfiguration))
         {
             Console.WriteLine("users: warning: configuration not found, writing default data");
             Instance = new CoreInfo();
@@ -24,7 +28,7 @@ internal class JsonDb
         }
 
 
-        var text = File.ReadAllText(AppDomain.CurrentDomain.BaseDirectory + "/db.json");
+        var text = File.ReadAllText(DatabasePaths.JsonConfiguration);
         if (text.Contains("Char_Premium_Ticket"))
         {
             text = text.Replace("Char_Premium_Ticket", "CharPremiumTicket");
@@ -78,14 +82,17 @@ internal class JsonDb
 
     public static void Reload()
     {
-        if (!File.Exists(AppDomain.CurrentDomain.BaseDirectory + "/db.json"))
+        if (!File.Exists(DatabasePaths.JsonConfiguration) && File.Exists(DatabasePaths.LegacyJsonConfiguration))
+            File.Copy(DatabasePaths.LegacyJsonConfiguration, DatabasePaths.JsonConfiguration);
+
+        if (!File.Exists(DatabasePaths.JsonConfiguration))
         {
             Console.WriteLine("users: warning: configuration not found, writing default data");
             Instance = new CoreInfo();
             Save();
         }
 
-        var j = JsonConvert.DeserializeObject<CoreInfo>(File.ReadAllText(AppDomain.CurrentDomain.BaseDirectory + "/db.json"));
+        var j = JsonConvert.DeserializeObject<CoreInfo>(File.ReadAllText(DatabasePaths.JsonConfiguration));
         if (j != null)
         {
             Instance = j;
@@ -158,7 +165,7 @@ internal class JsonDb
     {
         if (Instance != null)
         {
-            File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "/db.json", JsonConvert.SerializeObject(Instance, Formatting.Indented));
+            File.WriteAllText(DatabasePaths.JsonConfiguration, JsonConvert.SerializeObject(Instance, Formatting.Indented));
         }
     }
     public static int CurrentJukeboxBgm(int position)

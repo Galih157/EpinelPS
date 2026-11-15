@@ -7,7 +7,9 @@
 		<Nullable>enable</Nullable>
 		<IncludeHttpRuleProtos>true</IncludeHttpRuleProtos>
 		<PublishSingleFile>true</PublishSingleFile>
-		<SelfContained>true</SelfContained>
+		<SelfContained Condition="'$(BuildForDbMigration)' != 'true'">true</SelfContained>
+		<SelfContained Condition="'$(BuildForDbMigration)' == 'true'">false</SelfContained>
+		<PublishSingleFile Condition="'$(BuildForDbMigration)' == 'true'">false</PublishSingleFile>
 		<IncludeNativeLibrariesForSelfExtract>True</IncludeNativeLibrariesForSelfExtract>
 		<NoWarn>$(NoWarn);SYSLIB0057</NoWarn>
 		<Version>0.152.0.0</Version>

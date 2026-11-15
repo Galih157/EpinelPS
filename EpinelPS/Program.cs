@@ -24,6 +24,7 @@ internal class Program
     {
         try
         {
+            DatabasePaths.EnsureDataDirectory();
             XmlConfigurator.Configure(new FileInfo("log4net.config"));
             Console.WriteLine($"EpinelPS v{Assembly.GetExecutingAssembly().GetName().Version} - https://github.com/EpinelPS/EpinelPS/");
             Console.WriteLine("This software is licensed under the AGPL-3.0 License");

@@ -68,9 +68,8 @@ public class GameContext : DbContext
     {
         if (Options == null)
         {
-            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            string dbPath = Path.Combine(baseDir, "epinelps.db");
-            InitializeOptions($"Data Source=\"{dbPath}\"", "sqlite");
+            DatabasePaths.EnsureDataDirectory();
+            InitializeOptions($"Data Source=\"{DatabasePaths.SqliteDatabase}\"", "sqlite");
         }
         return new GameContext(Options);
     }
