@@ -20,7 +20,8 @@ public class GetOutpostData : LobbyMessage
             user.Currency[CurrencyType.ContentStamina] = staminaVal;
         }
 
-        TimeSpan battleTime = DateTime.UtcNow - user.BattleTime;
+        var gameUser = UserDbHelper.GetOrCreateGameUser(UserId);
+        TimeSpan battleTime = DateTime.UtcNow - gameUser.BattleTime;
         long battleTimeMs = (long)(battleTime.TotalNanoseconds / 100);
 
         long overBattleTime = battleTimeMs > 12096000000000 ? battleTimeMs - 12096000000000 : 0;

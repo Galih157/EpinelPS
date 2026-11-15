@@ -21,9 +21,10 @@ public class GetUserProfile : LobbyMessage
             };
             response.Data.CharacterCount.Add(new NetCharacterCount() { Count = user.Characters.Count });
             response.Data.CostumeCount = user.CostumeList.Count;
+            var targetGameUser = Database.UserDbHelper.GetOrCreateGameUser(user.ID);
             response.Data.InfraCoreLv = user.InfraCoreLvl;
-            response.Data.LastCampaignNormalStageId = user.LastNormalStageCleared;
-            response.Data.LastCampaignHardStageId = user.LastHardStageCleared;
+            response.Data.LastCampaignNormalStageId = targetGameUser.LastNormalStageCleared;
+            response.Data.LastCampaignHardStageId = targetGameUser.LastHardStageCleared;
             response.Data.OutpostOpenState = user.MainQuestData.ContainsKey(25);
             response.Data.Desc = GameContext.Users.Where(u => u.ID == UserId).First().Description;
             response.Data.SynchroLv = user.Characters.Max(c => c.Level) < 200 ? user.Characters.Max(c => c.Level) : user.SynchroDeviceLevel;

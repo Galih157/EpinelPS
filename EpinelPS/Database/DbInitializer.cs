@@ -12,23 +12,19 @@ public static class DbInitializer
     {
         Logging.WriteLine("Initializing & migrating database...");
         context.Database.Migrate();
+        ServerConfigStore.InitializeFromContext(context);
 
         const string email = "admin@nikke.com";
         if (context.SdkUsers.Any(user => user.Email == email))
             return;
 
-        ulong id;
-        do
-        {
-            id = (ulong)Random.Shared.Next(1, int.MaxValue);
-        }
-        while (context.SdkUsers.Any(user => user.ID == id) || context.Users.Any(user => user.ID == id));
+        ulong id = UserDbHelper.GenerateNextUserId(context);
 
         context.SdkUsers.Add(new SdkUser
         {
             ID = id,
             Email = email,
-            PasswordHash = Convert.ToHexString(MD5.HashData(Encoding.ASCII.GetBytes("admin123"))).ToLowerInvariant(),
+            PasswordHash = PasswordHelper.HashMd5("admin123"),
             PlayerName = "Admin",
             RegisterTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             IsAdmin = true,

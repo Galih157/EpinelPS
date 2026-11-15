@@ -19,17 +19,27 @@ public class RemoveUserHandler(IExecutionContext context) : BaseHandler<RemoveUs
         if (context.SelectedUser == null)
             return new HandleResult(false, "No user selected");
 
-        Console.WriteLine($"Are you sure you want to remove user {context.SelectedUser.Username} (ID: {context.SelectedUser.ID})? This action cannot be undone. (y/n)");
+        var sdkUser = UserDbHelper.GetSdkUser(context.SelectedUser.ID);
+        var displayName = sdkUser?.Email ?? context.SelectedUser.ID.ToString();
+        Console.WriteLine($"Are you sure you want to remove user {displayName} (ID: {context.SelectedUser.ID})? This action cannot be undone. (y/n)");
         var confirmation = Console.ReadLine();
         if (confirmation?.ToLower() != "y")
         {
             return new HandleResult(false, "User removal cancelled");
         }
 
+        using (var db = GameContext.CreateNew())
+        {
+            var sdk = db.SdkUsers.Find(context.SelectedUser.ID);
+            if (sdk != null) db.SdkUsers.Remove(sdk);
+            var game = db.Users.Find(context.SelectedUser.ID);
+            if (game != null) db.Users.Remove(game);
+            await db.SaveChangesAsync();
+        }
+
         JsonDb.Instance.Users.Remove(context.SelectedUser);
         JsonDb.Save();
-        var username = context.SelectedUser.Username;
         context.SelectedUser = null;
-        return new HandleResult(true, $"User {username} removed successfully");
+        return new HandleResult(true, $"User {displayName} removed successfully");
     }
 }

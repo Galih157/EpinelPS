@@ -25,9 +25,9 @@ public class LobbyController(IUserService UserService, GameContext db) : Control
         User? user = UserService.GetUser();
         if (user == null) return Problem(type: NetUtils.InvalidSessionErrorType);
 
-        var userDB = db.Users.Find(user.ID);
+        var userDB = UserDbHelper.GetOrCreateGameUser(db, user.ID);
 
-        TimeSpan battleTime = DateTime.UtcNow - user.BattleTime;
+        TimeSpan battleTime = DateTime.UtcNow - userDB.BattleTime;
         long battleTimeMs = (long)(battleTime.TotalNanoseconds / 100);
 
         // NOTE: Keep this in sync with GetUser code
@@ -39,7 +39,7 @@ public class LobbyController(IUserService UserService, GameContext db) : Control
         ResEnterLobbyServer response = new()
         {
             User = LobbyHandler.CreateNetUserDataFromUser(user),
-            ResetHour = JsonDb.Instance.ResetHourUtcTime,
+            ResetHour = ServerConfigStore.ResetHourUtcTime,
             Nickname = userDB.Nickname,
             SynchroLv = 1,
             OutpostBattleLevel = user.OutpostBattleLevel,
@@ -124,10 +124,10 @@ public class LobbyController(IUserService UserService, GameContext db) : Control
             JsonDb.Save();
         }
 
-        response.LastClearedNormalMainStageId = user.LastNormalStageCleared;
-        response.LastClearedStoryStageId = user.LastStoryStageCleared;
-        response.LastClearedHardMainStageId = user.LastHardStageCleared;
-        response.LastClearedMod = user.LastClearedDifficulty;
+        response.LastClearedNormalMainStageId = userDB.LastNormalStageCleared;
+        response.LastClearedStoryStageId = userDB.LastStoryStageCleared;
+        response.LastClearedHardMainStageId = userDB.LastHardStageCleared;
+        response.LastClearedMod = userDB.LastClearedDifficulty;
 
         response.TimeRewardBuffs.AddRange(NetUtils.GetOutpostTimeReward(user));
 

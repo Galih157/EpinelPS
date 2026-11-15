@@ -246,13 +246,15 @@ public class User
     public BadgeModel AddBadge(BadgeContents type, string location)
     {
         // generate unique badge SEQ
+        long seq = 0;
+        UserDbHelper.UpdateGameUser(ID, u => seq = u.LastBadgeSeq++);
 
         var badge = new BadgeModel()
         {
             BadgeContent = type,
             Location = location,
             BadgeGuid = Guid.NewGuid().ToString(),
-            Seq = LastBadgeSeq++
+            Seq = seq
         };
 
         Badges.Add(badge);
@@ -520,12 +522,14 @@ public class User
 
     public NetMessage CreateMessage(MessengerDialogRecord r, int state = 0)
     {
+        long seq = 0;
+        UserDbHelper.UpdateGameUser(ID, u => seq = u.LastMessageId++);
         var msg = new NetMessage()
         {
             ConversationId = r.ConversationId,
             CreatedAt = DateTime.UtcNow.Ticks,
             MessageId = r.Id,
-            Seq = (long)LastMessageId++,
+            Seq = seq,
             State = state
         };
         MessengerData.Add(msg);
@@ -534,12 +538,14 @@ public class User
 
     public NetMessage CreateMessage(string conversationId, string messageId, int state = 0)
     {
+        long seq = 0;
+        UserDbHelper.UpdateGameUser(ID, u => seq = u.LastMessageId++);
         var msg = new NetMessage()
         {
             ConversationId = conversationId,
             CreatedAt = DateTime.UtcNow.Ticks,
             MessageId = messageId,
-            Seq = (long)LastMessageId++,
+            Seq = seq,
             State = state
         };
         MessengerData.Add(msg);
@@ -555,7 +561,7 @@ public class User
             nowLocal.Year,
             nowLocal.Month,
             nowLocal.Day,
-            JsonDb.Instance.ResetHourUtcTime, 0, 0
+            ServerConfigStore.ResetHourUtcTime, 0, 0
         );
 
         if (nowLocal < todayResetTime)
@@ -564,7 +570,7 @@ public class User
         }
 
         // If user's last reset was before the last scheduled 2 PM, they need reset
-        return LastReset < todayResetTime;
+        return UserDbHelper.GetOrCreateGameUser(ID).LastReset < todayResetTime;
     }
 
     private bool ShouldResetWeekly()
@@ -583,7 +589,7 @@ public class User
             thisTuesday.Year,
             thisTuesday.Month,
             thisTuesday.Day,
-            JsonDb.Instance.ResetHourUtcTime, 0, 0
+            ServerConfigStore.ResetHourUtcTime, 0, 0
         );
 
         // If nowLocal is before the weekly reset time, subtract a week
@@ -593,7 +599,7 @@ public class User
         }
 
         // If user's last reset was before the last scheduled 2 PM, they need reset
-        return LastWeeklyReset < weeklyResetTime;
+        return UserDbHelper.GetOrCreateGameUser(ID).LastWeeklyReset < weeklyResetTime;
     }
 
     /*public void ResetDataIfNeeded()
@@ -628,7 +634,7 @@ public class User
         {
             Logging.WriteLine("Resetting weekly user data...", LogType.Warning);
 
-            LastWeeklyReset = DateTime.UtcNow;
+            UserDbHelper.UpdateGameUser(ID, u => u.LastWeeklyReset = DateTime.UtcNow);
             var currentSeasonData = ResetableData.SimRoomData.CurrentSeasonData;
             currentSeasonData.LatestOption = new();
             ResetableData = new()
@@ -654,7 +660,7 @@ public class User
         {
             Logging.WriteLine("Resetting daily user data...", LogType.Warning);
 
-            LastReset = DateTime.UtcNow;
+            UserDbHelper.UpdateGameUser(ID, u => u.LastReset = DateTime.UtcNow);
             ResetableData = new()
             {
                 SimRoomData = new()

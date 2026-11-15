@@ -89,7 +89,7 @@ public class SystemController(IUserService db) : Controller
         return new ResGetNow()
         {
             Tick = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-            ResetHour = JsonDb.Instance.ResetHourUtcTime,
+            ResetHour = ServerConfigStore.ResetHourUtcTime,
             CheatShiftDuration = Duration.FromTimeSpan(TimeSpan.FromSeconds(0))
         };
     }

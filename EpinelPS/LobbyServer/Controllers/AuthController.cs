@@ -59,18 +59,16 @@ public class AuthController(IUserService UserService, GameContext db) : Controll
             return Problem(type: NetUtils.InvalidSessionErrorType);
         }
 
-        if (user.IsBanned && user.BanEnd < DateTime.UtcNow)
+        var activeBan = UserDbHelper.GetActiveBan(db, UserId);
+        if (activeBan != null)
         {
-            user.IsBanned = false;
-            user.BanId = 0;
-            user.BanStart = DateTime.MinValue;
-            user.BanEnd = DateTime.MinValue;
-            JsonDb.Save();
-        }
-
-        if (user.IsBanned)
-        {
-            response.BanInfo = new NetBanInfo() { BanId = user.BanId, Description = "The server admin is sad today because the hinge on his HP laptop broke which happened to be an HP Elitebook 8470p, and the RAM controller exploded and then fixed itself, please contact him", StartAt = Timestamp.FromDateTime(DateTime.SpecifyKind(user.BanStart, DateTimeKind.Utc)), EndAt = Timestamp.FromDateTime(DateTime.SpecifyKind(user.BanEnd, DateTimeKind.Utc)) };
+            response.BanInfo = new NetBanInfo()
+            {
+                BanId = activeBan.BanId,
+                Description = "The server admin is sad today because the hinge on his HP laptop broke which happened to be an HP Elitebook 8470p, and the RAM controller exploded and then fixed itself, please contact him",
+                StartAt = Timestamp.FromDateTime(DateTime.SpecifyKind(activeBan.BanStart, DateTimeKind.Utc)),
+                EndAt = Timestamp.FromDateTime(DateTime.SpecifyKind(activeBan.BanEnd, DateTimeKind.Utc))
+            };
         }
         else
         {
@@ -101,14 +99,14 @@ public class AuthController(IUserService UserService, GameContext db) : Controll
         GameClientInfo rsp = LobbyHandler.GenGameClientTok(req.ClientPublicKey, UserId);
 
         string token = new PasetoBuilder().Use(ProtocolVersion.V4, Purpose.Local)
-                           .WithKey(JsonDb.Instance.LauncherTokenKey, Encryption.SymmetricKey)
+                           .WithKey(ServerConfigStore.LauncherTokenKey, Encryption.SymmetricKey)
                            .AddClaim("userId", UserId)
                            .IssuedAt(DateTime.UtcNow)
                            .Expiration(DateTime.UtcNow.AddDays(2))
                            .Encode();
 
         string encryptionToken = new PasetoBuilder().Use(ProtocolVersion.V4, Purpose.Local)
-                           .WithKey(JsonDb.Instance.LauncherTokenKey, Encryption.SymmetricKey)
+                           .WithKey(ServerConfigStore.LauncherTokenKey, Encryption.SymmetricKey)
                            .AddClaim("data", JsonSerializer.Serialize(rsp))
                            .IssuedAt(DateTime.UtcNow)
                            .Expiration(DateTime.UtcNow.AddDays(2))

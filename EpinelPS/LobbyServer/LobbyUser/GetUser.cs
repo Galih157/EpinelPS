@@ -12,13 +12,14 @@ public class GetUser : LobbyMessage
         ReqGetUserData req = await ReadData<ReqGetUserData>();
         ResGetUserData response = new();
         User user = GetUser();
+        var gameUser = UserDbHelper.GetOrCreateGameUser(UserId);
 
-        TimeSpan battleTime = DateTime.UtcNow - user.BattleTime;
+        TimeSpan battleTime = DateTime.UtcNow - gameUser.BattleTime;
         long battleTimeMs = (long)(battleTime.TotalNanoseconds / 100);
 
 
         response.User = LobbyHandler.CreateNetUserDataFromUser(user);
-        response.ResetHour = JsonDb.Instance.ResetHourUtcTime;
+        response.ResetHour = ServerConfigStore.ResetHourUtcTime;
         response.OutpostBattleTime = new NetOutpostBattleTime() { MaxBattleTime = 864000000000, MaxOverBattleTime = 12096000000000, BattleTime = battleTimeMs };
         response.OutpostBattleLevel = user.OutpostBattleLevel;
         response.IsSimple = req.IsSimple;
@@ -49,10 +50,10 @@ public class GetUser : LobbyMessage
         }
         response.RepresentationTeam = NetUtils.GetDisplayedTeam(user);
 
-        response.LastClearedNormalMainStageId = user.LastNormalStageCleared;
-        response.LastClearedStoryStageId = user.LastStoryStageCleared;
-        response.LastClearedHardMainStageId = user.LastHardStageCleared;
-        response.LastClearedMod = user.LastClearedDifficulty;
+        response.LastClearedNormalMainStageId = gameUser.LastNormalStageCleared;
+        response.LastClearedStoryStageId = gameUser.LastStoryStageCleared;
+        response.LastClearedHardMainStageId = gameUser.LastHardStageCleared;
+        response.LastClearedMod = gameUser.LastClearedDifficulty;
 
         // Restore completed tutorials. GroupID is the first 4 digits of the Table ID.
         foreach (KeyValuePair<int, ClearedTutorialData> item in user.ClearedTutorialDataNew)

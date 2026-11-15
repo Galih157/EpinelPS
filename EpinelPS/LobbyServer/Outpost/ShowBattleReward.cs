@@ -10,7 +10,8 @@ public class ShowBattleReward : LobbyMessage
         ReqShowOutpostBattleReward req = await ReadData<ReqShowOutpostBattleReward>();
         User user = GetUser();
 
-        TimeSpan battleTime = DateTime.UtcNow - user.BattleTime;
+        var gameUser = Database.UserDbHelper.GetOrCreateGameUser(UserId);
+        TimeSpan battleTime = DateTime.UtcNow - gameUser.BattleTime;
         long battleTimeMs = (long)(battleTime.TotalNanoseconds / 100);
         long overBattleTime = battleTimeMs > 864000000000 ? battleTimeMs - 864000000000 : 0;
 

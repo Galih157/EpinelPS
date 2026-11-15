@@ -115,7 +115,7 @@ public class MessengerAdminService
 
         NetMessage restored = entry.Message.Clone();
         user.MessengerData.Add(restored);
-        user.LastMessageId = Math.Max(user.LastMessageId, (ulong)restored.Seq + 1);
+        Database.UserDbHelper.UpdateGameUser(user.ID, u => u.LastMessageId = Math.Max(u.LastMessageId, restored.Seq + 1));
         AddAudit(user, "Restored", restored, $"Restored deleted audit entry {entry.Id}.");
         return true;
     }

@@ -13,7 +13,7 @@ public class FastClearInterceptData : LobbyMessage
         ResFastClearIntercept response = new()
         {
             TicketCount = user.ResetableData.InterceptionTickets,
-            MaxTicketCount = JsonDb.Instance.MaxInterceptionCount,
+            MaxTicketCount = ServerConfigStore.MaxInterceptionCount,
             Damage = 0
         };
 

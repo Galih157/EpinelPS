@@ -20,7 +20,7 @@ public class NetUtils
         var db = context.RequestServices.GetRequiredService<GameContext>();
 
         PasetoTokenValidationResult encryptionToken = new PasetoBuilder().Use(ProtocolVersion.V4, Purpose.Local)
-                .WithKey(JsonDb.Instance.LauncherTokenKey, Encryption.SymmetricKey)
+                .WithKey(ServerConfigStore.LauncherTokenKey, Encryption.SymmetricKey)
                 .Decode(tokToCheck, new PasetoTokenValidationParameters() { ValidateLifetime = true });
 
         if (encryptionToken.IsValid)

@@ -39,7 +39,7 @@ public class ProtobufModelBinder : IModelBinder
             try
             {
                 PasetoTokenValidationResult encryptionToken = new PasetoBuilder().Use(ProtocolVersion.V4, Purpose.Local)
-                           .WithKey(JsonDb.Instance.LauncherTokenKey, Encryption.SymmetricKey)
+                           .WithKey(ServerConfigStore.LauncherTokenKey, Encryption.SymmetricKey)
                            .Decode(request.Headers.Authorization.ToString().Replace("Bearer ", ""), new PasetoTokenValidationParameters() { ValidateLifetime = true });
 
                 if (encryptionToken.IsValid)

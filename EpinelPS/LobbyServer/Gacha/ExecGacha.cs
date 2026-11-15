@@ -343,7 +343,7 @@ public class ExecGacha : LobbyMessage
         // ==========================
         if (discount)
         {
-            user.DailyDiscountUsed = true;
+            UserDbHelper.UpdateGameUser(UserId, u => u.DailyDiscountUsed = true);
         }
 
         // ==========================

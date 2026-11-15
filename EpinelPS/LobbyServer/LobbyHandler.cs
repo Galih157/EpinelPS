@@ -51,7 +51,7 @@ public static class LobbyHandler
             try
             {
                 PasetoTokenValidationResult encryptionToken = new PasetoBuilder().Use(ProtocolVersion.V4, Purpose.Local)
-                           .WithKey(JsonDb.Instance.LauncherTokenKey, Encryption.SymmetricKey)
+                           .WithKey(ServerConfigStore.LauncherTokenKey, Encryption.SymmetricKey)
                            .Decode(ctx.Request.Headers.Authorization.ToString().Replace("Bearer ", ""), new PasetoTokenValidationParameters() { ValidateLifetime = true });
 
                 if (encryptionToken.IsValid)
@@ -121,7 +121,7 @@ public static class LobbyHandler
     public static GameClientInfo? GetInfo(string token)
     {
         PasetoTokenValidationResult encryptionToken = new PasetoBuilder().Use(ProtocolVersion.V4, Purpose.Local)
-                         .WithKey(JsonDb.Instance.LauncherTokenKey, Encryption.SymmetricKey)
+                         .WithKey(ServerConfigStore.LauncherTokenKey, Encryption.SymmetricKey)
                          .Decode(token, new PasetoTokenValidationParameters() { ValidateLifetime = true }) ?? throw new Exception("failed to decrypt");
         JsonElement elem = (encryptionToken.Paseto.Payload["data"] as System.Text.Json.JsonElement?) ?? throw new Exception("expected data field in auth token");
 
@@ -137,17 +137,18 @@ public static class LobbyHandler
 
     public static NetUserData CreateNetUserDataFromUser(User user)
     {
+        var gameUser = UserDbHelper.GetOrCreateGameUser(user.ID);
         NetUserData ret = new()
         {
             Lv = user.userPointData.UserLevel,
             Exp = user.userPointData.ExperiencePoint,
             CostumeLv = 1,
-            Frame = user.ProfileFrame,
-            Icon = user.ProfileIconId,
-            IconPrism = user.ProfileIconIsPrism,
+            Frame = gameUser.ProfileFrame,
+            Icon = gameUser.ProfileIconId,
+            IconPrism = gameUser.ProfileIconIsPrism,
             InfraCoreExp = user.InfraCoreExp,
             InfraCoreLv = user.InfraCoreLvl,
-            Desc = user.Description
+            Desc = gameUser.Description
         };
 
 
@@ -169,14 +170,14 @@ public static class LobbyHandler
     public static NetWholeUserData CreateWholeUserDataFromDbUser(User user)
     {
         using var ctx1 = GameContext.CreateNew();
-        var userDB = ctx1.Users.Find((ulong)user.ID);
+        var userDB = UserDbHelper.GetOrCreateGameUser(ctx1, user.ID);
         NetWholeUserData ret = new()
         {
             Lv = user.userPointData.UserLevel,
-            Frame = user.ProfileFrame,
-            Icon = user.ProfileIconId,
-            IconPrism = user.ProfileIconIsPrism,
-            UserTitleId = user.TitleId,
+            Frame = userDB.ProfileFrame,
+            Icon = userDB.ProfileIconId,
+            IconPrism = userDB.ProfileIconIsPrism,
+            UserTitleId = userDB.TitleId,
             Nickname = userDB.Nickname,
             Usn = (long)user.ID,
             LastActionAt = DateTimeOffset.UtcNow.Ticks,
@@ -189,15 +190,15 @@ public static class LobbyHandler
     public static NetWholeUserData CreateWholeUserDataFromDbUser(ulong id)
     {
         using var ctx2 = GameContext.CreateNew();
-        var userDB = ctx2.Users.Find((ulong)id);
+        var userDB = UserDbHelper.GetOrCreateGameUser(ctx2, id);
         var user = JsonDb.Instance.Users.Where(x=>x.ID == id).FirstOrDefault();
         NetWholeUserData ret = new()
         {
             Lv = user.userPointData.UserLevel,
-            Frame = user.ProfileFrame,
-            Icon = user.ProfileIconId,
-            IconPrism = user.ProfileIconIsPrism,
-            UserTitleId = user.TitleId,
+            Frame = userDB.ProfileFrame,
+            Icon = userDB.ProfileIconId,
+            IconPrism = userDB.ProfileIconIsPrism,
+            UserTitleId = userDB.TitleId,
             Nickname = userDB.Nickname,
             Usn = (long)user.ID,
             LastActionAt = DateTimeOffset.UtcNow.Ticks,

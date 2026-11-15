@@ -12,7 +12,8 @@ public class ResetMission : LobbyMessage
         User user = GetUser();
         ResResetLiberateMission response = new();
 
-        if (user.LiberateDatas.TryGetValue(user.CurCharacterIdId, out var liberateData))
+        int curCharId = UserDbHelper.GetOrCreateGameUser(UserId).CurrentLiberateCharacterId;
+        if (user.LiberateDatas.TryGetValue(curCharId, out var liberateData))
         {
             // 直接获取 groupId，如果为 null 则提前返回或处理
             NetLiberateMissionData? firstMission = liberateData.MissionData.FirstOrDefault(x => x.Id == req.MissionId);

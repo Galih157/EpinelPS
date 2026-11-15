@@ -14,7 +14,8 @@ public class GetLiberateData : LobbyMessage
         Random random = new Random();
         ResGetLiberateData response = new();
 
-        if (user.LiberateDatas.TryGetValue(user.CurCharacterIdId, out var liberateData))
+        int curCharId = UserDbHelper.GetOrCreateGameUser(UserId).CurrentLiberateCharacterId;
+        if (user.LiberateDatas.TryGetValue(curCharId, out var liberateData))
         {
             if (liberateData.MissionData[0].CreatedAt.IsOlderThan24Hours())
             {
@@ -33,13 +34,13 @@ public class GetLiberateData : LobbyMessage
                     .ToList();
 
                 var randomSubGroupId = subGroupIds[Random.Shared.Next(subGroupIds.Count)]; // 使用 Random.Shared 避免每次 new
-                List<NetLiberateMissionData>? list = LiberateHelper.GetMissions(user.CurCharacterIdId, currentMission.GroupId, randomSubGroupId);
+                List<NetLiberateMissionData>? list = LiberateHelper.GetMissions(curCharId, currentMission.GroupId, randomSubGroupId);
 
                 liberateData.MissionData.Clear();
                 liberateData.MissionData.AddRange(list);
                 liberateData.RewardedCount = 0;
             }
-            response.LiberateData = user.LiberateDatas.GetValueOrDefault(user.CurCharacterIdId);
+            response.LiberateData = user.LiberateDatas.GetValueOrDefault(curCharId);
             response.OpenLiberateTypeIdList.AddRange(user.OpenLiberateTypeIdList);
         }
 

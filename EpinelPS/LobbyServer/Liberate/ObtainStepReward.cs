@@ -14,10 +14,11 @@ public class ObtainStepReward : LobbyMessage
         ResObtainLiberateStepReward response = new();
 
         NetRewardData ret = new();
-        if (user.LiberateDatas.TryGetValue(user.CurCharacterIdId, out var liberateData))
+        int curCharId = UserDbHelper.GetOrCreateGameUser(UserId).CurrentLiberateCharacterId;
+        if (user.LiberateDatas.TryGetValue(curCharId, out var liberateData))
         {
             LiberateCharacterRecord? liberatechar = GameData.Instance.LiberateCharacterTable.Values
-            .Where(x => x.Id == user.CurCharacterIdId).FirstOrDefault();
+            .Where(x => x.Id == curCharId).FirstOrDefault();
 
             LiberateMissionGroupRecord? group = GameData.Instance.LiberateMissionGroupTable.Values
                 .Where(x => x.MissionStepGroup == liberatechar.MissionStepGroup && x.MissionStep == liberateData.Step)

@@ -8,7 +8,7 @@ public class GetTeamData : LobbyMessage
         ReqGetTeamData req = await ReadData<ReqGetTeamData>();
         User user = GetUser();
 
-        if (user.Characters.Count == 0 && user.LastNormalStageCleared >= 6000002)
+        if (user.Characters.Count == 0 && Database.UserDbHelper.GetOrCreateGameUser(user.ID).LastNormalStageCleared >= 6000002)
         {
             Stage.ClearStage.EnsureDefaultCharacters(user);
         }

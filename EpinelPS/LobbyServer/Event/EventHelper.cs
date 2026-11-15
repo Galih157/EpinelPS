@@ -226,9 +226,10 @@ public class EventHelper
             lobbyPrivateBanners = [.. lobbyPrivateBannerRecords.Where(b => lobbyPrivateBannerIds.Contains(b.Id))];
         }
         // Priority 2: server-wide active event banners (configured via admin panel)
-        else if (JsonDb.Instance.ActiveEventBannerIds.Count > 0)
+        else if (ServerConfigStore.ActiveEventBannerIds.Count > 0)
         {
-            lobbyPrivateBanners = [.. lobbyPrivateBannerRecords.Where(b => JsonDb.Instance.ActiveEventBannerIds.Contains(b.Id))];
+            var activeBannerIds = ServerConfigStore.ActiveEventBannerIds;
+            lobbyPrivateBanners = [.. lobbyPrivateBannerRecords.Where(b => activeBannerIds.Contains(b.Id))];
         }
         // Priority 3: fallback to the latest event
         if (lobbyPrivateBanners.Count == 0)

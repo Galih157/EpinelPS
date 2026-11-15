@@ -32,15 +32,12 @@ public class AdminApiController(GameContext DbContext) : ControllerBase
         bool nullusernames = false;
         if (b.Username != null && b.Password != null)
         {
-            string passwordHash = Convert.ToHexString(md5.ComputeHash(Encoding.ASCII.GetBytes(b.Password))).ToLower();
             foreach (var item in dbContext.SdkUsers)
             {
-                if (item.Email == b.Username && item.PasswordHash != null)
+                if (item.Email == b.Username && PasswordHelper.VerifyMd5(b.Password, item.PasswordHash))
                 {
-                    if (item.PasswordHash.Equals(passwordHash, StringComparison.OrdinalIgnoreCase))
-                    {
-                        user = item;
-                    }
+                    user = item;
+                    break;
                 }
             }
         }
@@ -60,7 +57,7 @@ public class AdminApiController(GameContext DbContext) : ControllerBase
             if (user.IsAdmin)
             {
                 string tok = new PasetoBuilder().Use(ProtocolVersion.V4, Purpose.Local)
-                    .WithKey(JsonDb.Instance.LauncherTokenKey, Encryption.SymmetricKey)
+                    .WithKey(ServerConfigStore.LauncherTokenKey, Encryption.SymmetricKey)
                     .AddClaim("userId", user.ID)
                     .IssuedAt(DateTime.UtcNow)
                     .Expiration(DateTime.UtcNow.AddDays(2))
@@ -78,36 +75,30 @@ public class AdminApiController(GameContext DbContext) : ControllerBase
     [HttpPost("RegisterAccount")]
     public RunCmdResponse RegisterAccount([FromBody] RegisterAccountReg req)
     {
-        if (JsonDb.Instance.Users.Count != 0 && !AdminController.CheckAuth(HttpContext)) return new RunCmdResponse() { error = "Cannot register an account as an account already exists" };
+        if (dbContext.SdkUsers.Any() && !AdminController.CheckAuth(HttpContext)) return new RunCmdResponse() { error = "Cannot register an account as an account already exists" };
 
-        if (dbContext.SdkUsers.Where(x => x.Email == req.Email).Count() != 0)
+        if (dbContext.SdkUsers.Any(x => x.Email == req.Email))
         {
             return new RunCmdResponse() { error = $"Email {req.Email} already exists" };
         }
 
-        ulong uid = (ulong)new Random().Next(1, int.MaxValue);
+        ulong uid = UserDbHelper.GenerateNextUserId(dbContext);
 
-        // Check if we havent generated a UID that exists
-        foreach (User item in JsonDb.Instance.Users)
+        bool admin = !dbContext.SdkUsers.Any();
+
+        if (!JsonDb.Instance.Users.Any(u => u.ID == uid))
         {
-            if (item.ID == uid)
+            JsonDb.Instance.Users.Add(new User()
             {
-                uid -= (ulong)new Random().Next(1, 1221);
-            }
+                ID = uid
+            });
         }
-
-        bool admin = JsonDb.Instance.Users.Count == 0;
-
-        JsonDb.Instance.Users.Add(new User()
-        {
-            ID = uid
-        });
 
         dbContext.SdkUsers.Add(new SdkUser()
         {
             ID = uid,
             Email = req.Email,
-            PasswordHash = Convert.ToHexString(md5.ComputeHash(Encoding.ASCII.GetBytes(req.Password))).ToLower(),
+            PasswordHash = PasswordHelper.HashMd5(req.Password),
             RegisterTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             IsAdmin = admin,
             PlayerName = "Player_" + Rng.RandomString(8),
@@ -134,7 +125,7 @@ public class AdminApiController(GameContext DbContext) : ControllerBase
         {
             if (!ulong.TryParse(req.p1, out ulong mailUserId))
                 return new RunCmdResponse() { error = "Invalid user ID" };
-            User? mailUser = JsonDb.Instance.Users.FirstOrDefault(x => x.ID == mailUserId);
+            User? mailUser = JsonDb.GetUser(mailUserId);
             if (mailUser == null)
                 return new RunCmdResponse() { error = "User not found" };
 
@@ -160,7 +151,7 @@ public class AdminApiController(GameContext DbContext) : ControllerBase
         User? user = null;
         if (ulong.TryParse(req.p1, out ulong userId))
         {
-            user = JsonDb.Instance.Users.FirstOrDefault(x => x.ID == userId);
+            user = JsonDb.GetUser(userId);
         }
 
         var ctx = new CliContext { SelectedUser = user };
@@ -189,7 +180,7 @@ public class AdminApiController(GameContext DbContext) : ControllerBase
     public ActionResult<SoloRaidMuseumRecordModel> GetSoloRaidMuseum([FromQuery] ulong userId, [FromQuery] int stageId, [FromQuery] bool noLimit = false)
     {
         if (!AdminController.CheckAuth(HttpContext)) return Unauthorized();
-        var user = JsonDb.Instance.Users.FirstOrDefault(x => x.ID == userId);
+        var user = JsonDb.GetUser(userId);
         if (user is null) return NotFound(new { error = "user not found" });
         var stage = SoloRaidMuseumHelper.GetStage(user, stageId);
         var mode = noLimit ? stage.NoLimit : stage.Challenge;
@@ -225,7 +216,7 @@ public class AdminApiController(GameContext DbContext) : ControllerBase
     public ActionResult<RunCmdResponse> UpdateSoloRaidMuseum([FromBody] SoloRaidMuseumRecordModel request)
     {
         if (!AdminController.CheckAuth(HttpContext)) return Unauthorized();
-        var user = JsonDb.Instance.Users.FirstOrDefault(x => x.ID == request.UserId);
+        var user = JsonDb.GetUser(request.UserId);
         if (user is null) return NotFound(new { error = "user not found" });
         if (request.StageId <= 0 || request.StageJoinCount is < 0 or > 5 ||
             request.TotalDamage < 0 || request.TotalStep < 0 || request.BestDamage < 0 || request.BestStep < 0)
@@ -258,7 +249,7 @@ public class AdminApiController(GameContext DbContext) : ControllerBase
     public ActionResult<RunCmdResponse> ResetSoloRaidMuseumSeason([FromBody] SoloRaidMuseumResetModel request)
     {
         if (!AdminController.CheckAuth(HttpContext)) return Unauthorized();
-        var user = JsonDb.Instance.Users.FirstOrDefault(x => x.ID == request.UserId);
+        var user = JsonDb.GetUser(request.UserId);
         if (user is null) return NotFound(new { error = "user not found" });
         if (!GameData.Instance.MuseumStageTable.ContainsKey(request.StageId))
             return BadRequest(new { error = "unknown museum stage" });

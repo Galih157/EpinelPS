@@ -10,9 +10,10 @@ using System.Diagnostics;
 namespace EpinelPS.Controllers.AdminPanel;
 
 [Route("admin")]
-public class AdminController(ILogger<AdminController> logger) : Controller
+public class AdminController(ILogger<AdminController> logger, GameContext dbContext) : Controller
 {
     private readonly ILogger<AdminController> _logger = logger;
+    private readonly GameContext _db = dbContext;
 
     public static bool CheckAuth(HttpContext context)
     {
@@ -22,7 +23,7 @@ public class AdminController(ILogger<AdminController> logger) : Controller
         try
         {
             PasetoTokenValidationResult encryptionToken = new PasetoBuilder().Use(ProtocolVersion.V4, Purpose.Local)
-        .WithKey(JsonDb.Instance.LauncherTokenKey, Encryption.SymmetricKey)
+        .WithKey(ServerConfigStore.LauncherTokenKey, Encryption.SymmetricKey)
         .Decode(token, new PasetoTokenValidationParameters() { ValidateLifetime = true });
 
             if (encryptionToken.IsValid)
@@ -50,7 +51,7 @@ public class AdminController(ILogger<AdminController> logger) : Controller
     {
         if (!CheckAuth(HttpContext)) return Redirect("/admin/");
 
-        return View(JsonDb.Instance.ActiveEventBannerIds);
+        return View(ServerConfigStore.ActiveEventBannerIds);
     }
 
     [Route("Events"), ActionName("Events")]
@@ -59,11 +60,10 @@ public class AdminController(ILogger<AdminController> logger) : Controller
     {
         if (!CheckAuth(HttpContext)) return Redirect("/admin/");
 
-        JsonDb.Instance.ActiveEventBannerIds = activeBannerIds ?? [];
-        JsonDb.Save();
+        ServerConfigStore.SetActiveEventBanners(_db, activeBannerIds ?? []);
 
         TempData["MessageKey"] = "events.config.saved";
-        return View(JsonDb.Instance.ActiveEventBannerIds);
+        return View(ServerConfigStore.ActiveEventBannerIds);
     }
 
     [Route("Events/ActivateLatest")]
@@ -75,8 +75,7 @@ public class AdminController(ILogger<AdminController> logger) : Controller
         var latest = GameData.Instance.LobbyPrivateBannerTable.Values.LastOrDefault();
         if (latest != null)
         {
-            JsonDb.Instance.ActiveEventBannerIds = [latest.Id];
-            JsonDb.Save();
+            ServerConfigStore.SetActiveEventBanners(_db, [latest.Id]);
         }
 
         return Redirect("/admin/Events");
@@ -89,7 +88,7 @@ public class AdminController(ILogger<AdminController> logger) : Controller
 
         ServerConfiguration model = new()
         {
-            LogType = JsonDb.Instance.LogLevel
+            LogType = ServerConfigStore.LogLevel
         };
 
         return View(model);
@@ -104,8 +103,7 @@ public class AdminController(ILogger<AdminController> logger) : Controller
         if (!ModelState.IsValid)
             return View();
 
-        JsonDb.Instance.LogLevel = cfg.LogType;
-        JsonDb.Save();
+        ServerConfigStore.SetLogLevel(_db, cfg.LogType);
         return View(new ServerConfiguration() { LogType = cfg.LogType });
     }
 

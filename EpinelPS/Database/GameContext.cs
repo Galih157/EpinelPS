@@ -20,6 +20,11 @@ public class GameContext : DbContext
     /// </summary>
     public DbSet<TriggerModelNew> Triggers { get; set; }
 
+    public DbSet<ServerSettings> ServerSettings { get; set; }
+    public DbSet<ServerSecrets> ServerSecrets { get; set; }
+    public DbSet<EventBanner> EventBanners { get; set; }
+    public DbSet<UserBan> UserBans { get; set; }
+
     /// <summary>
     /// GameContext instance. Should only be used in console thread.
     /// Long-lived, set once at startup via <see cref="SetInstance"/> - do NOT set this from
@@ -36,6 +41,23 @@ public class GameContext : DbContext
     public static DbContextOptions<GameContext>? Options { get; private set; }
     public GameContext(DbContextOptions<GameContext> options) : base(options)
     {
+    }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<SdkUser>()
+            .HasIndex(u => u.Email);
+
+        modelBuilder.Entity<UserBan>(entity =>
+        {
+            entity.HasIndex(b => b.UserId);
+            entity.HasOne(b => b.User)
+                .WithMany(u => u.Bans)
+                .HasForeignKey(b => b.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
     }
 
     public static void InitializeOptions(string connectionString, string? connectionType)

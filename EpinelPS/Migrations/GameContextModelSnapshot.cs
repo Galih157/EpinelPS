@@ -17,10 +17,32 @@ namespace EpinelPS.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.9");
 
+            modelBuilder.Entity("EpinelPS.Models.EventBanner", b =>
+                {
+                    b.Property<string>("BannerId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("BannerId");
+
+                    b.ToTable("EventBanners");
+                });
+
             modelBuilder.Entity("EpinelPS.Models.GameUser", b =>
                 {
                     b.Property<ulong>("ID")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("BattleTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CurrentLiberateCharacterId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("DailyDiscountUsed")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Description")
@@ -30,9 +52,51 @@ namespace EpinelPS.Migrations
                     b.Property<DateTime>("LastAction")
                         .HasColumnType("TEXT");
 
+                    b.Property<long>("LastBadgeSeq")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("LastClearedDifficulty")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("LastHardStageCleared")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("LastMessageId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("LastNormalStageCleared")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("LastReset")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("LastStoryStageCleared")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("LastTriggerId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("LastWeeklyReset")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Nickname")
                         .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("ProfileFrame")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ProfileIconId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("ProfileIconIsPrism")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("SickPullsEnabled")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TitleId")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("ID");
 
@@ -68,7 +132,46 @@ namespace EpinelPS.Migrations
 
                     b.HasKey("ID");
 
+                    b.HasIndex("Email");
+
                     b.ToTable("SdkUsers");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.ServerSecrets", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<byte[]>("EncryptionTokenKey")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<byte[]>("LauncherTokenKey")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ServerSecrets");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.ServerSettings", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("LogLevel")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("MaxInterceptionCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ResetHourUtcTime")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ServerSettings");
                 });
 
             modelBuilder.Entity("EpinelPS.Models.TriggerModelNew", b =>
@@ -99,6 +202,34 @@ namespace EpinelPS.Migrations
                     b.ToTable("Triggers");
                 });
 
+            modelBuilder.Entity("EpinelPS.Models.UserBan", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("BanEnd")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("BanId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("BanStart")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsBanned")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserBans");
+                });
+
             modelBuilder.Entity("EpinelPS.Models.TriggerModelNew", b =>
                 {
                     b.HasOne("EpinelPS.Models.GameUser", "User")
@@ -110,8 +241,21 @@ namespace EpinelPS.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("EpinelPS.Models.UserBan", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany("Bans")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("EpinelPS.Models.GameUser", b =>
                 {
+                    b.Navigation("Bans");
+
                     b.Navigation("Triggers");
                 });
 #pragma warning restore 612, 618

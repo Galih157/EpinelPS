@@ -25,7 +25,8 @@ public class SelectUserHandler(IExecutionContext context) : BaseHandler<SelectUs
         if (user == null)
             return new HandleResult(false, $"User with ID {parameters.UserId} does not exist");
 
+        var sdkUser = UserDbHelper.GetSdkUser(parameters.UserId);
         context.SelectedUser = user;
-        return new HandleResult(true, $"User {user.Username} selected");
+        return new HandleResult(true, $"User {sdkUser?.Email ?? user.ID.ToString()} selected");
     }
 }

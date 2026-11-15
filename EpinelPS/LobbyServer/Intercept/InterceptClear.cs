@@ -25,7 +25,7 @@ public class ClearInterceptData : LobbyMessage
             Intercept = req.Intercept,
             InterceptId = req.InterceptId,
             TicketCount = user.ResetableData.InterceptionTickets,
-            MaxTicketCount = JsonDb.Instance.MaxInterceptionCount,
+            MaxTicketCount = ServerConfigStore.MaxInterceptionCount,
             NormalReward = sRes.NormalReward,
             BonusReward = sRes.BonusReward
         };

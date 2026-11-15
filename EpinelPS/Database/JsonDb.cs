@@ -153,7 +153,27 @@ internal class JsonDb
 
     public static User? GetUser(ulong id)
     {
-        return Instance.Users.Where(x => x.ID == id).FirstOrDefault();
+        var user = Instance.Users.FirstOrDefault(x => x.ID == id);
+        if (user != null)
+            return user;
+
+        using var db = GameContext.CreateNew();
+        bool existsInSql = db.SdkUsers.Any(u => u.ID == id) || db.Users.Any(u => u.ID == id);
+        if (!existsInSql)
+            return null;
+
+        UserDbHelper.GetOrCreateGameUser(db, id);
+        lock (Instance.Users)
+        {
+            user = Instance.Users.FirstOrDefault(x => x.ID == id);
+            if (user == null)
+            {
+                user = new User { ID = id };
+                Instance.Users.Add(user);
+                Save();
+            }
+        }
+        return user;
     }
 
     public static RankData GetRank()
@@ -199,7 +219,7 @@ internal class JsonDb
     {
         if (selectedUser != null)
         {
-            return selectedUser.sickpulls;
+            return UserDbHelper.GetOrCreateGameUser(selectedUser.ID).SickPullsEnabled;
         }
         else
         {

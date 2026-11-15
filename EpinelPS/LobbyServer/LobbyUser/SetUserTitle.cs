@@ -7,9 +7,7 @@ public class SetUserTitleData : LobbyMessage
     protected override async Task HandleAsync()
     {
         ReqSetUserTitle req = await ReadData<ReqSetUserTitle>();
-        User user = GetUser();
-        user.TitleId = req.UserTitleId;
-        JsonDb.Save();
+        UserDbHelper.UpdateGameUser(UserId, u => u.TitleId = req.UserTitleId);
         ResSetUserTitle response = new();
 
         await WriteDataAsync(response);

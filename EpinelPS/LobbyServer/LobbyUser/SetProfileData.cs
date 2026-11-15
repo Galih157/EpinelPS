@@ -8,12 +8,12 @@ public class SetProfileData : LobbyMessage
     protected override async Task HandleAsync()
     {
         ReqSetProfileData req = await ReadData<ReqSetProfileData>();
-        User user = GetUser();
-        user.ProfileIconId = req.Icon;
-        user.ProfileIconIsPrism = req.IsPrism;
-        user.ProfileFrame = req.Frame;
-
-        JsonDb.Save();
+        UserDbHelper.UpdateGameUser(UserId, u =>
+        {
+            u.ProfileIconId = req.Icon;
+            u.ProfileIconIsPrism = req.IsPrism;
+            u.ProfileFrame = req.Frame;
+        });
         ResSetProfileData response = new();
 
         await WriteDataAsync(response);

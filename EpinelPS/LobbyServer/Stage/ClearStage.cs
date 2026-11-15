@@ -91,31 +91,34 @@ public class ClearStage : LobbyMessage
             });
         }
 
-        if (clearedStage.StageCategory == StageCategory.Normal || clearedStage.StageCategory == StageCategory.Boss || clearedStage.StageCategory == StageCategory.Hard || clearedStage.StageCategory == StageCategory.Story)
+        UserDbHelper.UpdateGameUser(user.ID, gameUser =>
         {
-            if (clearedStage.ChapterMod == ChapterMod.Hard)
+            if (clearedStage.StageCategory == StageCategory.Normal || clearedStage.StageCategory == StageCategory.Boss || clearedStage.StageCategory == StageCategory.Hard || clearedStage.StageCategory == StageCategory.Story)
             {
-                if (StageId > user.LastHardStageCleared)
-                    user.LastHardStageCleared = StageId;
+                if (clearedStage.ChapterMod == ChapterMod.Hard)
+                {
+                    if (StageId > gameUser.LastHardStageCleared)
+                        gameUser.LastHardStageCleared = StageId;
+                }
+                else if (clearedStage.ChapterMod == ChapterMod.Story)
+                {
+                    if (StageId > gameUser.LastStoryStageCleared)
+                        gameUser.LastStoryStageCleared = StageId;
+                }
+                else if (clearedStage.ChapterMod == ChapterMod.Normal)
+                {
+                    if (StageId > gameUser.LastNormalStageCleared)
+                        gameUser.LastNormalStageCleared = StageId;
+                }
+                else throw new NotImplementedException();
             }
-            else if (clearedStage.ChapterMod == ChapterMod.Story)
+            else
             {
-                if (StageId > user.LastStoryStageCleared)
-                    user.LastStoryStageCleared = StageId;
+                Logging.Warn("Unknown stage category " + clearedStage.StageCategory);
             }
-            else if (clearedStage.ChapterMod == ChapterMod.Normal)
-            {
-                if (StageId > user.LastNormalStageCleared)
-                    user.LastNormalStageCleared = StageId;
-            }
-            else throw new NotImplementedException();
-        }
-        else
-        {
-            Logging.Warn("Unknown stage category " + clearedStage.StageCategory);
-        }
 
-        user.LastClearedDifficulty = (int)clearedStage.ChapterMod;
+            gameUser.LastClearedDifficulty = (int)clearedStage.ChapterMod;
+        });
 
         if (clearedStage.StageType != StageType.Sub && clearedStage.ChapterMod != ChapterMod.Story)
         {
@@ -291,10 +294,11 @@ public class ClearStage : LobbyMessage
 
     public static void ReconcileMainQuests(User user, bool logToConsole = true)
     {
-        if (user.LastNormalStageCleared == 0)
+        int lastNormalStage = UserDbHelper.GetOrCreateGameUser(user.ID).LastNormalStageCleared;
+        if (lastNormalStage == 0)
             return;
 
-        List<int> validQuests = GetCompletedQuestsForStage(user.LastNormalStageCleared);
+        List<int> validQuests = GetCompletedQuestsForStage(lastNormalStage);
         if (validQuests.Count == 0)
             return;
 

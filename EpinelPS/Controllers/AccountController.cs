@@ -17,14 +17,15 @@ public class AccountController(GameContext DbContext) : ControllerBase
     [Route("login")]
     public string Login(string seq, [FromBody] LoginEndpoint2Req req)
     {
-        var userResults = dbContext.SdkUsers.Where(x => x.Email == req.account && x.PasswordHash == req.password);
+        var user = dbContext.SdkUsers
+            .Where(x => x.Email == req.account)
+            .AsEnumerable()
+            .FirstOrDefault(x => PasswordHelper.VerifyMd5(req.password, x.PasswordHash));
 
-        if (!userResults.Any())
+        if (user == null)
         {
             return "{\"msg\":\"login failed; invalid account or password!\",\"ret\":2002,\"seq\":\"" + seq + "\"}";
         }
-
-        var user = userResults.First();
         
         AccessToken tok = CreateLauncherTokenForUser(user.ID);
         user.LastLogin = DateTime.UtcNow;
@@ -77,30 +78,25 @@ public class AccountController(GameContext DbContext) : ControllerBase
         if (dbContext.SdkUsers.Any(x => x.Email == req.account))
              return "{\"msg\":\"send code failed; invalid account\",\"ret\":2112,\"seq\":\"" + seq + "\"}";
 
-        ulong uid = (ulong)new Random().Next(1, int.MaxValue);
+        ulong uid = UserDbHelper.GenerateNextUserId(dbContext);
 
-        // Check if we havent generated a UID that exists
-        foreach (User item in JsonDb.Instance.Users)
-        {
-            if (item.ID == uid)
-            {
-                uid -= (ulong)new Random().Next(1, 1221);
-            }
-        }
-
-        bool admin = JsonDb.Instance.Users.Count == 0;
+        bool admin = !dbContext.SdkUsers.Any();
         var registerTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
-        JsonDb.Instance.Users.Add(new User()
+        if (!JsonDb.Instance.Users.Any(u => u.ID == uid))
         {
-            ID = uid
-        });
+            JsonDb.Instance.Users.Add(new User()
+            {
+                ID = uid
+            });
+            JsonDb.Save();
+        }
 
         dbContext.SdkUsers.Add(new SdkUser()
         {
             ID = uid,
             Email = req.account,
-            PasswordHash = req.password,
+            PasswordHash = PasswordHelper.NormalizeToMd5(req.password),
             RegisterTime = registerTime,
             IsAdmin = admin,
             PlayerName = "Player_" + Rng.RandomString(8),
@@ -121,7 +117,7 @@ public class AccountController(GameContext DbContext) : ControllerBase
         return new()
         {
             Token = new PasetoBuilder().Use(ProtocolVersion.V4, Purpose.Local)
-        .WithKey(JsonDb.Instance.LauncherTokenKey, Encryption.SymmetricKey)
+        .WithKey(ServerConfigStore.LauncherTokenKey, Encryption.SymmetricKey)
         .AddClaim("userId", id)
         .IssuedAt(DateTime.UtcNow)
         //.Expiration(DateTime.UtcNow.AddDays(2))

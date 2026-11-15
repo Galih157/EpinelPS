@@ -25,7 +25,7 @@ public class GetGacha : LobbyMessage
         response.MultipleCustom.AddRange(user.CharacterWishlist.Select(id => new NetGachaCustomData() { Type = 9, Tid = id.CharacterId })); // Fill the user wishlist
         
         // Daily discount used
-        if (user.DailyDiscountUsed)
+        if (UserDbHelper.GetOrCreateGameUser(UserId).DailyDiscountUsed)
             response.GachaDiscountData.Add(new NetUserGachaDiscountData() { GachaTypeId = 1, Count = 1 });  //type 1 = normal/wishlist gacha
 
         // TODO: response.GachaGuaranteedData

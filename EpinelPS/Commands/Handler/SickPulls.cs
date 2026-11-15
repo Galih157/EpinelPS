@@ -19,9 +19,10 @@ public class SickPullsHandler(IExecutionContext context) : BaseHandler<SickPulls
         if (context.SelectedUser == null)
             return new HandleResult(false, "No user selected");
 
-        var curSickPulls = JsonDb.IsSickPulls(context.SelectedUser);
-        context.SelectedUser.sickpulls = !curSickPulls;
-        JsonDb.Save();
-        return new HandleResult(true, $"Sick pulls set to {!curSickPulls} for user {context.SelectedUser.Username}");
+        var gameUser = UserDbHelper.GetOrCreateGameUser(context.SelectedUser.ID);
+        bool nextSickPulls = !gameUser.SickPullsEnabled;
+        UserDbHelper.UpdateGameUser(context.SelectedUser.ID, u => u.SickPullsEnabled = nextSickPulls);
+        var sdkUser = UserDbHelper.GetSdkUser(context.SelectedUser.ID);
+        return new HandleResult(true, $"Sick pulls set to {nextSickPulls} for user {sdkUser?.Email ?? context.SelectedUser.ID.ToString()}");
     }
 }

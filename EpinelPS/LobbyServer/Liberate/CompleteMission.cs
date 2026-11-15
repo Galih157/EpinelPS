@@ -16,7 +16,8 @@ public class CompleteMission : LobbyMessage
         LiberateMissionRecord? mission = GameData.Instance.LiberateMissionTable.Values
             .Where(x => x.Id == req.MissionId).FirstOrDefault();
 
-        if (user.LiberateDatas.TryGetValue(user.CurCharacterIdId, out var liberateData))
+        int curCharId = UserDbHelper.GetOrCreateGameUser(UserId).CurrentLiberateCharacterId;
+        if (user.LiberateDatas.TryGetValue(curCharId, out var liberateData))
         {
             NetLiberateMissionData? missionState = liberateData.MissionData.FirstOrDefault(x => x.Id == req.MissionId);
             if (missionState.CreatedAt.IsOlderThan24Hours())

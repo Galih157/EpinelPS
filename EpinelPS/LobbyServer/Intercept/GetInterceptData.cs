@@ -18,7 +18,7 @@ public class GetInterceptData : LobbyMessage
             NormalInterceptGroup = 1,
             SpecialInterceptId = specialId,
             TicketCount = user.ResetableData.InterceptionTickets,
-            MaxTicketCount = JsonDb.Instance.MaxInterceptionCount
+            MaxTicketCount = ServerConfigStore.MaxInterceptionCount
         };
 
         await WriteDataAsync(response);

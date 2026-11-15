@@ -44,7 +44,7 @@ public class ChooseCharacter : LobbyMessage
 
         user.LiberateDatas.TryAdd(req.CharacterId, libd);
         user.OpenLiberateTypeIdList.AddUnique(liberatechar.TypeGroupId);
-        user.CurCharacterIdId = req.CharacterId;
+        UserDbHelper.UpdateGameUser(UserId, u => u.CurrentLiberateCharacterId = req.CharacterId);
 
         response.Data = libd;
 

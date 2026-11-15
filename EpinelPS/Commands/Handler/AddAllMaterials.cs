@@ -25,8 +25,9 @@ public class AddAllMaterialsHandler(IExecutionContext context) : BaseHandler<Add
 
         var amount = parameters.Amount > 0 ? parameters.Amount : 1;
         var rsp = AdminCommands.AddAllMaterials(context.SelectedUser, amount);
+        var sdkUser = Database.UserDbHelper.GetSdkUser(context.SelectedUser.ID);
         return rsp.ok
-            ? new HandleResult(true, $"All materials added to user '{context.SelectedUser.Username}' successfully")
+            ? new HandleResult(true, $"All materials added to user '{sdkUser?.Email ?? context.SelectedUser.ID.ToString()}' successfully")
             : new HandleResult(false, rsp.error);
     }
 }

@@ -12,8 +12,8 @@ public class RegUserParameter : ICommandParameters
         Param.String(1, "password", "The password for the new user"),
     ];
 
-    public string Email { get; init; }
-    public string Password { get; init; }
+    public string Email { get; init; } = "";
+    public string Password { get; init; } = "";
 }
 
 public class RegUserHandler(IExecutionContext context) : BaseHandler<RegUserParameter>(context)
@@ -23,32 +23,37 @@ public class RegUserHandler(IExecutionContext context) : BaseHandler<RegUserPara
 
     protected async override Task<HandleResult> ExecuteAsync(RegUserParameter parameters)
     {
-        if (JsonDb.Instance.Users.Any(u => u.Username.Equals(parameters.Email, StringComparison.OrdinalIgnoreCase)))
+        using var db = GameContext.CreateNew();
+        if (db.SdkUsers.Any(u => u.Email.ToLower() == parameters.Email.ToLower()))
             return new HandleResult(false, $"User with email '{parameters.Email}' already exists");
 
-        var newUser = new User
+        ulong userId = UserDbHelper.GenerateNextUserId(db);
+        bool isAdmin = !db.SdkUsers.Any();
+
+        db.SdkUsers.Add(new SdkUser
         {
-            ID = GenerateUniqueUserId(),
-            Username = parameters.Email,
-            Password = parameters.Password,
+            ID = userId,
+            Email = parameters.Email,
+            PasswordHash = PasswordHelper.HashMd5(parameters.Password),
             RegisterTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             PlayerName = "Player_" + Rng.RandomString(8),
-            IsAdmin = JsonDb.Instance.Users.Count == 0
-        };
+            IsAdmin = isAdmin,
+            LastLogin = DateTime.UtcNow
+        });
 
-        JsonDb.Instance.Users.Add(newUser);
-        JsonDb.Save();
-
-        return new HandleResult(true, $"User '{parameters.Email}' registered successfully with ID {newUser.ID}");
-    }
-
-    private static ulong GenerateUniqueUserId()
-    {
-        ulong userId;
-        do
+        db.Users.Add(new GameUser
         {
-            userId = (ulong)new Random().Next(1, int.MaxValue);
-        } while (JsonDb.Instance.Users.Any(u => u.ID == userId));
-        return userId;
+            ID = userId
+        });
+
+        await db.SaveChangesAsync();
+
+        if (!JsonDb.Instance.Users.Any(u => u.ID == userId))
+        {
+            JsonDb.Instance.Users.Add(new User { ID = userId });
+            JsonDb.Save();
+        }
+
+        return new HandleResult(true, $"User '{parameters.Email}' registered successfully with ID {userId}");
     }
 }

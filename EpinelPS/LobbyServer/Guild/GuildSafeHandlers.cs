@@ -60,22 +60,24 @@ public class GetGuild : LobbyMessage
             }
         };
 
-        response.Members.Add(new NetGuildMemberData
-        {
-            Usn = (long)user.ID,
-            Type = 1,
-            JoinedAt = DateTime.UtcNow.Ticks,
-            Nickname = user.PlayerName ?? "Commander",
-            Lv = user.userPointData?.UserLevel ?? 1,
-            Server = 1001,
-            LastActionAt = DateTime.UtcNow.Ticks,
-            Icon = user.ProfileIconId > 0 ? user.ProfileIconId : 30100,
-            Frame = user.ProfileFrame > 0 ? user.ProfileFrame : 1,
-            TeamCombat = 100000,
-            UserTitleId = user.TitleId > 0 ? user.TitleId : 1,
-            UserTitleDisplayData = new NetUserTitleDisplayData { Count = 0 },
-            SendMailAt = Timestamp.FromDateTime(DateTime.UtcNow)
-        });
+            var gameUser = Database.UserDbHelper.GetOrCreateGameUser(user.ID);
+            var sdkUser = Database.UserDbHelper.GetSdkUser(user.ID);
+            response.Members.Add(new NetGuildMemberData
+            {
+                Usn = (long)user.ID,
+                Type = 1,
+                JoinedAt = DateTime.UtcNow.Ticks,
+                Nickname = gameUser.Nickname ?? sdkUser?.PlayerName ?? "Commander",
+                Lv = user.userPointData?.UserLevel ?? 1,
+                Server = 1001,
+                LastActionAt = DateTime.UtcNow.Ticks,
+                Icon = gameUser.ProfileIconId > 0 ? gameUser.ProfileIconId : 30100,
+                Frame = gameUser.ProfileFrame > 0 ? gameUser.ProfileFrame : 1,
+                TeamCombat = 100000,
+                UserTitleId = gameUser.TitleId > 0 ? gameUser.TitleId : 1,
+                UserTitleDisplayData = new NetUserTitleDisplayData { Count = 0 },
+                SendMailAt = Timestamp.FromDateTime(DateTime.UtcNow)
+            });
 
         await WriteDataAsync(response);
     }

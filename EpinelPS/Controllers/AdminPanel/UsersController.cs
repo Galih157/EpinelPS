@@ -105,7 +105,7 @@ public class UsersController(ILogger<UsersController> logger, GameContext dbCont
 
         SdkUser? sdkUser = _db.SdkUsers.Find(id);
         GameUser? gameUser = _db.Users.Find(id);
-        User? user = JsonDb.Instance.Users.FirstOrDefault(x => x.ID == id);
+        User? user = JsonDb.GetUser(id);
         if (sdkUser == null || gameUser == null || user == null)
             return NotFound();
 
@@ -117,7 +117,7 @@ public class UsersController(ILogger<UsersController> logger, GameContext dbCont
             IsAdmin = sdkUser.IsAdmin,
             PlayerName = sdkUser.PlayerName,
             Nickname = gameUser.Nickname,
-            IsBanned = user.IsBanned
+            IsBanned = UserDbHelper.GetActiveBan(_db, id) != null
         });
     }
 
@@ -130,7 +130,7 @@ public class UsersController(ILogger<UsersController> logger, GameContext dbCont
 
         SdkUser? sdkUser = _db.SdkUsers.Find(id);
         GameUser? gameUser = _db.Users.Find(id);
-        User? user = JsonDb.Instance.Users.FirstOrDefault(x => x.ID == id);
+        User? user = JsonDb.GetUser(id);
         if (sdkUser == null || gameUser == null || user == null)
             return NotFound();
 
@@ -154,7 +154,7 @@ public class UsersController(ILogger<UsersController> logger, GameContext dbCont
     {
         if (!AdminController.CheckAuth(HttpContext)) return Redirect("/admin/");
 
-        var user = JsonDb.Instance.Users.FirstOrDefault(x => x.ID == id);
+        var user = JsonDb.GetUser(id);
         if (user == null)
         {
             return NotFound();
@@ -222,9 +222,9 @@ public class UsersController(ILogger<UsersController> logger, GameContext dbCont
             new ModUserModel()
             {
                 IsAdmin = sdkUser.IsAdmin,
-                IsBanned = user.IsBanned,
+                IsBanned = UserDbHelper.GetActiveBan(_db, id) != null,
                 Nickname = gameUser.Nickname ?? "Unknown nickname",
-                sickpulls = user.sickpulls,
+                sickpulls = gameUser.SickPullsEnabled,
                 Username = sdkUser.Email ?? "Unknown username",
                 ID = user.ID,
                 OverloadedGear = OverloadedGear.Count > 0 ? OverloadedGear : [],
@@ -241,7 +241,7 @@ public class UsersController(ILogger<UsersController> logger, GameContext dbCont
     [FromForm] Dictionary<long, GearUpdateModel> gearUpdates)
     {
         if (!AdminController.CheckAuth(HttpContext)) return Redirect("/admin/");
-        var user = JsonDb.Instance.Users.FirstOrDefault(x => x.ID == id);
+        var user = JsonDb.GetUser(id);
         if (user == null) return NotFound();
         var sdkUser = _db.SdkUsers.Find(id);
         if (sdkUser == null) return NotFound();
@@ -302,7 +302,7 @@ public class UsersController(ILogger<UsersController> logger, GameContext dbCont
 
         if (!ModelState.IsValid) throw new Exception("model state invalid");
 
-        User? user = JsonDb.Instance.Users.Where(x => x.ID == id).FirstOrDefault();
+        User? user = JsonDb.GetUser(id);
         if (user == null)
         {
             return NotFound();
@@ -319,18 +319,17 @@ public class UsersController(ILogger<UsersController> logger, GameContext dbCont
         sdkUser.IsAdmin = toSet.IsAdmin;
         gameUser.Nickname = toSet.Nickname;
         gameUser.Description = toSet.Description;
+        gameUser.SickPullsEnabled = toSet.sickpulls;
         _db.SaveChanges();
 
-        user.sickpulls = toSet.sickpulls;
-        user.IsBanned = toSet.IsBanned;
-        JsonDb.Save();
+        UserDbHelper.SetBanState(_db, id, toSet.IsBanned);
 
         return View(new ModUserModel()
         {
             IsAdmin = sdkUser.IsAdmin,
-            IsBanned = user.IsBanned,
+            IsBanned = toSet.IsBanned,
             Nickname = gameUser.Nickname,
-            sickpulls = user.sickpulls,
+            sickpulls = gameUser.SickPullsEnabled,
             Username = sdkUser.Email,
             ID = user.ID
         });
@@ -341,7 +340,7 @@ public class UsersController(ILogger<UsersController> logger, GameContext dbCont
     {
         if (!AdminController.CheckAuth(HttpContext)) return Redirect("/admin/");
 
-        User? user = JsonDb.Instance.Users.Where(x => x.ID == id).FirstOrDefault();
+        User? user = JsonDb.GetUser(id);
         if (user == null)
         {
             return NotFound();
@@ -362,7 +361,7 @@ public class UsersController(ILogger<UsersController> logger, GameContext dbCont
     {
         if (!AdminController.CheckAuth(HttpContext)) return Redirect("/admin/");
 
-        User? user = JsonDb.Instance.Users.Where(x => x.ID == id).FirstOrDefault();
+        User? user = JsonDb.GetUser(id);
         if (user == null)
         {
             return NotFound();
@@ -385,7 +384,7 @@ public class UsersController(ILogger<UsersController> logger, GameContext dbCont
     {
         if (!AdminController.CheckAuth(HttpContext)) return Redirect("/admin/");
 
-        User? user = JsonDb.Instance.Users.FirstOrDefault(user => user.ID == id);
+        User? user = JsonDb.GetUser(id);
         if (user == null) return NotFound();
 
         return View(_messengerAdmin.BuildModel(user));
@@ -397,7 +396,7 @@ public class UsersController(ILogger<UsersController> logger, GameContext dbCont
     public IActionResult CreateMessengerMessage(ulong id, [FromForm] CreateMessengerMessageModel model)
     {
         if (!AdminController.CheckAuth(HttpContext)) return Redirect("/admin/");
-        User? user = JsonDb.Instance.Users.FirstOrDefault(user => user.ID == id);
+        User? user = JsonDb.GetUser(id);
         if (user == null) return NotFound();
 
         if (_messengerAdmin.TryCreate(user, model, out string error))
@@ -419,7 +418,7 @@ public class UsersController(ILogger<UsersController> logger, GameContext dbCont
     public IActionResult UpdateMessengerMessage(ulong id, [FromForm] UpdateMessengerMessageModel model)
     {
         if (!AdminController.CheckAuth(HttpContext)) return Redirect("/admin/");
-        User? user = JsonDb.Instance.Users.FirstOrDefault(user => user.ID == id);
+        User? user = JsonDb.GetUser(id);
         if (user == null) return NotFound();
 
         if (_messengerAdmin.TryUpdateState(user, model, out string error))
@@ -441,7 +440,7 @@ public class UsersController(ILogger<UsersController> logger, GameContext dbCont
     public IActionResult DeleteMessengerMessage(ulong id, [FromForm] long seq)
     {
         if (!AdminController.CheckAuth(HttpContext)) return Redirect("/admin/");
-        User? user = JsonDb.Instance.Users.FirstOrDefault(user => user.ID == id);
+        User? user = JsonDb.GetUser(id);
         if (user == null) return NotFound();
 
         if (_messengerAdmin.TryDelete(user, seq, out string error))
@@ -463,7 +462,7 @@ public class UsersController(ILogger<UsersController> logger, GameContext dbCont
     public IActionResult RestoreMessengerMessage(ulong id, [FromForm] string auditId)
     {
         if (!AdminController.CheckAuth(HttpContext)) return Redirect("/admin/");
-        User? user = JsonDb.Instance.Users.FirstOrDefault(user => user.ID == id);
+        User? user = JsonDb.GetUser(id);
         if (user == null) return NotFound();
 
         if (_messengerAdmin.TryRestore(user, auditId, out string error))
@@ -518,7 +517,7 @@ public class UsersController(ILogger<UsersController> logger, GameContext dbCont
         // TODO: use bcrypt
         SdkUser? user = _db.SdkUsers.Find(id);
         if (user == null) return NotFound();
-        user.PasswordHash = Convert.ToHexString(sha.ComputeHash(Encoding.ASCII.GetBytes(newPw))).ToLower();
+        user.PasswordHash = Utils.PasswordHelper.HashMd5(newPw);
         _db.SaveChanges();
 
         return View(new ChangeUserPasswordModel()

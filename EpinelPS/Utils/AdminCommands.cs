@@ -116,7 +116,7 @@ public class AdminCommands
                 }
 
                 // Complete main stages up to target chapter and stage
-                int lastClearedStageId = user.LastNormalStageCleared;
+                int lastClearedStageId = UserDbHelper.GetOrCreateGameUser(user.ID).LastNormalStageCleared;
                 for (int campaignChapter = 1; campaignChapter <= chapterNumber; campaignChapter++)
                 {
                     List<CampaignStageRecord> stages = GetNormalMainStages(campaignChapter);
@@ -177,7 +177,7 @@ public class AdminCommands
                     user.MapJson.Remove(mapId);
                 }
 
-                user.LastNormalStageCleared = lastClearedStageId;
+                UserDbHelper.UpdateGameUser(user.ID, u => u.LastNormalStageCleared = lastClearedStageId);
 
                 // Sync main quest progression along the quest chain up to the last cleared stage
                 List<int> validQuests = ClearStage.GetCompletedQuestsForStage(lastClearedStageId);

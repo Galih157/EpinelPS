@@ -28,7 +28,7 @@ public class GachaUtils
 
         List<CharacterRecord> selectedCharacters = [];
 
-        if (user.sickpulls && gachaType.Type != GachaPremiumType.GachaFriend) // Left this in for backward compatibility with previous code. The friend banner handles sickpulls in SelectRandomCharacter.
+        if (UserDbHelper.GetOrCreateGameUser(user.ID).SickPullsEnabled && gachaType.Type != GachaPremiumType.GachaFriend) // Left this in for backward compatibility with previous code. The friend banner handles sickpulls in SelectRandomCharacter.
         {
             // Remove the .Values part since it's already a list.
             // Group by NameCode to treat same NameCode as one character 
@@ -288,7 +288,7 @@ public class GachaUtils
             // Raise the overall SSR chance to LimitedSsrRate. SSR rows keep their split (rate-up vs rest), R/SR keep theirs.
             int ssrSum = gradeProbs.Values.Where(g => g.Rare == OriginalRareType.SSR).Sum(g => g.Prob);
             int otherSum = baseTotal - ssrSum;
-            double ssrRate = user.sickpulls ? LimitedSsrRateSickPulls : LimitedSsrRate;
+            double ssrRate = UserDbHelper.GetOrCreateGameUser(user.ID).SickPullsEnabled ? LimitedSsrRateSickPulls : LimitedSsrRate;
             double targetSsr = ssrRate * baseTotal;
 
             if (ssrSum > 0 && otherSum > 0 && targetSsr > ssrSum)

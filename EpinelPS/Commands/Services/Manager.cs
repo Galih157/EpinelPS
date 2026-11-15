@@ -14,7 +14,9 @@ public class Manager : ICommandRegistry
         Console.WriteLine($"[Manager] Registered {handlers.Count} handler(s)");
     }
 
-    public string? UserName => context.SelectedUser?.Username;
+    public string? UserName => context.SelectedUser != null
+        ? EpinelPS.Database.UserDbHelper.GetSdkUser(context.SelectedUser.ID)?.Email
+        : null;
 
     public IReadOnlyList<IHandlerInfo> GetHandlers() => registry.GetHandlers();
 
