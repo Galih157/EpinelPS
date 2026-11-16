@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.IO.Compression;
 using System.Reflection;
 using System.Text.Json;
 
@@ -37,88 +36,7 @@ public class GitUpdateCheck
 
                 if (GitCommit != run.head_commit.id)
                 {
-                    Console.WriteLine("An update is available, would you like to install it?");
-                    Console.WriteLine("Current Git commit: " + GitCommit);
-                    Console.WriteLine("Latest Git commit: " + run.head_commit.id);
-                    Console.Write("Continue (Y/N)? ");
-
-                    var line = Console.ReadLine();
-                    if (line.ToLowerInvariant() == "y")
-                    {
-                        Console.WriteLine("Downloading...");
-
-                        if (OperatingSystem.IsWindows())
-                            response = await client.GetAsync("https://nightly.link/EpinelPS/EpinelPS/workflows/dotnet-desktop/main/Server%20and%20Server%20selector.zip");
-                        else if (OperatingSystem.IsLinux())
-                            response = await client.GetAsync("https://nightly.link/EpinelPS/EpinelPS/workflows/dotnet-desktop/main/EpinelPS_linux_x64.zip");
-                        else
-                        {
-                            Console.WriteLine("Unsupported platform");
-                            return;
-                        }
-
-                        ProgressBar progress = new();
-
-                        var filePath = AppDomain.CurrentDomain.BaseDirectory + "Server.zip";
-                        using (var file = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
-                        {
-                            var contentLength = response.Content.Headers.ContentLength;
-
-                            using (var download = await response.Content.ReadAsStreamAsync())
-                            {
-                                // Ignore progress reporting when no progress reporter was 
-                                // passed or when the content length is unknown
-                                if (progress == null || !contentLength.HasValue)
-                                {
-                                    await download.CopyToAsync(file);
-                                    return;
-                                }
-
-                                var relativeProgress = new Progress<long>(totalBytes => progress.Report((float)totalBytes / contentLength.Value));
-                                await download.CopyToAsync(file, 81920, relativeProgress);
-                                progress.Report(1);
-                            }
-                        }
-
-                        progress.Dispose();
-                        Console.WriteLine("Wrote file to " + filePath);
-
-                        if (Directory.Exists(extractPath)) Directory.Delete(extractPath, true);
-
-                        Console.WriteLine("Extracting...");
-                        ZipFile.ExtractToDirectory(filePath, extractPath);
-                        File.Delete(filePath);
-
-                        if (OperatingSystem.IsWindows())
-                        {
-                            Console.WriteLine("Writing... EpinelPS will be restarted automatically.");
-                            Process.Start(new ProcessStartInfo
-                            {
-                                FileName = "cmd.exe",
-                                Arguments = $"/c timeout /t 2 && xcopy \"{extractPath}\" \"{AppDomain.CurrentDomain.BaseDirectory}\" /Y /E && start \"\" \"{Environment.ProcessPath}\"",
-                                CreateNoWindow = true,
-                                WindowStyle = ProcessWindowStyle.Hidden
-                            });
-                            Environment.Exit(0);
-                        }
-                        else if (OperatingSystem.IsLinux())
-                        {
-                            Console.WriteLine("Writing... Please launch EpinelPS after a few seconds");
-
-                            var appDirectory = AppDomain.CurrentDomain.BaseDirectory;
-                            var processPath = Environment.ProcessPath!;
-
-                            Process.Start(new ProcessStartInfo
-                            {
-                                FileName = "/bin/sh",
-                                Arguments =
-                                    $"-c \"sleep 2; cp -a '{extractPath.TrimEnd('/')}/.' '{appDirectory}';\"",
-                                UseShellExecute = false
-                            });
-
-                            Environment.Exit(0);
-                        }
-                    }
+                    Logging.Warn($"An update is available (current Git commit: {GitCommit}, latest Git commit: {run.head_commit.id}).");
                 }
             }
         }

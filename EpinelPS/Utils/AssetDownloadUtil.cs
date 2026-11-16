@@ -10,7 +10,7 @@ public class AssetDownloadUtil
     private static string? CloudIp;
     public static async Task<string?> DownloadOrGetFileAsync(string url, CancellationToken cancellationToken)
     {
-        string rawUrl = url.Replace("https://cloud.nikke-kr.com/", "");
+        string rawUrl = url.Replace("https://cloud.nikke-kr.com/", "").TrimStart('/');
         string targetFile = Program.GetCachePathForPath(rawUrl);
         string? targetDir = Path.GetDirectoryName(targetFile);
         if (targetDir == null)
@@ -26,6 +26,7 @@ public class AssetDownloadUtil
             CloudIp ??= await GetIpAsync("cloud.nikke-kr.com");
 
             Uri requestUri = new("https://" + CloudIp + "/" + rawUrl);
+            Logging.WriteLine($"Downloading asset from {requestUri} (DNS IP: {CloudIp})");
             using HttpRequestMessage request = new(HttpMethod.Get, requestUri);
             request.Headers.TryAddWithoutValidation("host", "cloud.nikke-kr.com");
             using HttpResponseMessage response = await AssetDownloader.SendAsync(request, cancellationToken);
@@ -73,6 +74,8 @@ public class AssetDownloadUtil
         DnsClient.Protocol.ARecord? record = result.Answers.ARecords().FirstOrDefault();
         IPAddress ip = record?.Address ?? throw new Exception($"Failed to find IP address of {query}, check your internet connection.");
 
-        return ip.ToString();
+        string resolvedIp = ip.ToString();
+        Logging.WriteLine($"Resolved DNS for {query}: {resolvedIp}");
+        return resolvedIp;
     }
 }

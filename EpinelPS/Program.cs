@@ -25,11 +25,16 @@ internal class Program
         try
         {
             DatabasePaths.EnsureDataDirectory();
-            XmlConfigurator.Configure(new FileInfo("log4net.config"));
+            XmlConfigurator.Configure(new FileInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "log4net.config")));
+            string? logFile = log4net.LogManager.GetRepository()
+                .GetAppenders()
+                .OfType<log4net.Appender.FileAppender>()
+                .FirstOrDefault()?.File;
             Console.WriteLine($"EpinelPS v{Assembly.GetExecutingAssembly().GetName().Version} - https://github.com/EpinelPS/EpinelPS/");
             Console.WriteLine("This software is licensed under the AGPL-3.0 License");
             Console.WriteLine("Targeting game version " + GameConfig.Root.TargetVersion);
             Console.WriteLine("Git commit " + GitUpdateCheck.GitCommit);
+            Logging.WriteLine("Log file: " + (!string.IsNullOrEmpty(logFile) ? Path.GetFullPath(logFile) : "(not configured)"));
             if (!File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "gamecommon.json")))
             {
                 Console.WriteLine("gamecommon.json does not exist, please go to our discord server for assistance");
