@@ -2,6 +2,7 @@ using EpinelPS.Data;
 using EpinelPS.Database;
 using EpinelPS.Services;
 using EpinelPS.Interfaces;
+using EpinelPS.Repositories;
 using EpinelPS.Utils;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -13,34 +14,36 @@ namespace EpinelPS.LobbyServer.Controllers;
 /// Controller for unlocking
 /// </summary>
 [ApiController]
-public class ContentsOpen(IUserService db) : Controller
+public class ContentsOpen(
+    IUserService db,
+    ProgressRepository progressRepo,
+    GameContext gameDb) : Controller
 {
     [Route("/v1/contentsopen/get/unlock")]
     [HttpPost]
     public ActionResult<ResGetContentsOpenUnlockInfo> GetUnlocked([FromBodyProtobuf] ReqGetContentsOpenUnlockInfo req)
     {
-        User? user = db.GetUser();
-        if (user == null) return Problem(type: NetUtils.InvalidSessionErrorType);
+        if (db.GetUserId() is not ulong userId)
+            return Problem(type: NetUtils.InvalidSessionErrorType);
 
         ResGetContentsOpenUnlockInfo response = new();
+        Dictionary<int, UnlockData> unlocked = progressRepo.GetContentsUnlocked(userId);
 
-        if (user.ContentsOpenUnlocked.Count == 0)
+        if (unlocked.Count == 0)
         {
             // These Always returned as true by official server
             // Fixes "Recruitment unlocked" during chapter 0
             // TODO: Don't hardcode this, maybe its in GameData
-            user.ContentsOpenUnlocked.Add(3, new(true, true));
-            user.ContentsOpenUnlocked.Add(4, new(true, true));
-            user.ContentsOpenUnlocked.Add(6, new(true, true));
-            user.ContentsOpenUnlocked.Add(15, new(true, true));
-            user.ContentsOpenUnlocked.Add(16, new(true, true));
-            user.ContentsOpenUnlocked.Add(18, new(true, true));
-            user.ContentsOpenUnlocked.Add(19, new(true, true));
-            user.ContentsOpenUnlocked.Add(2, new(true, true)); // Shop
-            UserSessionStore.SaveAll();
+            int[] defaultIds = [2, 3, 4, 6, 15, 16, 18, 19];
+            foreach (int id in defaultIds)
+            {
+                progressRepo.UpsertContentsUnlock(userId, id, true, true);
+            }
+            gameDb.SaveChanges();
+            unlocked = progressRepo.GetContentsUnlocked(userId);
         }
 
-        foreach (KeyValuePair<int, UnlockData> item in user.ContentsOpenUnlocked.OrderBy(x => x.Key))
+        foreach (KeyValuePair<int, UnlockData> item in unlocked.OrderBy(x => x.Key))
         {
             response.ContentsOpenUnlockInfoList.Add(new NetContentsOpenUnlockInfo()
             {
@@ -57,57 +60,48 @@ public class ContentsOpen(IUserService db) : Controller
     [HttpPost]
     public ActionResult<ResSetContentsOpenUnlockButtonPlay> SetButtonUnlocked([FromBodyProtobuf] ReqSetContentsOpenUnlockButtonPlay req)
     {
-        User? user = db.GetUser();
-        if (user == null) return Problem(type: NetUtils.InvalidSessionErrorType);
+        if (db.GetUserId() is not ulong userId)
+            return Problem(type: NetUtils.InvalidSessionErrorType);
 
-        ResSetContentsOpenUnlockButtonPlay response = new();
-
-        // Unlock button animation completed
-        foreach (int item in req.ContentsOpenTableIds)
-        {
-            if (user.ContentsOpenUnlocked.TryGetValue(item, out UnlockData? data))
-            {
-                data.ButtonAnimationPlayed = true;
-            }
-            else
-            {
-                user.ContentsOpenUnlocked.Add(item, new UnlockData()
-                {
-                    ButtonAnimationPlayed = true
-                });
-            }
-        }
-
-        UserSessionStore.SaveAll();
-        return response;
+        UpdateUnlockFlags(userId, req.ContentsOpenTableIds, isButton: true);
+        return new ResSetContentsOpenUnlockButtonPlay();
     }
 
     [Route("/v1/contentsopen/set/unlock/popup")]
     [HttpPost]
     public ActionResult<ResSetContentsOpenUnlockPopupPlay> SetButtonUnlocked([FromBodyProtobuf] ReqSetContentsOpenUnlockPopupPlay req)
     {
-        User? user = db.GetUser();
-        if (user == null) return Problem(type: NetUtils.InvalidSessionErrorType);
+        if (db.GetUserId() is not ulong userId)
+            return Problem(type: NetUtils.InvalidSessionErrorType);
 
-        ResSetContentsOpenUnlockPopupPlay response = new();
+        UpdateUnlockFlags(userId, req.ContentsOpenTableIds, isButton: false);
+        return new ResSetContentsOpenUnlockPopupPlay();
+    }
 
-        foreach (int item in req.ContentsOpenTableIds)
+    private void UpdateUnlockFlags(ulong userId, IEnumerable<int> contentsOpenTableIds, bool isButton)
+    {
+        Dictionary<int, UnlockData> unlocked = progressRepo.GetContentsUnlocked(userId);
+        bool changed = false;
+
+        foreach (int item in contentsOpenTableIds)
         {
-            if (user.ContentsOpenUnlocked.TryGetValue(item, out UnlockData? data))
+            unlocked.TryGetValue(item, out UnlockData? existing);
+            bool buttonPlayed = isButton || (existing?.ButtonAnimationPlayed ?? false);
+            bool popupPlayed = !isButton || (existing?.PopupAnimationPlayed ?? false);
+
+            if (existing != null &&
+                existing.ButtonAnimationPlayed == buttonPlayed &&
+                existing.PopupAnimationPlayed == popupPlayed)
             {
-                data.PopupAnimationPlayed = true;
+                continue;
             }
-            else
-            {
-                user.ContentsOpenUnlocked.Add(item, new UnlockData()
-                {
-                    PopupAnimationPlayed = true
-                });
-            }
+
+            progressRepo.UpsertContentsUnlock(userId, item, buttonPlayed, popupPlayed);
+            unlocked[item] = new UnlockData(buttonPlayed, popupPlayed);
+            changed = true;
         }
 
-        UserSessionStore.SaveAll();
-
-        return response;
+        if (changed)
+            gameDb.SaveChanges();
     }
 }

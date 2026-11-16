@@ -2,6 +2,7 @@ using EpinelPS.Data;
 using EpinelPS.Database;
 using EpinelPS.Services;
 using EpinelPS.Interfaces;
+using EpinelPS.Repositories;
 using EpinelPS.Utils;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -14,7 +15,11 @@ namespace EpinelPS.LobbyServer.Controllers;
 /// Controller for game startup and asset information retrival
 /// </summary>
 [ApiController]
-public class CampaignController(IUserService db) : Controller
+public class CampaignController(
+    IUserService db,
+    TeamRepository teamRepo,
+    ProgressRepository progressRepo,
+    GameContext gameDb) : Controller
 {
     [Route("/v1/shutdownflags/campaignpackage/getall")]
     [HttpPost]
@@ -38,11 +43,11 @@ public class CampaignController(IUserService db) : Controller
 
         ResGetCampaignFieldData response = new()
         {
-            Field = GetStage.CreateFieldInfo(user, req.MapId, out bool bossEntered),
+            Field = StageQuestService.CreateFieldInfo(user.ID, req.MapId, progressRepo, gameDb, out bool bossEntered),
             Team = new NetUserTeamData() { LastContentsTeamNumber = 1, Type = 1 }
         };
 
-        if (user.UserTeams.TryGetValue(1, out NetUserTeamData? userTeam) && userTeam.Teams.Count > 0)
+        if (teamRepo.GetUserTeam(user.ID, 1) is NetUserTeamData userTeam && userTeam.Teams.Count > 0)
         {
             response.Team = userTeam.Clone();
             foreach (NetTeamData t in response.Team.Teams)
@@ -68,15 +73,12 @@ public class CampaignController(IUserService db) : Controller
             response.TeamPositions.Add(new NetCampaignTeamPosition() { TeamNumber = 1, Type = 1, Position = new NetVector3() { } });
         }
 
-        string resultingJson;
-        if (!user.MapJson.TryGetValue(req.MapId, out string? value))
+        string? resultingJson = progressRepo.GetMapJson(user.ID, req.MapId);
+        if (resultingJson == null)
         {
             resultingJson = "";
-            user.MapJson.Add(req.MapId, resultingJson);
-        }
-        else
-        {
-            resultingJson = value;
+            progressRepo.SaveMapJson(user.ID, req.MapId, resultingJson);
+            gameDb.SaveChanges();
         }
 
         response.Json = resultingJson;
@@ -92,14 +94,8 @@ public class CampaignController(IUserService db) : Controller
 
         ResSaveCampaignField response = new();
 
-        if (!user.MapJson.ContainsKey(req.MapId))
-        {
-            user.MapJson.Add(req.MapId, req.Json);
-        }
-        else
-        {
-            user.MapJson[req.MapId] = req.Json;
-        }
+        progressRepo.SaveMapJson(user.ID, req.MapId, req.Json);
+        gameDb.SaveChanges();
         return response;
     }
 
@@ -114,10 +110,11 @@ public class CampaignController(IUserService db) : Controller
 
         Logging.WriteLine($"save {req.MapId} with {req.FieldObject.PositionId}", LogType.Debug);
 
-        FieldInfoNew field = user.FieldInfoNew[req.MapId];
+        FieldInfoNew field = progressRepo.GetFieldInfo(user.ID, req.MapId) ?? new FieldInfoNew();
 
         field.CompletedObjects.Add(new NetFieldObject() { PositionId = req.FieldObject.PositionId, Json = req.FieldObject.Json, Type = req.FieldObject.Type });
-        UserSessionStore.SaveAll();
+        progressRepo.SaveFieldInfo(user.ID, req.MapId, field);
+        gameDb.SaveChanges();
 
         return response;
     }
@@ -131,7 +128,7 @@ public class CampaignController(IUserService db) : Controller
 
         ResGetCampaignFieldObjectItemsNum response = new();
 
-        foreach (KeyValuePair<string, FieldInfoNew> map in user.FieldInfoNew)
+        foreach (KeyValuePair<string, FieldInfoNew> map in progressRepo.GetFieldInfoMap(user.ID))
         {
             response.FieldObjectItemsNum.Add(new NetCampaignFieldObjectItemsNum()
             {
@@ -152,12 +149,7 @@ public class CampaignController(IUserService db) : Controller
 
         ResObtainCampaignItem response = new();
 
-        if (!user.FieldInfoNew.TryGetValue(req.MapId, out FieldInfoNew? field))
-        {
-            field = new FieldInfoNew();
-            user.FieldInfoNew.Add(req.MapId, field);
-        }
-
+        FieldInfoNew field = progressRepo.GetFieldInfo(user.ID, req.MapId) ?? new FieldInfoNew();
 
         foreach (NetFieldObject item in field.CompletedObjects)
         {
@@ -179,8 +171,10 @@ public class CampaignController(IUserService db) : Controller
 
         // HIde it from the field
         field.CompletedObjects.Add(new NetFieldObject() { PositionId = req.FieldObject.PositionId, Type = req.FieldObject.Type });
+        progressRepo.SaveFieldInfo(user.ID, req.MapId, field);
+        gameDb.SaveChanges();
 
-        UserSessionStore.SaveAll();
+        UserSessionStore.SaveUser(user);
         return response;
     }
 }

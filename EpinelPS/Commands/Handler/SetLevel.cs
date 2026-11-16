@@ -26,7 +26,7 @@ public class SetLevelHandler(IExecutionContext context) : BaseHandler<SetLevelPa
             return new HandleResult(false, "No user selected");
 
         var rsp = AdminCommands.SetCharacterLevel(context.SelectedUser, parameters.Level);
-        UserSessionStore.SaveAll();
+        UserSessionStore.SaveUser(context.SelectedUser);
         return rsp.ok
             ? new HandleResult(true, $"Level set to {parameters.Level} successfully")
             : new HandleResult(false, rsp.error);

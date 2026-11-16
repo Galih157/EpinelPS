@@ -1,6 +1,7 @@
 
 using EpinelPS.Data;
 using EpinelPS.Database;
+using EpinelPS.Repositories;
 using EpinelPS.Utils;
 using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
@@ -14,16 +15,17 @@ public static class EventMissionHelper
 {
     private static readonly ILog log = LogManager.GetLogger(typeof(EventMissionHelper));
 
-    public static RepeatedField<NetEventMissionClearData> GetCleared(User user, int eventId)
+    public static RepeatedField<NetEventMissionClearData> GetCleared(User user, int eventId, EventsRepository repo)
     {
         var clearData = new RepeatedField<NetEventMissionClearData>();
-        if (!user.EventMissionInfo.TryGetValue(eventId, out var userEvent)) return clearData;
+        var userEvent = repo.GetEventMission(user.ID, eventId);
+        if (userEvent == null) return clearData;
         log.Debug($"GetClear UserEvent: {JsonConvert.SerializeObject(userEvent)}");
         int dateDay = user.GetDateDay();
         // Check if it's a new day, reset daily missions
         if (userEvent.LastDay != dateDay)
         {
-            ResetUserDailyMission(user, eventId, dateDay);
+            ResetUserDailyMission(user.ID, eventId, userEvent, dateDay, repo);
         }
 
         foreach (var id in userEvent.DailyMissionIdList)
@@ -48,7 +50,7 @@ public static class EventMissionHelper
         return clearData;
     }
 
-    public static RepeatedField<NestEventMissionClear> GetClearedList(User user, RepeatedField<int> eventIds)
+    public static RepeatedField<NestEventMissionClear> GetClearedList(User user, RepeatedField<int> eventIds, EventsRepository repo)
     {
         var clearDatas = new RepeatedField<NestEventMissionClear>();
         if (eventIds.Count == 0) return clearDatas;
@@ -58,7 +60,7 @@ public static class EventMissionHelper
             {
                 EventId = eventId
             };
-            clearData.EventMissionClearList.AddRange(GetCleared(user, eventId));
+            clearData.EventMissionClearList.AddRange(GetCleared(user, eventId, repo));
         }
 
         return clearDatas;
@@ -73,9 +75,10 @@ public static class EventMissionHelper
     /// <param name="eventId"></param>
     /// <param name="missionIds"></param>
     /// <param name="timeStamp"></param>
-    public static void ObtainReward(User user, ref NetRewardData reward, int eventId, RepeatedField<int> missionIds, Timestamp timeStamp)
+    /// <param name="repo"></param>
+    public static void ObtainReward(User user, ref NetRewardData reward, int eventId, RepeatedField<int> missionIds, Timestamp timeStamp, EventsRepository repo)
     {
-        EventMissionData userEvent = GetUserEventMissionData(user, eventId);
+        EventMissionData userEvent = repo.GetEventMission(user.ID, eventId) ?? new EventMissionData();
         log.Debug($"ObtainReward UserEvent Before: {JsonConvert.SerializeObject(userEvent)}");
 
         int dateDay = user.GetDateDay();
@@ -83,7 +86,7 @@ public static class EventMissionHelper
         if (userEvent.LastDay != dateDay)
         {
             log.Debug($"ObtainReward New Day: {dateDay}");
-            ResetUserDailyMission(user, eventId, dateDay);
+            ResetUserDailyMission(user.ID, eventId, userEvent, dateDay, repo);
         }
 
         var userMissionIds = userEvent.MissionIdList ?? [];
@@ -152,36 +155,17 @@ public static class EventMissionHelper
         }
 
         userEvent.LastDate = timeStamp.ToDateTime().Ticks;
-        user.EventMissionInfo[eventId] = userEvent;
+        repo.UpsertEventMission(user.ID, eventId, userEvent);
         log.Debug($"ObtainReward UserEvent After: {JsonConvert.SerializeObject(userEvent)}");
 
-        UserSessionStore.SaveAll();
+        UserSessionStore.SaveUser(user);
     }
 
-
-    private static void ResetUserDailyMission(User user, int eventId, int dateDay)
+    private static void ResetUserDailyMission(ulong userId, int eventId, EventMissionData userEvent, int dateDay, EventsRepository repo)
     {
-        if (!user.EventMissionInfo.TryGetValue(eventId, out var userEvent)) return;
         if (userEvent.LastDay == dateDay) return;
-        user.EventMissionInfo[eventId].DailyMissionIdList = [];
-        user.EventMissionInfo[eventId].LastDay = dateDay;
-        UserSessionStore.SaveAll();
-    }
-
-    /// <summary>
-    /// Get user event mission data, if not exists, create a new one
-    /// </summary>
-    /// <param name="user">User</param>
-    /// <param name="eventId">EventId</param>
-    /// <returns>EventMissionData</returns>
-    private static EventMissionData GetUserEventMissionData(User user, int eventId)
-    {
-        // Get user event mission data, if not exists, create a new one
-        if (!user.EventMissionInfo.TryGetValue(eventId, out var userEvent))
-        {
-            userEvent = new EventMissionData();
-            user.EventMissionInfo.Add(eventId, userEvent);
-        }
-        return userEvent;
+        userEvent.DailyMissionIdList = [];
+        userEvent.LastDay = dateDay;
+        repo.UpsertEventMission(userId, eventId, userEvent);
     }
 }

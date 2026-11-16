@@ -1,6 +1,8 @@
 using EpinelPS.Data;
 using EpinelPS.Database;
+using EpinelPS.Repositories;
 using EpinelPS.Utils;
+using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 
 namespace EpinelPS.LobbyServer.SoloraidMuseum;
@@ -9,20 +11,13 @@ internal static class SoloRaidMuseumHelper
 {
     private const int MaxTeamCount = 5;
 
-    public static SoloRaidMuseumStageData GetStage(User user, int stageId)
-    {
-        if (!user.SoloRaidMuseumData.TryGetValue(stageId, out var data))
-        {
-            data = new SoloRaidMuseumStageData { StageId = stageId };
-            user.SoloRaidMuseumData[stageId] = data;
-        }
+    public static SoloRaidMuseumStageData GetStage(ulong userId, int stageId, SoloRaidRepository repo)
+        => repo.GetOrCreateMuseumStage(userId, stageId);
 
-        return data;
-    }
-
-    public static ResGetSoloRaidMuseumData GetData(User user)
+    public static ResGetSoloRaidMuseumData GetData(User user, SoloRaidRepository repo)
     {
         ResGetSoloRaidMuseumData response = new();
+        var existingStages = repo.GetAllMuseumStages(user.ID);
         var groups = GameData.Instance.MuseumGroupTable.Values.OrderBy(x => x.Order).ToList();
         foreach (var group in groups)
         {
@@ -30,7 +25,9 @@ internal static class SoloRaidMuseumHelper
             foreach (var stage in GameData.Instance.MuseumStageTable.Values
                          .Where(x => x.GroupId == group.Id).OrderBy(x => x.Order))
             {
-                var data = GetStage(user, stage.Id);
+                var data = existingStages.TryGetValue(stage.Id, out var found)
+                    ? found
+                    : new SoloRaidMuseumStageData { StageId = stage.Id };
                 RefreshNoLimitUnlock(data);
                 info.StageModeList.Add(ToMode(data));
                 info.ChallengeStageInfoList.Add(ToInfo(data, data.Challenge, false));
@@ -51,17 +48,21 @@ internal static class SoloRaidMuseumHelper
         return response;
     }
 
-    public static ResGetSoloRaidMuseumGroupData GetGroupData(User user, int groupId)
+    public static ResGetSoloRaidMuseumGroupData GetGroupData(
+        User user, int groupId, SoloRaidRepository repo, TeamRepository teamRepo)
     {
         ResGetSoloRaidMuseumGroupData response = new();
+        var existingStages = repo.GetAllMuseumStages(user.ID);
         var stages = GameData.Instance.MuseumStageTable.Values
             .Where(x => x.GroupId == groupId).OrderBy(x => x.Order).ToList();
         foreach (var stage in stages)
         {
-            var data = GetStage(user, stage.Id);
+            var data = existingStages.TryGetValue(stage.Id, out var found)
+                ? found
+                : new SoloRaidMuseumStageData { StageId = stage.Id };
             RefreshNoLimitUnlock(data);
             var active = data.StageMode == SoloRaidMuseumStageMode.NoLimit ? data.NoLimit : data.Challenge;
-            var teams = GetTeams(user, data).ToList();
+            var teams = GetTeams(user, data, teamRepo).ToList();
             response.StageBattleDataList.Add(new NetSoloRaidMuseumStageBattleData
             {
                 StageId = stage.Id,
@@ -104,9 +105,12 @@ internal static class SoloRaidMuseumHelper
             rankers.FirstOrDefault(x => x.Damage == damage)?.Ranking ?? 0;
     }
 
-    public static ResGetSoloRaidMuseumMission GetMissions(User user, int stageId)
+    public static ResGetSoloRaidMuseumMission GetMissions(ulong userId, int stageId, SoloRaidRepository repo)
     {
-        var stage = GetStage(user, stageId);
+        var allStages = repo.GetAllMuseumStages(userId);
+        var stage = allStages.TryGetValue(stageId, out var found)
+            ? found
+            : new SoloRaidMuseumStageData { StageId = stageId };
         ResGetSoloRaidMuseumMission response = new();
         var missions = GameData.Instance.MuseumMissionTable.Values
             .Where(x => x.StageId == stageId).OrderBy(x => x.Order).ToList();
@@ -128,19 +132,23 @@ internal static class SoloRaidMuseumHelper
                 response.ChallengeMissionDataList.Add(net);
         }
         Logging.WriteLine($"[SoloRaidMuseum] mission stage={stageId}, challenge={response.ChallengeMissionDataList.Count}, noLimit={response.NoLimitMissionDataList.Count}", LogType.Debug);
-        var points = GetRankingPoints(user, stageId);
+        var points = GetRankingPoints(allStages, stageId);
         response.MuseumTotalRankingPoint = points.total;
         response.MuseumGroupRankingPoint = points.group;
         return response;
     }
 
-    public static (int total, int group) GetRankingPoints(User user, int stageId)
+    public static (int total, int group) GetRankingPoints(ulong userId, int stageId, SoloRaidRepository repo)
+        => GetRankingPoints(repo.GetAllMuseumStages(userId), stageId);
+
+    private static (int total, int group) GetRankingPoints(
+        IReadOnlyDictionary<int, SoloRaidMuseumStageData> stages, int stageId)
     {
         var groupId = GameData.Instance.MuseumStageTable.TryGetValue(stageId, out var selectedStage)
             ? selectedStage.GroupId : 0;
         var total = 0;
         var group = 0;
-        foreach (var stage in user.SoloRaidMuseumData.Values)
+        foreach (var stage in stages.Values)
         {
             foreach (var missionId in stage.ReceivedChallengeMissions.Concat(stage.ReceivedNoLimitMissions))
             {
@@ -154,19 +162,22 @@ internal static class SoloRaidMuseumHelper
         return (total, group);
     }
 
-    public static NetUserSoloRaidMuseumStageMode SetMode(User user, int stageId, SoloRaidMuseumStageMode mode)
+    public static NetUserSoloRaidMuseumStageMode SetMode(
+        ulong userId, int stageId, SoloRaidMuseumStageMode mode, SoloRaidRepository repo)
     {
-        var stage = GetStage(user, stageId);
+        var stage = GetStage(userId, stageId, repo);
         if (mode == SoloRaidMuseumStageMode.NoLimit && !stage.IsNoLimitUnlocked)
             mode = SoloRaidMuseumStageMode.Challenge;
         stage.StageMode = mode;
-        UserSessionStore.SaveAll();
+        repo.SaveMuseumStage(userId, stage);
         return ToMode(stage);
     }
 
-    public static SoloRaidMuseumModeData Open(User user, int stageId, bool noLimit, IEnumerable<int> teams)
+    public static SoloRaidMuseumModeData Open(
+        User user, int stageId, bool noLimit, IEnumerable<int> teams,
+        SoloRaidRepository repo, TeamRepository teamRepo)
     {
-        var stage = GetStage(user, stageId);
+        var stage = GetStage(user.ID, stageId, repo);
         var mode = noLimit ? stage.NoLimit : stage.Challenge;
         var requestedTeams = teams.Distinct().Take(MaxTeamCount - 1).ToList();
         mode.CurrentLogs = mode.Logs
@@ -175,7 +186,7 @@ internal static class SoloRaidMuseumHelper
             {
                 var log = CloneLog(x);
                 if (log.Team.Count == 0)
-                    log.Team = CreateTeamSnapshot(user, stage, log.TeamNumber);
+                    log.Team = CreateTeamSnapshot(user, stage, log.TeamNumber, teamRepo);
                 log.Step = noLimit ? GetNoLimitStep(stageId, log.Damage) : 0;
                 return log;
             })
@@ -185,29 +196,24 @@ internal static class SoloRaidMuseumHelper
         mode.TotalStep = mode.CurrentLogs.Sum(x => x.Step);
         mode.IsInProgress = true;
         mode.OpenTeams = requestedTeams;
-        UserSessionStore.SaveAll();
+        repo.SaveMuseumStage(user.ID, stage);
         return mode;
     }
 
-    public static void Enter(User user, int stageId, bool noLimit, int teamNumber)
+    public static void Close(ulong userId, int stageId, bool noLimit, SoloRaidRepository repo)
     {
-        var stage = GetStage(user, stageId);
-        var mode = noLimit ? stage.NoLimit : stage.Challenge;
-    }
-
-    public static void Close(User user, int stageId, bool noLimit)
-    {
-        var stage = GetStage(user, stageId);
+        var stage = GetStage(userId, stageId, repo);
         var mode = noLimit ? stage.NoLimit : stage.Challenge;
         Logging.WriteLine($"[SoloRaidMuseum] close stage={stageId}, noLimit={noLimit}, joinCount={mode.StageJoinCount}, currentLogs={mode.CurrentLogs.Count}, totalDamage={mode.TotalDamage}", LogType.Info);
         mode.IsInProgress = false;
-        UserSessionStore.SaveAll();
+        repo.SaveMuseumStage(userId, stage);
     }
 
     public static (SoloRaidMuseumStageData stage, SoloRaidMuseumModeData mode) SetDamage(
-        User user, int stageId, bool noLimit, NetSoloRaidMuseumBattleData? battle, int battleResult = 0)
+        User user, int stageId, bool noLimit, NetSoloRaidMuseumBattleData? battle,
+        SoloRaidRepository repo, TeamRepository teamRepo, int battleResult = 0)
     {
-        var stage = GetStage(user, stageId);
+        var stage = GetStage(user.ID, stageId, repo);
         var mode = noLimit ? stage.NoLimit : stage.Challenge;
         var clientDamage = Math.Max(0, battle?.Damage ?? 0);
         var multiplier = double.IsFinite(stage.DebugDamageMultiplier) && stage.DebugDamageMultiplier >= 1
@@ -238,7 +244,7 @@ internal static class SoloRaidMuseumHelper
             Damage = damage,
             Step = noLimit ? GetNoLimitStep(stageId, damage) : 0,
             TeamNumber = teamNumber,
-            Team = CreateTeamSnapshot(user, stage, teamNumber),
+            Team = CreateTeamSnapshot(user, stage, teamNumber, teamRepo),
         });
         mode.StageJoinCount = mode.CurrentLogs.Count;
         mode.TotalDamage = mode.CurrentLogs.Sum(x => x.Damage);
@@ -270,20 +276,21 @@ internal static class SoloRaidMuseumHelper
             if (!noLimit)
                 stage.IsNoLimitUnlocked = HasClearedChallenge(stage.StageId, mode.BestDamage);
         }
-        UserSessionStore.SaveAll();
+        repo.SaveMuseumStage(user.ID, stage);
         return (stage, mode);
     }
 
-    public static IEnumerable<NetSoloRaidMuseumLog> GetLogs(User user, int stageId, bool noLimit, bool current = false)
+    public static IEnumerable<NetSoloRaidMuseumLog> GetLogs(
+        User user, int stageId, bool noLimit, SoloRaidRepository repo, TeamRepository teamRepo, bool current = false)
     {
-        var stage = GetStage(user, stageId);
+        var stage = GetStage(user.ID, stageId, repo);
         var mode = noLimit ? stage.NoLimit : stage.Challenge;
         // The normal log endpoint represents the current/most recently completed
         // run. Keep it available for the result screen after the fifth team.
         var logs = current && mode.CurrentLogs.Count > 0 ? mode.CurrentLogs : mode.Logs;
         return logs.Select(x =>
         {
-            var snapshot = x.Team.Count > 0 ? x.Team : CreateTeamSnapshot(user, stage, x.TeamNumber);
+            var snapshot = x.Team.Count > 0 ? x.Team : CreateTeamSnapshot(user, stage, x.TeamNumber, teamRepo);
             return new NetSoloRaidMuseumLog
             {
                 Damage = x.Damage,
@@ -291,6 +298,78 @@ internal static class SoloRaidMuseumHelper
                 Team = { snapshot.Select(ToMuseumTeamCharacter) },
             };
         });
+    }
+
+    public static NetRewardData AcquireMissions(
+        User user,
+        IEnumerable<int> missionIds,
+        bool noLimit,
+        RepeatedField<NetSoloRaidMuseumMissionData> result,
+        SoloRaidRepository repo)
+    {
+        // Claim requests can arrive concurrently when the client retries or the
+        // button is tapped repeatedly. Keep validation, marking and reward
+        // mutation atomic for this user so a mission can only pay out once.
+        lock (user)
+        {
+            NetRewardData mergedReward = new();
+            List<NetRewardData> rewards = [];
+            var stageCache = new Dictionary<int, SoloRaidMuseumStageData>();
+            var dirtyStages = new HashSet<int>();
+
+            foreach (var missionId in missionIds.Distinct())
+            {
+                if (!GameData.Instance.MuseumMissionTable.TryGetValue(missionId, out var mission))
+                {
+                    Logging.WriteLine($"[SoloRaidMuseum] mission claim ignored unknown id={missionId}", LogType.Warning);
+                    continue;
+                }
+
+                var expectedMode = noLimit ? MuseumStageModeType.NoLimit : MuseumStageModeType.Challenge;
+                if (mission.ModeType != expectedMode) continue;
+
+                if (!stageCache.TryGetValue(mission.StageId, out var stage))
+                {
+                    stage = GetStage(user.ID, mission.StageId, repo);
+                    stageCache[mission.StageId] = stage;
+                }
+
+                var received = noLimit ? stage.ReceivedNoLimitMissions : stage.ReceivedChallengeMissions;
+                var mode = noLimit ? stage.NoLimit : stage.Challenge;
+                var progress = MissionProgress(mode, mission.ConditionType);
+                var target = MissionTargetValue(mission);
+                if (received.Contains(missionId))
+                {
+                    Logging.WriteLine($"[SoloRaidMuseum] mission claim skipped already-received id={missionId}, noLimit={noLimit}", LogType.Info);
+                    continue;
+                }
+                if (progress < target)
+                {
+                    Logging.WriteLine($"[SoloRaidMuseum] mission claim skipped incomplete id={missionId}, progress={progress}, target={target}", LogType.Info);
+                    continue;
+                }
+
+                received.Add(missionId);
+                dirtyStages.Add(mission.StageId);
+                result.Add(new NetSoloRaidMuseumMissionData { MissionId = missionId, Progress = progress, IsReceived = true });
+                if (mission.RewardId > 0)
+                    rewards.Add(RewardUtils.RegisterRewardsForUser(user, mission.RewardId));
+                Logging.WriteLine($"[SoloRaidMuseum] mission claimed id={missionId}, noLimit={noLimit}, reward={mission.RewardId}", LogType.Info);
+            }
+
+            foreach (int dirtyStageId in dirtyStages)
+            {
+                repo.SaveMuseumStage(user.ID, stageCache[dirtyStageId]);
+            }
+
+            if (rewards.Count > 0)
+            {
+                mergedReward = NetUtils.MergeRewards(rewards, user);
+                UserSessionStore.SaveUser(user);
+            }
+
+            return mergedReward;
+        }
     }
 
     public static NetUserSoloRaidMuseumStageInfo ToInfo(
@@ -320,14 +399,16 @@ internal static class SoloRaidMuseumHelper
         return result;
     }
 
-    private static IEnumerable<NetTeamData> GetTeams(User user, SoloRaidMuseumStageData stage)
+    private static IEnumerable<NetTeamData> GetTeams(
+        User user, SoloRaidMuseumStageData stage, TeamRepository teamRepo)
     {
         if (stage.Teams.Any(x => x.Slots.Any(slot => slot.Value > 0)))
             return stage.Teams.Select(x => x.Clone()).ToList();
 
         // Compatibility with data written before museum teams became stage-scoped.
         var museumTeamType = (int)TeamType.SoloRaidMuseum;
-        if (user.UserTeams.TryGetValue(museumTeamType, out var museumTeams) &&
+        var museumTeams = teamRepo.GetUserTeam(user.ID, museumTeamType);
+        if (museumTeams != null &&
             museumTeams.Teams.Any(x => x.Slots.Any(slot => slot.Value > 0)))
             return museumTeams.Teams.Select(x => x.Clone()).ToList();
 
@@ -458,9 +539,10 @@ internal static class SoloRaidMuseumHelper
             .ElementAtOrDefault(index);
     }
 
-    private static List<TeamCharacterData> CreateTeamSnapshot(User user, SoloRaidMuseumStageData stage, int teamNumber)
+    private static List<TeamCharacterData> CreateTeamSnapshot(
+        User user, SoloRaidMuseumStageData stage, int teamNumber, TeamRepository teamRepo)
     {
-        var team = GetTeams(user, stage).FirstOrDefault(x => x.TeamNumber == teamNumber);
+        var team = GetTeams(user, stage, teamRepo).FirstOrDefault(x => x.TeamNumber == teamNumber);
         if (team is null) return [];
         return team.Slots.Where(x => x.Value > 0).Select(slot =>
         {

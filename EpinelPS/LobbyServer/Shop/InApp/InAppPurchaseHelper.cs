@@ -33,7 +33,7 @@ internal static class InAppPurchaseHelper
             return false;
 
         PendingRewards[(user.ID, productId)] = reward.Clone();
-        UserSessionStore.SaveAll();
+        UserSessionStore.SaveUser(user);
         return true;
     }
 
@@ -113,8 +113,10 @@ internal static class InAppPurchaseHelper
 
     private static void AddCostume(User user, int costumeId, ref NetRewardData reward)
     {
-        if (!user.CostumeList.Contains(costumeId))
-            user.CostumeList.Add(costumeId);
+        using var ctx = GameContext.CreateNew();
+        var repo = new Repositories.CosmeticsRepository(ctx);
+        if (repo.UnlockCosmetic(user.ID, Repositories.CosmeticsRepository.CategoryCostume, costumeId))
+            ctx.SaveChanges();
         reward.CharacterCostume.Add(costumeId);
     }
 }

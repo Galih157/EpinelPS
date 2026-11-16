@@ -4,16 +4,22 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Cryptography;
 using System.Text;
 using EpinelPS.Data;
+using EpinelPS.Repositories;
 using EpinelPS.Services;
 
 namespace EpinelPS.Controllers.AdminPanel;
 
 [Route("admin/Users")]
-public class UsersController(ILogger<UsersController> logger, GameContext dbContext, MessengerAdminService messengerAdminService) : Controller
+public class UsersController(
+    ILogger<UsersController> logger,
+    GameContext dbContext,
+    MessengerAdminService messengerAdminService,
+    InventoryRepository inventoryRepo) : Controller
 {
     private readonly ILogger<UsersController> _logger = logger;
     private readonly GameContext _db = dbContext;
     private readonly MessengerAdminService _messengerAdmin = messengerAdminService;
+    private readonly InventoryRepository _inventoryRepo = inventoryRepo;
     private static readonly MD5 sha = MD5.Create();
     private readonly Dictionary<string, Dictionary<int, double>> _overloadOptions = new Dictionary<string, Dictionary<int, double>>
     {
@@ -164,9 +170,12 @@ public class UsersController(ILogger<UsersController> logger, GameContext dbCont
         var gameUser = _db.Users.Find(id);
         if (gameUser == null) return NotFound();
 
-        if (user.EquipmentAwakenings.Count != 0)
+        var awakenings = _inventoryRepo.GetAwakenings(id);
+        if (awakenings.Count != 0)
         {
-            var gearDictionary = user.EquipmentAwakenings.ToDictionary(a => a.Isn, a => a);
+            var gearDictionary = awakenings
+                .GroupBy(a => a.Isn)
+                .ToDictionary(g => g.Key, g => g.OrderBy(a => a.IsNewData).First());
 
             OverloadedGear =
             [
@@ -250,46 +259,59 @@ public class UsersController(ILogger<UsersController> logger, GameContext dbCont
 
         if (gearUpdates.Count == 0)return RedirectToAction("Modify", new { id = id });
 
-        if (submitType == "saveAll")
+        IEnumerable<GearUpdateModel> updatesToApply = submitType switch
         {
-            foreach (var gearUpdate in gearUpdates.Values)
-            {
-                UpdateGear(user, gearUpdate.GearId, gearUpdate.Level,
-                    gearUpdate.Option1, gearUpdate.Option2, gearUpdate.Option3);
-            }
-        }
-        else if (submitType.StartsWith("saveCharacter_"))
-        {
-            foreach (var gearUpdate in gearUpdates.Values.Where(g => g.CharacterId == ulong.Parse(submitType.Replace("saveCharacter_", ""))))
-            {
-                UpdateGear(user, gearUpdate.GearId, gearUpdate.Level, gearUpdate.Option1, gearUpdate.Option2, gearUpdate.Option3);
-            }
-        }
-        else if (submitType.StartsWith("updateGear_"))
-        {
-            var gearId = long.Parse(submitType.Replace("updateGear_", ""));
-            if (gearUpdates.TryGetValue(gearId, out var gearUpdate))
-            {
-                UpdateGear(user, gearUpdate.GearId, gearUpdate.Level,
-                    gearUpdate.Option1, gearUpdate.Option2, gearUpdate.Option3);
-            }
-        }
+            "saveAll" => gearUpdates.Values,
+            _ when submitType.StartsWith("saveCharacter_") =>
+                gearUpdates.Values.Where(g => g.CharacterId == ulong.Parse(submitType.Replace("saveCharacter_", ""))),
+            _ when submitType.StartsWith("updateGear_") &&
+                   gearUpdates.TryGetValue(long.Parse(submitType.Replace("updateGear_", "")), out var gearUpdate) =>
+                [gearUpdate],
+            _ => []
+        };
+
+        ApplyGearUpdates(user, updatesToApply);
 
         return RedirectToAction("Modify", new { id = id });
     }
 
-    private static void UpdateGear(User user, long gearId, int level, int option1, int option2, int option3)
+    private void ApplyGearUpdates(User user, IEnumerable<GearUpdateModel> updates)
     {
-        var gearAwakening = user.EquipmentAwakenings.FirstOrDefault(x => x.Isn == gearId);
-        var item = user.Items.FirstOrDefault(x => x.Isn == gearId);
+        var pendingAwakenings = new List<EquipmentAwakeningData>();
+        bool itemsModified = false;
 
-        if (gearAwakening == null || item == null) return;
-        item.Level = level;
-        gearAwakening.Option.Option1Id = option1;
-        gearAwakening.Option.Option2Id = option2;
-        gearAwakening.Option.Option3Id = option3;
+        foreach (var gearUpdate in updates)
+        {
+            var gearAwakening = _inventoryRepo.GetAwakeningByIsn(user.ID, gearUpdate.GearId);
+            var item = user.Items.FirstOrDefault(x => x.Isn == gearUpdate.GearId);
+            if (gearAwakening == null || item == null)
+                continue;
 
-        System.Console.WriteLine($"Updated gear {gearId}: Level={level}, Options={option1},{option2},{option3}");
+            item.Level = gearUpdate.Level;
+            itemsModified = true;
+
+            gearAwakening.Option.Option1Id = gearUpdate.Option1;
+            gearAwakening.Option.Option2Id = gearUpdate.Option2;
+            gearAwakening.Option.Option3Id = gearUpdate.Option3;
+            pendingAwakenings.Add(gearAwakening);
+
+            Console.WriteLine($"Updated gear {gearUpdate.GearId}: Level={gearUpdate.Level}, Options={gearUpdate.Option1},{gearUpdate.Option2},{gearUpdate.Option3}");
+        }
+
+        if (itemsModified)
+        {
+            UserSessionStore.SaveUser(user);
+        }
+
+        if (pendingAwakenings.Count > 0)
+        {
+            foreach (var awakening in pendingAwakenings)
+            {
+                _inventoryRepo.SaveAwakening(user.ID, awakening);
+            }
+
+            _db.SaveChanges();
+        }
     }
 
     [Route("Modify/{id}"), ActionName("Modify")]

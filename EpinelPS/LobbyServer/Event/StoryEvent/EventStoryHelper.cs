@@ -1,4 +1,5 @@
 using EpinelPS.Data;
+using EpinelPS.Repositories;
 using EpinelPS.Utils;
 using log4net;
 using Newtonsoft.Json;
@@ -14,14 +15,15 @@ public static class EventStoryHelper
     /// </summary>
     /// <param name="user"></param>
     /// <param name="eventId"></param>
+    /// <param name="repo"></param>
     /// <returns></returns>
-    public static int GetTicket(User user, int eventId)
+    public static int GetTicket(User user, int eventId, EventsRepository repo)
     {
-
         int freeTicket = 5; // Default ticket is 5
 
         // Get user event data, if exists, get free ticket
-        if (user.EventInfo.TryGetValue(eventId, out var eventData))
+        var eventData = repo.GetEvent(user.ID, eventId);
+        if (eventData != null)
         {
             freeTicket = eventData.FreeTicket;
         }
@@ -37,12 +39,13 @@ public static class EventStoryHelper
 
         int dateDay = user.GetDateDay();
         // If dateDay is greater than last day, update user free ticket and last day
-        if (dateDay > eventData.LastDay)
+        if (eventData != null && dateDay > eventData.LastDay)
         {
             Logging.WriteLine($"GetTicket ResetFreeTicket DateDay: {dateDay}, LastDay: {eventData.LastDay}, FreeTicketMax: {freeTicketMax}", LogType.Debug);
             freeTicket = freeTicketMax;
-            user.EventInfo[eventId].FreeTicket = freeTicket;
-            user.EventInfo[eventId].LastDay = dateDay;
+            eventData.FreeTicket = freeTicket;
+            eventData.LastDay = dateDay;
+            repo.UpsertEvent(user.ID, eventId, eventData);
         }
 
         // Remain ticket is free ticket + item ticket
@@ -58,16 +61,15 @@ public static class EventStoryHelper
     /// <param name="user"></param>
     /// <param name="eventId"></param>
     /// <param name="val"></param>
+    /// <param name="repo"></param>
     /// <returns>remaining ticket</returns>
-    public static int SubtractTicket(User user, int eventId, int val)
+    public static int SubtractTicket(User user, int eventId, int val, EventsRepository repo)
     {
         int freeTicket = 5; // Default ticket is 5
 
         // Get user event data, if exists, get free ticket
-        if (user.EventInfo.TryGetValue(eventId, out var eventData))
-        {
-            freeTicket = eventData.FreeTicket;
-        }
+        var eventData = repo.GetOrCreateEvent(user.ID, eventId, () => new EventData { FreeTicket = 5, LastDay = user.GetDateDay() });
+        freeTicket = eventData.FreeTicket;
 
         // Get item ticket information
         (DbItemData itemTicket, _) = GetItemTicket(user, eventId);
@@ -78,7 +80,8 @@ public static class EventStoryHelper
         if (freeTicket >= val)
         {
             freeTicket -= val;
-            user.EventInfo[eventId].FreeTicket = freeTicket;
+            eventData.FreeTicket = freeTicket;
+            repo.UpsertEvent(user.ID, eventId, eventData);
 
             int remainTicket = freeTicket + remainItemTicket;
             Logging.WriteLine($"SubtractTicket Value: {val}, FreeTicket: {freeTicket}, ItemTicket: {remainItemTicket}, RemainTicket: {remainTicket}", LogType.Debug);
@@ -88,7 +91,8 @@ public static class EventStoryHelper
         {
             // If free ticket is not enough to subtract, subtract free ticket and subtract item ticket
             int SubtractItemTicket = val - freeTicket;
-            user.EventInfo[eventId].FreeTicket = 0;
+            eventData.FreeTicket = 0;
+            repo.UpsertEvent(user.ID, eventId, eventData);
             if (itemTicket is not null)
             {
                 user.RemoveItemBySerialNumber(itemTicket.Isn, SubtractItemTicket);
@@ -100,7 +104,6 @@ public static class EventStoryHelper
             Logging.WriteLine($"SubtractTicket Value: {val}, FreeTicket: {freeTicket}, ItemTicket: {remainItemTicket}, RemainTicket: {remainTicket}", LogType.Debug);
             return remainTicket;
         }
-
     }
 
     /// <summary>

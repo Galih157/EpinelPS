@@ -44,184 +44,27 @@ public class User
     public DateTime LastWeeklyReset { get; set; } = DateTime.MinValue;
 
     // Game data
-    [JsonIgnore] public List<string> CompletedScenarios { get; set; } = [];
-    public Dictionary<string, FieldInfo> FieldInfo { get; set; } = []; // here for backwards compatibility
-
-    [JsonIgnore] public Dictionary<string, FieldInfoNew> FieldInfoNew { get; set; } = [];
-    [JsonIgnore] public Dictionary<int, List<int>> ViewedNoticePopupTableIds { get; set; } = [];
-    [JsonIgnore] public Dictionary<string, string> MapJson { get; set; } = [];
     [JsonIgnore] public Dictionary<CurrencyType, long> Currency { get; set; } = new() {
             { CurrencyType.ContentStamina, 2 }
         };
-    [JsonIgnore] public List<SynchroSlot> SynchroSlots { get; set; } = [];
-    [JsonIgnore] public bool SynchroDeviceUpgraded { get; set; } = false;
-    [JsonIgnore] public int SynchroDeviceLevel { get; set; } = 200;
-    [JsonIgnore] public Dictionary<int, RecycleRoomResearchProgress> ResearchProgress { get; set; } = [];
 
-    [JsonIgnore] public ResetableData ResetableData { get; set; } = new();
-    [JsonIgnore] public WeeklyResetableData WeeklyResetableData { get; set; } = new();
     [JsonIgnore] public List<DbItemData> Items { get; set; } = [];
     [JsonIgnore] public List<CharacterModel> Characters { get; set; } = [];
-    [JsonIgnore] public List<EquipmentAwakeningData> EquipmentAwakenings { get; set; } = [];
-    [JsonIgnore] public long[] RepresentationTeamDataNew { get; set; } = [];
-    [JsonIgnore] public Dictionary<int, ClearedTutorialData> ClearedTutorialDataNew { get; set; } = [];
 
-    // Outpost buildings data
-    [JsonIgnore] public List<NetUserOutpostData> OutpostBuildings { get; set; } = [];
-
-    [JsonIgnore] public NetWallpaperData[] WallpaperList { get; set; } = [];
-    [JsonIgnore] public NetWallpaperBackground[] WallpaperBackground { get; set; } = [];
-    [JsonIgnore] public NetWallpaperJukeboxFavorite[] WallpaperFavoriteList { get; set; } = [];
-    [JsonIgnore] public NetWallpaperPlaylist[] WallpaperPlaylistList { get; set; } = [];
-    [JsonIgnore] public NetWallpaperJukebox[] WallpaperJukeboxList { get; set; } = [];
-    [JsonIgnore] public List<int> LobbyDecoBackgroundList { get; set; } = [];
-    [JsonIgnore] public List<int> LiveWallpaperList { get; set; } = [];
-
-    //角色时装
-    [JsonIgnore] public List<int> CostumeList { get; set; } = [];
-
-    [JsonIgnore] public List<int> JukeboxThemeList { get; set; } = [];
-
-    //个人面板
-    [JsonIgnore] public List<int> StickerList { get; set; } = [];
-    [JsonIgnore] public List<int> BackgroundList { get; set; } = [];
-    [JsonIgnore] public List<int> IconList { get; set; } = [];
-    [JsonIgnore] public List<int> FrameList { get; set; } = [];
-    [JsonIgnore] public List<int> TitleList { get; set; } = [];
-    [JsonIgnore] public Dictionary<long, NetUserMailData> MailDatas { get; set; } = [];       
-
-    [JsonIgnore] public Dictionary<int, NetUserTeamData> UserTeams { get; set; } = [];
-    [JsonIgnore] public Dictionary<int, bool> MainQuestData { get; set; } = [];
-    [JsonIgnore] public Dictionary<int, bool> SubQuestData { get; set; } = [];
-    [JsonIgnore] public int InfraCoreExp { get; set; } = 0;
-    [JsonIgnore] public int InfraCoreLvl { get; set; } = 1;
-    [JsonIgnore] public Dictionary<int, bool> InfraCoreRewardReceived { get; set; } = [];
     [JsonIgnore] public UserPointData userPointData { get; set; } = new();
     public DateTime LastLogin { get; set; } = DateTime.UtcNow;
     public DateTime BattleTime { get; set; } = DateTime.UtcNow;
 
-    [JsonIgnore] public NetOutpostBattleLevel OutpostBattleLevel { get; set; } = new() { Level = 1 };
-    
-    [JsonIgnore]
-    [Obsolete("This is left for compatibility purpose. Use AddTutorialPullCount(int pullCount) and GetGachaCountForType(GachaPremiumType.GachaTutorial)")]
-    public int GachaTutorialPlayCount { get; set; } = 0;
-    [JsonIgnore] public Dictionary<int, int> GachaBannerMaxPulls { get; set; } = new();
-    [JsonIgnore] public Dictionary<int,int> GachaPityBannerExecuteCount { get; set; } = new();
-
-    [JsonIgnore] public List<int> CompletedTacticAcademyLessons { get; set; } = [];
-    [JsonIgnore] public List<int> CompletedSideStoryStages { get; set; } = [];
-    [JsonIgnore] public List<int> ViewedSideStoryStages { get; set; } = [];
-    [JsonIgnore] public List<int> ClearedOutpostScenarioIds { get; set; } = [];
-
-    [JsonIgnore] public List<int> Memorial { get; set; } = [];
-    [JsonIgnore] public List<int> JukeboxBgm { get; set; } = [];
-    [JsonIgnore] public List<int> ClaimedJukeboxRewardTriggers { get; set; } = [];
-    [JsonIgnore] public List<NetUserFavoriteItemData> FavoriteItems { get; set; } = [];
-
-    [JsonIgnore] public List<NetUserFavoriteItemQuestData> FavoriteItemQuests { get; set; } = [];
-    [JsonIgnore] public Dictionary<CorporationTowerType, int> TowerProgress { get; set; } = [];    
-
-    [JsonIgnore] public JukeBoxSetting LobbyMusic { get; set; } = new() { Location = NetJukeboxLocation.Lobby, TableId = 2, Type = NetJukeboxBgmType.JukeboxTableId };
-    [JsonIgnore] public JukeBoxSetting CommanderMusic { get; set; } = new() { Location = NetJukeboxLocation.CommanderRoom, TableId = 5, Type = NetJukeboxBgmType.JukeboxTableId };
-    [JsonIgnore] public OutpostBuffs OutpostBuffs { get; set; } = new();
-    [JsonIgnore] public Dictionary<int, UnlockData> ContentsOpenUnlocked { get; set; } = [];
-
-    [JsonIgnore] public List<NetStageClearInfo> StageClearHistorys { get; set; } = [];
-
-    [JsonIgnore] public List<BadgeModel> Badges { get; set; } = [];
-
-    [JsonIgnore] public List<NetUserAttractiveData> BondInfo { get; set; } = [];
     [JsonIgnore]
     [Obsolete]
     public List<TriggerModel> Triggers { get; set; } = [];
     public int LastTriggerId { get; set; } = 1;
-    [JsonIgnore] public List<int> CompletedAchievements { get; set; } = [];
-    [JsonIgnore] public List<NetMessage> MessengerData { get; set; } = [];
-    // Manual admin repairs only.  Keeping the original message makes a repair reversible.
-    [JsonIgnore] public List<MessengerRepairAuditEntry> MessengerRepairHistory { get; set; } = [];
     public ulong LastMessageId { get; set; } = 1;
-    [JsonIgnore] public List<NetPickedMessage> PickedMessages { get; set; } = [];
     public long LastBadgeSeq { get; set; } = 1;
-    [JsonIgnore] public Dictionary<int, LostSectorData> LostSectorData { get; set; } = [];
-
-    // Event data
-    [JsonIgnore] public Dictionary<int, EventData> EventInfo { get; set; } = [];
-    [JsonIgnore] public Dictionary<int, LoginEventData> LoginEventInfo { get; set; } = [];
-    [JsonIgnore] public Dictionary<int, EventMissionData> EventMissionInfo { get; set; } = []; // key: eventId
-    [JsonIgnore] public Dictionary<int, EventShopBuyCountData> EventShopBuyCountInfo { get; set; } = []; // key: eventId
-
-    // Archive unlock state. These are persisted in db.json with the rest of the user.
-    [JsonIgnore] public List<int> UnlockedArchiveRecordIds { get; set; } = [];
-    [JsonIgnore] public List<int> UnlockedArchiveEventQuestIds { get; set; } = [];
-
-    [JsonIgnore] public Dictionary<int, NormalShopState> NormalShopStates { get; set; } = []; // key: shop category    
-    [JsonIgnore] public List<NetPlaySodaEachGameInfo> ArcadePlaySodaInfoList { get; set; } = [];
-    [JsonIgnore] public NetArcadeMvgData ArcadeInTheMirrorData { get; set; } = new();
-
-    [JsonIgnore] public Dictionary<int, PassData> UserPassInfo = []; // user pass data, key is PassId
-
-    [JsonIgnore] public List<int> LobbyPrivateBannerIds = [];
-
-    [JsonIgnore] public Dictionary<int, GachaPaybackData> GachaPaybackData {get;set;} = new();
-    [JsonIgnore] public List<int> GachaDailyFreePulls { get; set; } = new();
-    [JsonIgnore] public Dictionary<int, int> GachaSelectupChoices { get; set; } = [];
-
-    public bool DailyDiscountUsed { get; set; } = false;
-
-    // solo raid data
-    [JsonIgnore] public Dictionary<int, SoloRaidInfo> SoloRaidData = []; // key: raidId
-    [JsonIgnore] public Dictionary<int, SoloRaidMuseumStageData> SoloRaidMuseumData { get; set; } = []; // key: stageId
-
-
-    //OutpostConditionTable
-    [JsonIgnore] public List<int> OutpostConditionList { get; set; } = [];
-
-    // Outpost dispatch
-    [JsonIgnore] public int DispatchLv { get; set; } = 1;
-    [JsonIgnore] public int DispatchCollectionLv { get; set; } = 0;
-    [JsonIgnore] public int DispatchFavoriteLv { get; set; } = 0;
-    [JsonIgnore] public int DispatchResetCount { get; set; } = 0;
-    [JsonIgnore] public List<int> DispatchClearList { get; set; } = [];
-    [JsonIgnore] public List<NetSelectableDispatchData> SelectableDispatchData { get; set; } = [];
-    [JsonIgnore] public DispatchData UserDispatchData { get; set; } = new();
 
     [JsonIgnore] public GuildData Guild { get; set; } = new();
 
-    //解放
-    [JsonIgnore] public Dictionary<int, NetLiberateData> LiberateDatas { get; set; } = [];
-    [JsonIgnore] public List<int> OpenLiberateTypeIdList { get; set; } = [];
     public int CurCharacterIdId { get; set; } = 0;
-
-    // Minigame data
-    [JsonIgnore] public Dictionary<int,MiniGameScenarios> MiniGameScenarios { get;set;  } = new();
-    [JsonIgnore] public Dictionary<int, MiniGameAzxData> MiniGameAzxInfo { get; set; } = [];
-    [JsonIgnore] public Dictionary<int, MiniGameStoryChoice> MiniGameStoryChoice { get; set; } = [];
-    [JsonIgnore] public ArcadeBBQData BBQInfoData { get; set; } = new();
-    [JsonIgnore] public List<NetPlaySodaEachGameInfo> PlaySodaInfoData { get; set; } = [];
-
-    [JsonIgnore] public Dictionary<int, TtsDatas> TTSGameData { get; set; } = new();
-    [JsonIgnore] public Dictionary<int, StellarBladeDatas> StellarBladeDatas { get; set; } = new();
-    [JsonIgnore] public Dictionary<int, TowerDefenseData> TowerDefenseDatas { get; set; } = new();
-    [JsonIgnore] public ArcadeDessertRushData DessertRushData { get; set; } = new();
-    [JsonIgnore] public ArcadeSortOutData SortOutData { get; set; } = new();
-    [JsonIgnore] public ArcadePirateCafeData PirateCafeData { get; set; } = new();
-    [JsonIgnore] public Dictionary<int, ArcadeBtgData> BtgData { get; set; } = new();
-    [JsonIgnore] public DragonDungeonRunData DDRDatas { get; set; } = new();
-    [JsonIgnore] public Dictionary<int, RebuildEdenData> RebuildEdenDatas { get; set; } = new();
-    [JsonIgnore] public Dictionary<int, Nksv2Data> Nksv2Datas { get; set; } = new();
-    [JsonIgnore] public Dictionary<int, BubbleMarchData> BubbleMarchDatas { get; set; } = new();
-    [JsonIgnore] public Dictionary<int, IsLandBreakerData> IsLandBreakerDatas { get; set; } = new();
-
-    // Jukebox
-    [JsonIgnore] public List<NetJukeboxPlaylist> PlayLists { get; set; } = [];
-    [JsonIgnore] public NetJukeboxFavorite FavoriteSongs { get; set; } = new();
-
-    // Character Wishlist
-    [JsonIgnore] public List<CharacterWishlistData> CharacterWishlist { get; set; } = [];
-
-    // Profile Cards
-    [JsonIgnore] public List<int> ProfileCardsData { get; set; } = [];
-    [JsonIgnore] public ProfileCardDecorationLayout ProfileCardDecoration { get; set; } = new();
     
     public TriggerModelNew AddTrigger(Trigger type, int value, int conditionId = 0, bool logToConsole = true)
     {
@@ -248,20 +91,10 @@ public class User
 
     public BadgeModel AddBadge(BadgeContents type, string location)
     {
-        // generate unique badge SEQ
-        long seq = 0;
-        UserDbHelper.UpdateGameUser(ID, u => seq = u.LastBadgeSeq++);
-
-        var badge = new BadgeModel()
-        {
-            BadgeContent = type,
-            Location = location,
-            BadgeGuid = Guid.NewGuid().ToString(),
-            Seq = seq
-        };
-
-        Badges.Add(badge);
-
+        using var ctx = GameContext.CreateNew();
+        var repo = new Repositories.SocialMailRepository(ctx);
+        var badge = repo.AddBadge(ID, type, location);
+        ctx.SaveChanges();
         return badge;
     }
 
@@ -271,24 +104,6 @@ public class User
         if (!list.Contains(item))
         {
             list.Add(item);
-        }
-    }
-
-    public void SetQuest(int tId, bool ReceivedReward)
-    {
-        if (!MainQuestData.TryAdd(tId, ReceivedReward))
-        {
-            MainQuestData[tId] = ReceivedReward;
-            return;
-        }
-    }
-
-    public void SetSubQuest(int tId, bool ReceivedReward)
-    {
-        if (!SubQuestData.TryAdd(tId, ReceivedReward))
-        {
-            SubQuestData[tId] = ReceivedReward;
-            return;
         }
     }
 
@@ -314,19 +129,6 @@ public class User
 
         return num;
     }
-    public bool IsStageCompleted(int Id)
-    {
-        foreach (var item in FieldInfoNew)
-        {
-            if (item.Value.CompletedStages.Contains(Id))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     public long GetCurrencyVal(CurrencyType type)
     {
         if (Currency.TryGetValue(type, out long value))
@@ -436,7 +238,8 @@ public class User
 
     internal bool GetSynchro(long csn)
     {
-        return SynchroSlots.Where(x => x.CharacterSerialNumber == csn).Any();
+        using var ctx = GameContext.CreateNew();
+        return new Repositories.OutpostRepository(ctx).GetSynchroSlots(ID).Any(x => x.CharacterSerialNumber == csn);
     }
     internal int GetCharacterLevel(int csn)
     {
@@ -445,30 +248,16 @@ public class User
     }
     internal int GetCharacterLevel(int csn, int characterLevel)
     {
-        foreach (var item in SynchroSlots)
-        {
-            if (item.CharacterSerialNumber == csn)
-            {
-                return GetSynchroLevel();
-            }
-        }
+        using var ctx = GameContext.CreateNew();
+        var repo = new Repositories.OutpostRepository(ctx);
+        if (repo.GetSynchroSlots(ID).Any(x => x.CharacterSerialNumber == csn))
+            return repo.GetSynchroLevel(ID, Characters);
         return characterLevel;
     }
     internal int GetSynchroLevel()
     {
-        if (SynchroDeviceUpgraded)
-            return SynchroDeviceLevel;
-        var highestLevelCharacters = Characters.OrderByDescending(x => x.Level).Take(5).ToList();
-
-
-        if (highestLevelCharacters.Count > 0)
-        {
-            return highestLevelCharacters.Last().Level;
-        }
-        else
-        {
-            return 1;
-        }
+        using var ctx = GameContext.CreateNew();
+        return new Repositories.OutpostRepository(ctx).GetSynchroLevel(ID, Characters);
     }
 
     internal int GetMaxAttractiveLevel(int nameCode)
@@ -524,34 +313,14 @@ public class User
     }
 
     public NetMessage CreateMessage(MessengerDialogRecord r, int state = 0)
-    {
-        long seq = 0;
-        UserDbHelper.UpdateGameUser(ID, u => seq = u.LastMessageId++);
-        var msg = new NetMessage()
-        {
-            ConversationId = r.ConversationId,
-            CreatedAt = DateTime.UtcNow.Ticks,
-            MessageId = r.Id,
-            Seq = seq,
-            State = state
-        };
-        MessengerData.Add(msg);
-        return msg;
-    }
+        => CreateMessage(r.ConversationId ?? "", r.Id ?? "", state);
 
     public NetMessage CreateMessage(string conversationId, string messageId, int state = 0)
     {
-        long seq = 0;
-        UserDbHelper.UpdateGameUser(ID, u => seq = u.LastMessageId++);
-        var msg = new NetMessage()
-        {
-            ConversationId = conversationId,
-            CreatedAt = DateTime.UtcNow.Ticks,
-            MessageId = messageId,
-            Seq = seq,
-            State = state
-        };
-        MessengerData.Add(msg);
+        using var ctx = GameContext.CreateNew();
+        var repo = new Repositories.SocialMailRepository(ctx);
+        var msg = repo.CreateMessage(ID, conversationId, messageId, state);
+        ctx.SaveChanges();
         return msg;
     }
 
@@ -619,18 +388,23 @@ public class User
     public void ResetDataIfNeeded()
     {
         bool needsSave = false;
-        if (InfraCoreExp > 0)
+        InfraCoreGradeRecord? infracore;
+        using (var ctx = GameContext.CreateNew())
         {
-            int correctLvl = GameData.Instance.GetInfraCoreLev(InfraCoreExp);
-            if (InfraCoreLvl < correctLvl)
+            var outpostRepo = new Repositories.OutpostRepository(ctx);
+            var (infraExp, infraLvl) = outpostRepo.GetInfraCore(ID);
+            if (infraExp > 0)
             {
-                InfraCoreLvl = correctLvl;
-                needsSave = true;
+                int correctLvl = GameData.Instance.GetInfraCoreLev(infraExp);
+                if (infraLvl < correctLvl)
+                {
+                    infraLvl = correctLvl;
+                    outpostRepo.SetInfraCore(ID, infraExp, infraLvl);
+                }
             }
+
+            infracore = GameData.Instance.GetInfracoreGrade(infraLvl);
         }
-
-        var infracore = GameData.Instance.GetInfracoreGrade(InfraCoreLvl);
-
 
         // Check weekly reset
         if (ShouldResetWeekly())
@@ -638,18 +412,11 @@ public class User
             Logging.WriteLine("Resetting weekly user data...", LogType.Warning);
 
             UserDbHelper.UpdateGameUser(ID, u => u.LastWeeklyReset = DateTime.UtcNow);
-            var currentSeasonData = ResetableData.SimRoomData.CurrentSeasonData;
-            currentSeasonData.LatestOption = new();
-            ResetableData = new()
+            using (var ctx = GameContext.CreateNew())
             {
-                SimRoomData = new()
-                {
-                    // Retain old LegacyBuffs data and currentSeason data
-                    CurrentDifficulty = ResetableData.SimRoomData.CurrentDifficulty,
-                    CurrentChapter = ResetableData.SimRoomData.CurrentChapter,
-                    CurrentSeasonData = currentSeasonData,
-                }
-            };
+                new Repositories.ResetRepository(ctx).PerformWeeklyReset(ID);
+                ctx.SaveChanges();
+            }
 
             // Weekly stamina reset: base 2 + InfraCore bonus (FL[4] = StaminaMaxCount)
             if (infracore != null)
@@ -664,26 +431,22 @@ public class User
             Logging.WriteLine("Resetting daily user data...", LogType.Warning);
 
             UserDbHelper.UpdateGameUser(ID, u => u.LastReset = DateTime.UtcNow);
-            ResetableData = new()
+            int dispatchCount = GetDispatchCount() + infracore.FunctionList[1].Function;
+            int counselCount = 3 + infracore.FunctionList[2].Function;
+            using (var ctx = GameContext.CreateNew())
             {
-                SimRoomData = new()
-                {
-                    LegacyBuffs = ResetableData.SimRoomData.LegacyBuffs, // Retain old LegacyBuffs data
-                    CurrentDifficulty = ResetableData.SimRoomData.CurrentDifficulty,
-                    CurrentChapter = ResetableData.SimRoomData.CurrentChapter,
-                    CurrentSeasonData = ResetableData.SimRoomData.CurrentSeasonData,
-                }
-            };
+                var outpostRepo = new Repositories.OutpostRepository(ctx);
+                var dispatchState = outpostRepo.GetDispatchState(ID);
+                dispatchState.DispatchResetCount = 0;
+                outpostRepo.SaveDispatchState(ID, dispatchState);
 
-            DispatchResetCount = 0;
-            ResetableData.DispatchCount = GetDispatchCount() + infracore.FunctionList[1].Function;
-            ResetableData.DailyCounselCount[1] = 3 + infracore.FunctionList[2].Function;
-            GachaDailyFreePulls.Clear();
-            DailyDiscountUsed = false;
+                new Repositories.ResetRepository(ctx).PerformDailyReset(ID, dispatchCount, counselCount);
+                new Repositories.GachaShopPassRepository(ctx).ResetDailyGacha(ID);
+                ctx.SaveChanges();
+            }
 
             needsSave = true;
         }
-
 
         if (needsSave)
         {
@@ -699,12 +462,14 @@ public class User
 
     public int GetDispatchCount()
     {
+        using var ctx = GameContext.CreateNew();
+        var dispatchState = new Repositories.OutpostRepository(ctx).GetDispatchState(ID);
 
         int dis1 = GameData.Instance.DispatchBoardTable.Values
-            .Where(x => x.DispatchType == DispatchType.Dispatch && x.DispatchBoardLv == DispatchLv).FirstOrDefault().DispatchMax;
-        int dis2 = GameData.Instance.DispatchBoardTable.Values.Where(x => x.DispatchType == DispatchType.DispatchCollection && x.DispatchBoardLv == DispatchCollectionLv).FirstOrDefault()?.DispatchMax ?? 0;
+            .Where(x => x.DispatchType == DispatchType.Dispatch && x.DispatchBoardLv == dispatchState.DispatchLv).FirstOrDefault().DispatchMax;
+        int dis2 = GameData.Instance.DispatchBoardTable.Values.Where(x => x.DispatchType == DispatchType.DispatchCollection && x.DispatchBoardLv == dispatchState.DispatchCollectionLv).FirstOrDefault()?.DispatchMax ?? 0;
         int dis3 = GameData.Instance.DispatchBoardTable.Values
-            .Where(x => x.DispatchType == DispatchType.DispatchFavorite && x.DispatchBoardLv == DispatchFavoriteLv).FirstOrDefault()?.DispatchMax ?? 0;
+            .Where(x => x.DispatchType == DispatchType.DispatchFavorite && x.DispatchBoardLv == dispatchState.DispatchFavoriteLv).FirstOrDefault()?.DispatchMax ?? 0;
 
         return dis1 + dis2 + dis3;
     }
@@ -714,83 +479,6 @@ public class User
         int seed = (int)(timestamp & 0x7FFFFFFF) ^ (int)(timestamp >> 32);
         var random = new Random(seed);
         return random.Next(100000000, 1000000000);
-    }
-
-    /// <summary>
-    /// Returns the list of characters from the user's wishlist.
-    /// </summary>
-    /// <param name="bannerId">Optional banner ID. This will generally always be 1</param>
-    /// <returns></returns>
-    public List<CharacterRecord> GetWishlistCharacters(int bannerId = 1)
-    {
-        return CharacterWishlist.Where(character => character.BannerId == bannerId).Select(character => GameData.Instance.CharacterTable[character.CharacterId]).ToList();
-    }
-
-    /// <summary>
-    /// Used to add to the pull count. Can be used for stats, trigerring wishlist unlock, etc.
-    /// </summary>
-    /// <param name="bannerID"></param>
-    /// <param name="pullCount"></param>
-    public void AddGachaPullCount(int bannerID, int pullCount)
-    {
-        var premiumbanner = GameData.Instance.gachaTypes.Where(gt => gt.Value.Type == GachaPremiumType.GachaPremium).Select(gt => gt.Key).First();
-
-        if (bannerID == premiumbanner)
-        {
-            AddTrigger(Trigger.GachaPremium, pullCount);
-        }
-
-        if (GachaBannerMaxPulls.ContainsKey(bannerID))
-            GachaBannerMaxPulls[bannerID] = GachaBannerMaxPulls[bannerID] + pullCount;
-        else
-            GachaBannerMaxPulls.Add(bannerID, pullCount);
-    }
-
-    public void AddTutorialPullCount(int pullCount)
-    {
-        var bannerID = GameData.Instance.gachaTypes.Where(gt => gt.Value.Type == GachaPremiumType.GachaTutorial).Select(gt => gt.Key).First();
-        AddGachaPullCount(bannerID, pullCount);
-    }
-
-    /// <summary>
-    /// Adds pulls to the standard banner counter. Same as using  AddGachaPullCount(1, int pullCount)
-    /// </summary>
-    /// <param name="pullCount"></param>
-    public void AddPremiumPullCount(int pullCount)
-    {
-        var bannerID = GameData.Instance.gachaTypes.Where(gt => gt.Value.Type == GachaPremiumType.GachaPremium).Select(gt => gt.Key).First();
-        AddGachaPullCount(bannerID, pullCount);
-    }
-
-    public int GetGachaCountForType(GachaPremiumType gachaType)
-    {
-        var bannerIDs = GameData.Instance.gachaTypes.Where(gt => gt.Value.Type == gachaType).Select(gt => gt.Key).ToList();
-
-        return GachaBannerMaxPulls.Where(p => bannerIDs.Contains(p.Key)).Sum(p => p.Value);
-    }
-
-    public int GetGachaTotalCount()
-    {
-        return GachaBannerMaxPulls.Sum(p => p.Value);
-    }
-
-    /// <summary>
-    /// Adds to the pity counter for the specified banner.
-    /// </summary>
-    /// <param name="pityBannerID">Default to 101. Bonus Recruit</param>
-    /// <param name="pullCount">Should always be one but just in case, this is customizable</param>
-    public void AddPityExecuteCount(int pityBannerID = 101, int pullCount = 1)
-    {
-        var pityBanner = GameData.Instance.GachaPityRecords[pityBannerID];
-
-        if (GachaPityBannerExecuteCount.ContainsKey(pityBannerID))
-        {
-            GachaPityBannerExecuteCount[pityBannerID] = GachaPityBannerExecuteCount[pityBannerID] + pullCount;
-        }
-        else
-        {
-            GachaPityBannerExecuteCount.Add(pityBannerID, pullCount);
-        }
     }
 }
 

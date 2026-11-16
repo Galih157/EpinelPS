@@ -24,7 +24,10 @@ public class GachaUtils
         List<CharacterRecord> entireallCharacterData = [.. GameData.Instance.CharacterTable.Values];
 
         // Fill the wishlist anyway. It won't be used of not compatible with the banner.
-        List<CharacterRecord> wishlistCharacters = user.GetWishlistCharacters(gachaType.Id);
+        using var ctx = GameContext.CreateNew();
+        var gachaRepo = new Repositories.GachaShopPassRepository(ctx);
+        List<CharacterRecord> wishlistCharacters = gachaRepo.GetWishlistCharacters(user.ID, gachaType.Id);
+        Dictionary<int, int> selectupChoices = gachaRepo.GetSelectupChoices(user.ID);
 
         List<CharacterRecord> selectedCharacters = [];
 
@@ -64,7 +67,7 @@ public class GachaUtils
                 else
                 {
                     // The gacha type record has a zero probability for SSR, so SSRs won't 
-                    CharacterRecord character = SelectRandomCharacter(gachaType, wishlistCharacters, user);
+                    CharacterRecord character = SelectRandomCharacter(gachaType, wishlistCharacters, user, selectupChoices);
                     selectedCharacters.Add(character);
                 }
             }
@@ -75,7 +78,7 @@ public class GachaUtils
             for (int i = 0; i < numberOfPulls; i++)
             {
                 // Added bannerID to the SelectRandomCharacter method to allow for specific logic such as wishlist handling
-                CharacterRecord character = SelectRandomCharacter(gachaType, wishlistCharacters, user);
+                CharacterRecord character = SelectRandomCharacter(gachaType, wishlistCharacters, user, selectupChoices);
                 selectedCharacters.Add(character);
             }
         }
@@ -268,7 +271,7 @@ public class GachaUtils
         return result;
     }
 
-    private static CharacterRecord SelectRandomCharacter(GachaTypeRecord gachaType, List<CharacterRecord> wishlistCharacters, User user)
+    private static CharacterRecord SelectRandomCharacter(GachaTypeRecord gachaType, List<CharacterRecord> wishlistCharacters, User user, Dictionary<int, int> selectupChoices)
     {
 
         // Load the categories and they probabilities
@@ -391,7 +394,7 @@ public class GachaUtils
             case GachaCategory.GachaSelectup:
                 try
                 {
-                    characterID = GameData.Instance.GachaSelectupListTable[user.GachaSelectupChoices[gachaType.Id]].CharacterId;
+                    characterID = GameData.Instance.GachaSelectupListTable[selectupChoices[gachaType.Id]].CharacterId;
                 }
                 catch
                 {

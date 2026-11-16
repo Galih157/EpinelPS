@@ -2,6 +2,7 @@ using EpinelPS.Data;
 using EpinelPS.Database;
 using EpinelPS.LobbyServer.Messenger;
 using EpinelPS.Models;
+using EpinelPS.Repositories;
 
 namespace EpinelPS.Utils;
 
@@ -14,6 +15,12 @@ public static class MessengerMessageCreator
 {
     public static void OnTriggerAdded(User user, TriggerModelNew currentTrigger, bool logToConsole = true)
     {
+        using var ctx = GameContext.CreateNew();
+        var repo = new SocialMailRepository(ctx);
+        var existingConvIds = repo.GetConversationIds(user.ID);
+        var clearedConditionIds = LoadClearedMessageConditions(ctx, user.ID);
+        var subQuests = new ProgressRepository(ctx).GetSubQuests(user.ID);
+
         int sameTypeCandidates = 0;
         int exactCandidates = 0;
         int satisfiedCandidates = 0;
@@ -48,7 +55,7 @@ public static class MessengerMessageCreator
             }
 
             satisfiedCandidates++;
-            if (CreateOpener(user, condition, logToConsole))
+            if (CreateOpener(user, condition, repo, existingConvIds, clearedConditionIds, subQuests, logToConsole))
                 createdCount++;
         }
 
@@ -57,7 +64,9 @@ public static class MessengerMessageCreator
             Logging.WriteLine($"[Messenger] Trigger evaluation: user={user.ID}, Trigger={currentTrigger.Type}, ConditionId={currentTrigger.ConditionId}, Value={currentTrigger.Value}, SameType={sameTypeCandidates}, Exact={exactCandidates}, Satisfied={satisfiedCandidates}, Created={createdCount}", LogType.Info, logToConsole);
         }
 
-        CreateEligibleSubquestOpeners(user, logToConsole);
+        createdCount += CreateEligibleSubquestOpeners(user, repo, existingConvIds, clearedConditionIds, subQuests, logToConsole);
+        if (createdCount > 0)
+            ctx.SaveChanges();
     }
 
     public static bool CreateForCondition(User user, MessengerConditionTriggerRecord condition, bool logToConsole = true)
@@ -70,7 +79,17 @@ public static class MessengerMessageCreator
             !MessengerTriggerUtils.IsTriggerListSatisfied(user, condition.TriggerList))
             return false;
 
-        return CreateOpener(user, condition, logToConsole);
+        using var ctx = GameContext.CreateNew();
+        var repo = new SocialMailRepository(ctx);
+        var existingConvIds = repo.GetConversationIds(user.ID);
+        var clearedConditionIds = LoadClearedMessageConditions(ctx, user.ID);
+        var subQuests = new ProgressRepository(ctx).GetSubQuests(user.ID);
+
+        if (!CreateOpener(user, condition, repo, existingConvIds, clearedConditionIds, subQuests, logToConsole))
+            return false;
+
+        ctx.SaveChanges();
+        return true;
     }
 
     /// <summary>
@@ -83,19 +102,33 @@ public static class MessengerMessageCreator
     /// </summary>
     public static int CreateAllEligibleOpeners(User user, bool logToConsole = true)
     {
+        using var ctx = GameContext.CreateNew();
+        var repo = new SocialMailRepository(ctx);
+        var existingConvIds = repo.GetConversationIds(user.ID);
+        var clearedConditionIds = LoadClearedMessageConditions(ctx, user.ID);
+        var subQuests = new ProgressRepository(ctx).GetSubQuests(user.ID);
+
         int createdCount = 0;
 
         foreach (MessengerConditionTriggerRecord condition in GameData.Instance.MessageConditions.Values.OrderBy(c => c.Id))
         {
-            if (CreateForCondition(user, condition, logToConsole))
+            if (condition.MessageType is MessageType.RandomMessage or MessageType.DailyMessage)
+                continue;
+            if (string.IsNullOrEmpty(condition.Tid))
+                continue;
+            if (condition.TriggerList == null || condition.TriggerList.Count == 0 ||
+                !MessengerTriggerUtils.IsTriggerListSatisfied(user, condition.TriggerList))
+                continue;
+
+            if (CreateOpener(user, condition, repo, existingConvIds, clearedConditionIds, subQuests, logToConsole))
                 createdCount++;
         }
 
-        createdCount += CreateEligibleSubquestOpeners(user, logToConsole);
+        createdCount += CreateEligibleSubquestOpeners(user, repo, existingConvIds, clearedConditionIds, subQuests, logToConsole);
 
         if (createdCount > 0)
         {
-            UserSessionStore.SaveAll();
+            ctx.SaveChanges();
         }
 
         Logging.WriteLine($"[Messenger] Eligible opener reconciliation: user={user.ID}, Created={createdCount}", LogType.Info, logToConsole);
@@ -103,11 +136,32 @@ public static class MessengerMessageCreator
     }
 
     /// <summary>
-    /// Evaluates all subquests and creates starting openers in MessengerData (and enrolls in SubQuestData)
+    /// Evaluates all subquests and creates starting openers in UserMessages
     /// for any subquest whose stage/quest triggers and prerequisite subquests are satisfied.
     /// Preserves subquests for players to activate and play in BlaBla.
     /// </summary>
     public static int CreateEligibleSubquestOpeners(User user, bool logToConsole = true)
+    {
+        using var ctx = GameContext.CreateNew();
+        var repo = new SocialMailRepository(ctx);
+        var existingConvIds = repo.GetConversationIds(user.ID);
+        var clearedConditionIds = LoadClearedMessageConditions(ctx, user.ID);
+        var subQuests = new ProgressRepository(ctx).GetSubQuests(user.ID);
+
+        int createdCount = CreateEligibleSubquestOpeners(user, repo, existingConvIds, clearedConditionIds, subQuests, logToConsole);
+        if (createdCount > 0)
+            ctx.SaveChanges();
+
+        return createdCount;
+    }
+
+    private static int CreateEligibleSubquestOpeners(
+        User user,
+        SocialMailRepository repo,
+        HashSet<string> existingConvIds,
+        HashSet<int> clearedConditionIds,
+        IReadOnlyDictionary<int, bool> subQuests,
+        bool logToConsole)
     {
         int createdCount = 0;
 
@@ -117,17 +171,17 @@ public static class MessengerMessageCreator
                 continue;
 
             // If subquest is already completed, do not re-create
-            if (user.SubQuestData.TryGetValue(subQuest.Id, out bool completed) && completed)
+            if (subQuests.TryGetValue(subQuest.Id, out bool completed) && completed)
                 continue;
 
-            // If opener message already exists in MessengerData, do not re-create
-            if (user.MessengerData.Any(message => message.ConversationId == subQuest.ConversationId))
+            // If opener message already exists, do not re-create
+            if (existingConvIds.Contains(subQuest.ConversationId))
                 continue;
 
             // Prerequisite check: If BeforeSubQuestId > 0, it must be completed
             if (subQuest.BeforeSubQuestId > 0)
             {
-                if (!user.SubQuestData.TryGetValue(subQuest.BeforeSubQuestId, out bool prevDone) || !prevDone)
+                if (!subQuests.TryGetValue(subQuest.BeforeSubQuestId, out bool prevDone) || !prevDone)
                     continue;
             }
 
@@ -156,11 +210,13 @@ public static class MessengerMessageCreator
                 continue;
 
             // Avoid spawning into a room that already has an active unread conversation
-            if (!string.IsNullOrEmpty(opener.Value.RoomId) && HasActiveUnclearedConversationInRoom(user, opener.Value.RoomId))
+            if (!string.IsNullOrEmpty(opener.Value.RoomId) &&
+                HasActiveUnclearedConversationInRoom(opener.Value.RoomId, existingConvIds, clearedConditionIds, subQuests))
                 continue;
 
             // Create the starting opener message in BlaBla
-            user.CreateMessage(opener.Value);
+            repo.CreateMessage(user.ID, opener.Value.ConversationId ?? "", opener.Value.Id ?? "");
+            existingConvIds.Add(subQuest.ConversationId);
 
             createdCount++;
             Logging.WriteLine($"[Messenger] Created subquest opener: user={user.ID}, SubQuestId={subQuest.Id}, Tid={subQuest.ConversationId}", LogType.Info, logToConsole);
@@ -169,9 +225,8 @@ public static class MessengerMessageCreator
         return createdCount;
     }
 
-
     /// <summary>
-    /// Checks whether a room already has an active conversation in MessengerData that
+    /// Checks whether a room already has an active conversation that
     /// has not been entered/cleared by the user. Prevents dialogue interleaving and soft-locks.
     /// </summary>
     public static bool HasActiveUnclearedConversationInRoom(User user, string roomId)
@@ -179,19 +234,25 @@ public static class MessengerMessageCreator
         if (string.IsNullOrEmpty(roomId))
             return false;
 
-        var existingConvIds = user.MessengerData
-            .Select(m => m.ConversationId)
-            .Distinct()
-            .ToList();
-
+        using var ctx = GameContext.CreateNew();
+        var repo = new SocialMailRepository(ctx);
+        var existingConvIds = repo.GetConversationIds(user.ID);
         if (existingConvIds.Count == 0)
             return false;
 
-        using var ctx = GameContext.CreateNew();
-        var clearedConditionIds = ctx.Triggers
-            .Where(t => t.UserId == user.ID && t.Type == Trigger.MessageClear)
-            .Select(t => t.ConditionId)
-            .ToHashSet();
+        var clearedConditionIds = LoadClearedMessageConditions(ctx, user.ID);
+        var subQuests = new ProgressRepository(ctx).GetSubQuests(user.ID);
+        return HasActiveUnclearedConversationInRoom(roomId, existingConvIds, clearedConditionIds, subQuests);
+    }
+
+    private static bool HasActiveUnclearedConversationInRoom(
+        string roomId,
+        IReadOnlyCollection<string> existingConvIds,
+        HashSet<int> clearedConditionIds,
+        IReadOnlyDictionary<int, bool> subQuests)
+    {
+        if (string.IsNullOrEmpty(roomId) || existingConvIds.Count == 0)
+            return false;
 
         foreach (string convId in existingConvIds)
         {
@@ -202,22 +263,17 @@ public static class MessengerMessageCreator
             var cond = GameData.Instance.MessageConditions.Values.FirstOrDefault(c => c.Tid == convId);
             if (cond != null)
             {
-                bool isCleared = clearedConditionIds.Contains(cond.Id);
-                if (!isCleared)
-                {
+                if (!clearedConditionIds.Contains(cond.Id))
                     return true;
-                }
             }
             else
             {
                 var sub = GameData.Instance.Subquests.Values.FirstOrDefault(s => s.ConversationId == convId);
                 if (sub != null)
                 {
-                    bool isDone = user.SubQuestData.TryGetValue(sub.Id, out bool done) && done;
+                    bool isDone = subQuests.TryGetValue(sub.Id, out bool done) && done;
                     if (!isDone)
-                    {
                         return true;
-                    }
                 }
             }
         }
@@ -225,9 +281,24 @@ public static class MessengerMessageCreator
         return false;
     }
 
-    private static bool CreateOpener(User user, MessengerConditionTriggerRecord condition, bool logToConsole = true)
+    private static HashSet<int> LoadClearedMessageConditions(GameContext ctx, ulong userId)
     {
-        if (user.MessengerData.Any(message => message.ConversationId == condition.Tid))
+        return ctx.Triggers
+            .Where(t => t.UserId == userId && t.Type == Trigger.MessageClear)
+            .Select(t => t.ConditionId)
+            .ToHashSet();
+    }
+
+    private static bool CreateOpener(
+        User user,
+        MessengerConditionTriggerRecord condition,
+        SocialMailRepository repo,
+        HashSet<string> existingConvIds,
+        HashSet<int> clearedConditionIds,
+        IReadOnlyDictionary<int, bool> subQuests,
+        bool logToConsole = true)
+    {
+        if (existingConvIds.Contains(condition.Tid))
         {
             Logging.WriteLine($"[Messenger] Opener already exists: user={user.ID}, MessengerCondition={condition.Id}, Tid={condition.Tid}", LogType.Debug, logToConsole);
             return false;
@@ -249,15 +320,16 @@ public static class MessengerMessageCreator
 
         // Avoid spawning multiple active unread conversations in the same room simultaneously.
         // A room should only have one active conversation at a time to prevent UI breaks.
-        if (!string.IsNullOrEmpty(opener.Value.RoomId) && HasActiveUnclearedConversationInRoom(user, opener.Value.RoomId))
+        if (!string.IsNullOrEmpty(opener.Value.RoomId) &&
+            HasActiveUnclearedConversationInRoom(opener.Value.RoomId, existingConvIds, clearedConditionIds, subQuests))
         {
             Logging.WriteLine($"[Messenger] Room {opener.Value.RoomId} already has an active unread conversation; postponing Tid={condition.Tid}", LogType.Debug, logToConsole);
             return false;
         }
 
-        user.CreateMessage(opener.Value);
+        repo.CreateMessage(user.ID, opener.Value.ConversationId ?? "", opener.Value.Id ?? "");
+        existingConvIds.Add(condition.Tid);
         Logging.WriteLine($"[Messenger] Created opener from trigger: user={user.ID}, Tid={condition.Tid}, RoomId={opener.Value.RoomId}", LogType.Info, logToConsole);
         return true;
     }
-
 }

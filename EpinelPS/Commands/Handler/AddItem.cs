@@ -26,7 +26,7 @@ public class AddItemHandler(IExecutionContext context) : BaseHandler<AddItemPara
         if (context.SelectedUser == null)
             return new HandleResult(false);
         var rsp = AdminCommands.AddItem(context.SelectedUser, parameters.ItemId, parameters.Quantity);
-        UserSessionStore.SaveAll();
+        UserSessionStore.SaveUser(context.SelectedUser);
         return rsp.ok ? new HandleResult(true) : new HandleResult(false, rsp.error);
     }
 }

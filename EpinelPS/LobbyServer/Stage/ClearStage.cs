@@ -1,71 +1,70 @@
 using EpinelPS.Data;
 using EpinelPS.Database;
+using EpinelPS.Repositories;
 using EpinelPS.Utils;
 
 namespace EpinelPS.LobbyServer.Stage;
 
-[GameRequest("/stage/clearstage")]
-public class ClearStage : LobbyMessage
+public static class ClearStage
 {
-    protected override async Task HandleAsync()
+    public static ResClearStage CompleteStage(
+        User user,
+        int stageId,
+        bool forceCompleteScenarios = false,
+        bool recordMainQuest = true)
     {
-        ReqClearStage req = await ReadData<ReqClearStage>();
-
-        ResClearStage response = new();
-        User user = GetUser();
-
-        Console.WriteLine($"Stage " + req.StageId + " completed, result is " + req.BattleResult);
-
-        // TODO: check if user has already cleared this stage
-        if (req.BattleResult == 1)
-        {
-            response = CompleteStage(user, req.StageId);
-        }
-
-        await WriteDataAsync(response);
+        using var ctx = GameContext.CreateNew();
+        return CompleteStage(
+            user,
+            stageId,
+            ctx,
+            new ProgressRepository(ctx),
+            new OutpostRepository(ctx),
+            forceCompleteScenarios,
+            recordMainQuest);
     }
 
-
-    public static ResClearStage CompleteStage(User user, int StageId, bool forceCompleteScenarios = false, bool recordMainQuest = true)
+    public static ResClearStage CompleteStage(
+        User user,
+        int stageId,
+        GameContext db,
+        ProgressRepository progressRepo,
+        OutpostRepository outpostRepo,
+        bool forceCompleteScenarios = false,
+        bool recordMainQuest = true)
     {
         ResClearStage response = new()
         {
             OutpostTimeRewardBuff = new()
         };
-        CampaignStageRecord clearedStage = GameData.Instance.GetStageData(StageId) ?? throw new Exception("cleared stage cannot be null");
+        CampaignStageRecord clearedStage = GameData.Instance.GetStageData(stageId)
+            ?? throw new Exception("cleared stage cannot be null");
 
         string stageMapId = GameData.Instance.GetMapIdFromChapter(clearedStage.ChapterId, clearedStage.ChapterMod);
 
-        if (user.FieldInfoNew.Count == 0)
-        {
-            user.FieldInfoNew.Add(stageMapId, new FieldInfoNew() { });
-        }
-
-        DoQuestSpecificUserOperations(user, StageId, recordMainQuest);
+        DoQuestSpecificUserOperations(user, stageId, progressRepo, recordMainQuest);
         RewardRecord? rewardData = GameData.Instance.GetRewardTableEntry(clearedStage.RewardId);
 
         if (forceCompleteScenarios)
         {
-            if (!user.CompletedScenarios.Contains(clearedStage.EnterScenario) && !string.IsNullOrEmpty(clearedStage.EnterScenario) && !string.IsNullOrWhiteSpace(clearedStage.EnterScenario))
-            {
-                user.CompletedScenarios.Add(clearedStage.EnterScenario);
-            }
-            if (!user.CompletedScenarios.Contains(clearedStage.ExitScenario) && !string.IsNullOrEmpty(clearedStage.ExitScenario) && !string.IsNullOrWhiteSpace(clearedStage.ExitScenario))
-            {
-                user.CompletedScenarios.Add(clearedStage.ExitScenario);
-            }
+            List<string> scenarios = [];
+            if (!string.IsNullOrWhiteSpace(clearedStage.EnterScenario))
+                scenarios.Add(clearedStage.EnterScenario);
+            if (!string.IsNullOrWhiteSpace(clearedStage.ExitScenario))
+                scenarios.Add(clearedStage.ExitScenario);
+            if (scenarios.Count > 0)
+                progressRepo.CompleteStages(user.ID, scenarios);
         }
 
         int oldLevel = user.userPointData.UserLevel;
-        int oldOutpostLevel = user.OutpostBattleLevel.Level;
+        int oldOutpostLevel = outpostRepo.GetOutpostBattleLevel(user.ID).Level;
 
         if (rewardData != null)
             response.StageClearReward = RewardUtils.RegisterRewardsForUser(user, rewardData);
         else
-            Console.WriteLine("rewardId is null for stage " + StageId);
+            Console.WriteLine("rewardId is null for stage " + stageId);
 
         response.ScenarioReward = new NetRewardData() { PassPoint = new() };
-
         response.OutpostBattleLevelReward = new NetRewardData() { PassPoint = new() };
 
         // Check if user level changed, if so return the reward
@@ -79,36 +78,41 @@ public class ClearStage : LobbyMessage
                 FinalValue = user.GetCurrencyVal(CurrencyType.FreeCash)
             });
         }
+
         // Check if outpost level changed, if so return the reward
-        if (user.OutpostBattleLevel.Level != oldOutpostLevel)
+        int currentOutpostLevel = outpostRepo.GetOutpostBattleLevel(user.ID).Level;
+        if (currentOutpostLevel != oldOutpostLevel)
         {
             response.OutpostBattleLevelReward = new NetRewardData();
             response.OutpostBattleLevelReward.Currency.Add(new NetCurrencyData()
             {
                 Type = (int)CurrencyType.FreeCash,
-                Value = 100 * (user.OutpostBattleLevel.Level - oldOutpostLevel),
+                Value = 100 * (currentOutpostLevel - oldOutpostLevel),
                 FinalValue = user.GetCurrencyVal(CurrencyType.FreeCash)
             });
         }
 
         UserDbHelper.UpdateGameUser(user.ID, gameUser =>
         {
-            if (clearedStage.StageCategory == StageCategory.Normal || clearedStage.StageCategory == StageCategory.Boss || clearedStage.StageCategory == StageCategory.Hard || clearedStage.StageCategory == StageCategory.Story)
+            if (clearedStage.StageCategory == StageCategory.Normal ||
+                clearedStage.StageCategory == StageCategory.Boss ||
+                clearedStage.StageCategory == StageCategory.Hard ||
+                clearedStage.StageCategory == StageCategory.Story)
             {
                 if (clearedStage.ChapterMod == ChapterMod.Hard)
                 {
-                    if (StageId > gameUser.LastHardStageCleared)
-                        gameUser.LastHardStageCleared = StageId;
+                    if (stageId > gameUser.LastHardStageCleared)
+                        gameUser.LastHardStageCleared = stageId;
                 }
                 else if (clearedStage.ChapterMod == ChapterMod.Story)
                 {
-                    if (StageId > gameUser.LastStoryStageCleared)
-                        gameUser.LastStoryStageCleared = StageId;
+                    if (stageId > gameUser.LastStoryStageCleared)
+                        gameUser.LastStoryStageCleared = stageId;
                 }
                 else if (clearedStage.ChapterMod == ChapterMod.Normal)
                 {
-                    if (StageId > gameUser.LastNormalStageCleared)
-                        gameUser.LastNormalStageCleared = StageId;
+                    if (stageId > gameUser.LastNormalStageCleared)
+                        gameUser.LastNormalStageCleared = stageId;
                 }
                 else throw new NotImplementedException();
             }
@@ -123,23 +127,15 @@ public class ClearStage : LobbyMessage
         if (clearedStage.StageType != StageType.Sub && clearedStage.ChapterMod != ChapterMod.Story)
         {
             // add outpost reward level if unlocked
-            if (user.MainQuestData.TryGetValue(21, out bool _))
+            if (progressRepo.GetMainQuests(user.ID).ContainsKey(21))
             {
-                user.OutpostBattleLevel.Exp++;
-                if (user.OutpostBattleLevel.Exp >= 5)
+                response.OutpostBattle = outpostRepo.AddOutpostBattleExp(user.ID);
+                if (response.OutpostBattle.IsLevelUp)
                 {
-                    user.OutpostBattleLevel.Exp = 0;
-                    user.OutpostBattleLevel.Level++;
-                    response.OutpostBattle = new NetOutpostBattleLevel() { IsLevelUp = true, Exp = 0, Level = user.OutpostBattleLevel.Level };
                     user.AddCurrency(CurrencyType.FreeCash, 100); // todo is reward the same for all level upgrades
-                }
-                else
-                {
-                    response.OutpostBattle = new NetOutpostBattleLevel() { IsLevelUp = false, Exp = user.OutpostBattleLevel.Exp, Level = user.OutpostBattleLevel.Level };
                 }
             }
         }
-
 
         // Mark chapter as completed if boss stage was completed
         if (clearedStage.StageCategory == StageCategory.Boss && clearedStage.StageType == StageType.Main)
@@ -150,33 +146,42 @@ public class ClearStage : LobbyMessage
                 user.AddTrigger(Trigger.ChapterClear, 1, clearedStage.ChapterId);
         }
 
-        if (!user.FieldInfoNew.ContainsKey(stageMapId))
-            user.FieldInfoNew.Add(stageMapId, new FieldInfoNew());
-
-        user.FieldInfoNew[stageMapId].CompletedStages.Add(StageId);
+        progressRepo.CompleteStage(user.ID, stageMapId, stageId);
+        db.SaveChanges();
 
         // Subquests like Tetra Connect require clearing every stage of a stage
         // group, the client waits for this trigger to play the ending scenario.
         if (clearedStage.GroupId != 0)
         {
-            using var ctx = GameContext.CreateNew();
-            bool hasGroupClear = ctx.Triggers.Any(t => t.UserId == user.ID && t.Type == Trigger.CampaignGroupClear && t.ConditionId == clearedStage.GroupId);
+            bool hasGroupClear = db.Triggers.Any(t =>
+                t.UserId == user.ID &&
+                t.Type == Trigger.CampaignGroupClear &&
+                t.ConditionId == clearedStage.GroupId);
+
             if (!hasGroupClear)
             {
+                var completedStageIds = progressRepo.GetFieldInfoMap(user.ID).Values
+                    .SelectMany(f => f.CompletedStages)
+                    .ToHashSet();
+
                 bool groupCleared = GameData.Instance.StageDataRecords.Values
                     .Where(s => s.GroupId == clearedStage.GroupId)
-                    .All(s => user.FieldInfoNew.Values.Any(f => f.CompletedStages.Contains(s.Id)));
+                    .All(s => completedStageIds.Contains(s.Id));
 
                 if (groupCleared)
                     user.AddTrigger(Trigger.CampaignGroupClear, 1, clearedStage.GroupId);
             }
         }
 
-        UserSessionStore.SaveAll();
+        UserSessionStore.SaveUser(user);
         return response;
     }
 
-    private static void DoQuestSpecificUserOperations(User user, int clearedStageId, bool recordMainQuest = true)
+    private static void DoQuestSpecificUserOperations(
+        User user,
+        int clearedStageId,
+        ProgressRepository progressRepo,
+        bool recordMainQuest = true)
     {
         MainQuestRecord? quest = GameData.Instance.GetMainQuestForStageClearCondition(clearedStageId);
 
@@ -185,7 +190,7 @@ public class ClearStage : LobbyMessage
         {
             if (quest != null)
             {
-                user.SetQuest(quest.Id, false);
+                progressRepo.UpsertMainQuest(user.ID, quest.Id, false);
                 user.AddTrigger(Trigger.MainQuestClear, 1, quest.Id);
             }
             else
@@ -209,9 +214,14 @@ public class ClearStage : LobbyMessage
 
     public static void EnsureDefaultCharacters(User user)
     {
-        if (user.Characters.Count > 0 && user.UserTeams.ContainsKey(1))
+        using var ctx = GameContext.CreateNew();
+        var teamRepo = new TeamRepository(ctx);
+        bool hasTeam1 = teamRepo.HasTeamType(user.ID, 1);
+
+        if (user.Characters.Count > 0 && hasTeam1)
             return;
 
+        bool charactersAdded = false;
         if (user.Characters.Count == 0)
         {
             user.Characters.Add(new CharacterModel() { Csn = 47263455, Tid = 201001 });
@@ -219,9 +229,11 @@ public class ClearStage : LobbyMessage
             user.Characters.Add(new CharacterModel() { Csn = 47263457, Tid = 130201 });
             user.Characters.Add(new CharacterModel() { Csn = 47263458, Tid = 230101 });
             user.Characters.Add(new CharacterModel() { Csn = 47263459, Tid = 301201 });
+            charactersAdded = true;
 
-            user.BondInfo.Add(new() { NameCode = 3001, Lv = 1 });
-            user.BondInfo.Add(new() { NameCode = 3005, Lv = 1 });
+            var bondRepo = new BondLiberationRepository(ctx);
+            bondRepo.EnsureBond(user.ID, 3001, 1);
+            bondRepo.EnsureBond(user.ID, 3005, 1);
 
             user.AddTrigger(Trigger.ObtainCharacter, 1, 3001);
             user.AddTrigger(Trigger.ObtainCharacter, 1, 1018);
@@ -231,14 +243,8 @@ public class ClearStage : LobbyMessage
             user.AddTrigger(Trigger.ObtainCharacterNew, 1);
         }
 
-        if (!user.UserTeams.ContainsKey(1))
+        if (!hasTeam1)
         {
-            NetUserTeamData team1 = new()
-            {
-                Type = 1,
-                LastContentsTeamNumber = 1
-            };
-
             NetTeamData team1Sub = new()
             {
                 TeamNumber = 1
@@ -249,21 +255,23 @@ public class ClearStage : LobbyMessage
                 CharacterModel character = user.Characters[i - 1];
                 team1Sub.Slots.Add(new NetTeamSlot() { Slot = i, Value = character.Csn });
             }
-            team1.Teams.Add(team1Sub);
-            user.UserTeams[1] = team1;
+            teamRepo.UpsertTeamGroup(user.ID, 1, 1, [team1Sub]);
         }
 
-        if (user.RepresentationTeamDataNew.Length == 0 && user.Characters.Count >= 5)
+        if (teamRepo.GetRepresentationTeam(user.ID).Length == 0 && user.Characters.Count >= 5)
         {
-            user.RepresentationTeamDataNew =
-            [
+            teamRepo.SetRepresentationTeam(user.ID, [
                 user.Characters[0].Csn,
                 user.Characters[1].Csn,
                 user.Characters[2].Csn,
                 user.Characters[3].Csn,
                 user.Characters[4].Csn
-            ];
+            ]);
         }
+
+        ctx.SaveChanges();
+        if (charactersAdded)
+            UserSessionStore.SaveUser(user);
     }
 
     public static List<int> GetCompletedQuestsForStage(int targetStageId)
@@ -304,6 +312,10 @@ public class ClearStage : LobbyMessage
 
         HashSet<int> validSet = [.. validQuests];
 
+        using var progressCtx = GameContext.CreateNew();
+        var progressRepo = new ProgressRepository(progressCtx);
+        var mainQuests = progressRepo.GetMainQuests(user.ID);
+
         // Also allow sequential intermediate quests (e.g. scenarios, outpost visits) that the user completed
         // after the last cleared stage along the chain, until an uncleared stage requirement is reached.
         if (validQuests.Count > 0)
@@ -320,7 +332,7 @@ public class ClearStage : LobbyMessage
                     if (quest.Category == Category.CampaignClear)
                         break;
 
-                    if (user.MainQuestData.ContainsKey(currentId))
+                    if (mainQuests.ContainsKey(currentId))
                     {
                         validSet.Add(currentId);
                         currentId = quest.NextMainQuestId;
@@ -334,31 +346,34 @@ public class ClearStage : LobbyMessage
         }
 
         // Remove any quests that are beyond the user's progress
-        List<int> toRemove = user.MainQuestData.Keys.Where(k => !validSet.Contains(k)).ToList();
-        foreach (int k in toRemove)
-        {
-            user.MainQuestData.Remove(k);
-        }
+        List<int> toRemove = mainQuests.Keys.Where(k => !validSet.Contains(k)).ToList();
+        if (toRemove.Count > 0)
+            progressRepo.RemoveMainQuests(user.ID, toRemove);
 
         // Ensure all valid quests up to current progress are present
+        bool anyAdded = false;
         foreach (int questId in validQuests)
         {
-            user.MainQuestData.TryAdd(questId, false);
+            if (!mainQuests.ContainsKey(questId))
+            {
+                progressRepo.UpsertMainQuest(user.ID, questId, false);
+                anyAdded = true;
+            }
         }
+
+        if (toRemove.Count > 0 || anyAdded)
+            progressCtx.SaveChanges();
 
         // Clean up any stale MainQuestClear triggers in database
         try
         {
-            using (GameContext context = GameContext.CreateNew())
+            var badTriggers = progressCtx.Triggers
+                .Where(t => t.UserId == user.ID && t.Type == Trigger.MainQuestClear && t.ConditionId <= 9999 && !validSet.Contains(t.ConditionId))
+                .ToList();
+            if (badTriggers.Count > 0)
             {
-                var badTriggers = context.Triggers
-                    .Where(t => t.UserId == user.ID && t.Type == Trigger.MainQuestClear && t.ConditionId <= 9999 && !validSet.Contains(t.ConditionId))
-                    .ToList();
-                if (badTriggers.Count > 0)
-                {
-                    context.Triggers.RemoveRange(badTriggers);
-                    context.SaveChanges();
-                }
+                progressCtx.Triggers.RemoveRange(badTriggers);
+                progressCtx.SaveChanges();
             }
         }
         catch (Exception ex)
@@ -369,27 +384,24 @@ public class ClearStage : LobbyMessage
         // Reconcile ChapterClear triggers for all completed normal chapters
         try
         {
-            using (GameContext context = GameContext.CreateNew())
+            var existingChapterTriggers = progressCtx.Triggers
+                .Where(t => t.UserId == user.ID && t.Type == Trigger.ChapterClear)
+                .Select(t => t.ConditionId)
+                .ToHashSet();
+
+            var chapters = GameData.Instance.ChapterCampaignData.Values;
+            int maxChapter = chapters.Count > 0 ? chapters.Max(c => c.Chapter) : 0;
+
+            for (int c = 1; c <= maxChapter; c++)
             {
-                var existingChapterTriggers = context.Triggers
-                    .Where(t => t.UserId == user.ID && t.Type == Trigger.ChapterClear)
-                    .Select(t => t.ConditionId)
-                    .ToHashSet();
-
-                var chapters = GameData.Instance.ChapterCampaignData.Values;
-                int maxChapter = chapters.Count > 0 ? chapters.Max(c => c.Chapter) : 0;
-
-                for (int c = 1; c <= maxChapter; c++)
+                List<CampaignStageRecord> chapterStages = AdminCommands.GetNormalMainStages(c);
+                CampaignStageRecord? bossStage = chapterStages.LastOrDefault();
+                if (bossStage != null && progressRepo.IsStageCompleted(user.ID, bossStage.Id))
                 {
-                    List<CampaignStageRecord> chapterStages = AdminCommands.GetNormalMainStages(c);
-                    CampaignStageRecord? bossStage = chapterStages.LastOrDefault();
-                    if (bossStage != null && user.IsStageCompleted(bossStage.Id))
+                    if (!existingChapterTriggers.Contains(bossStage.ChapterId))
                     {
-                        if (!existingChapterTriggers.Contains(bossStage.ChapterId))
-                        {
-                            user.AddTrigger(Trigger.ChapterClear, 1, bossStage.ChapterId, logToConsole);
-                            existingChapterTriggers.Add(bossStage.ChapterId);
-                        }
+                        user.AddTrigger(Trigger.ChapterClear, 1, bossStage.ChapterId, logToConsole);
+                        existingChapterTriggers.Add(bossStage.ChapterId);
                     }
                 }
             }
@@ -400,4 +412,3 @@ public class ClearStage : LobbyMessage
         }
     }
 }
-

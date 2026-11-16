@@ -1,41 +1,46 @@
 ﻿using EpinelPS.Database;
+using EpinelPS.Repositories;
 
 namespace EpinelPS.LobbyServer.Event.Minigame.ScenarioChoice;
 
 public class ScenarioChoiceMain
 {
-
     private static ScenarioChoiceData Convert(MiniGameStoryChoice val)
     {
         var d = new ScenarioChoiceData();
         d.ChosenChoices.AddRange(val.Choices);
         d.ViewedScenarioSceneList.AddRange(val.SeenChoices);
-        d.LastSeenEventScenarioDialogTableGroupId = val.SeenChoices.Last();
+        d.LastSeenEventScenarioDialogTableGroupId = val.SeenChoices.LastOrDefault() ?? "";
 
         return d;
     }
 
-    public static ScenarioChoiceData GetData(User user, int id)
+    public static ScenarioChoiceData GetData(ulong userId, int id, MinigameRepository repo, GameContext db)
     {
-        if (user.MiniGameStoryChoice.TryGetValue(id, out MiniGameStoryChoice? val))
+        if (repo.TryGetDictEntry<MiniGameStoryChoice>(userId, MinigameRepository.TypeMiniGameStoryChoice, id, out MiniGameStoryChoice? val)
+            && val != null)
+        {
             return Convert(val);
+        }
 
-        MiniGameStoryChoice c = new();
-        c.Id = id;
-
-        user.MiniGameStoryChoice.Add(id, c);
-        UserSessionStore.SaveAll();
+        MiniGameStoryChoice c = new() { Id = id };
+        repo.SaveDictEntry(userId, MinigameRepository.TypeMiniGameStoryChoice, id, c);
+        db.SaveChanges();
         return Convert(c);
     }
 
-    public static ScenarioChoiceData Update(User user, int id, string scenarioScene, Google.Protobuf.Collections.RepeatedField<string> chosenChoices)
+    public static ScenarioChoiceData Update(
+        ulong userId,
+        int id,
+        string scenarioScene,
+        Google.Protobuf.Collections.RepeatedField<string> chosenChoices,
+        MinigameRepository repo,
+        GameContext db)
     {
-        if (!user.MiniGameStoryChoice.TryGetValue(id, out MiniGameStoryChoice? val))
+        if (!repo.TryGetDictEntry<MiniGameStoryChoice>(userId, MinigameRepository.TypeMiniGameStoryChoice, id, out MiniGameStoryChoice? val)
+            || val == null)
         {
-            val = new MiniGameStoryChoice();
-            val.Id = id;
-
-            user.MiniGameStoryChoice.Add(id, val);
+            val = new MiniGameStoryChoice { Id = id };
         }
 
         val.Choices = chosenChoices.ToList();
@@ -46,8 +51,9 @@ public class ScenarioChoiceMain
                 val.SeenChoices.Add(item);
         }
 
-        UserSessionStore.SaveAll();
+        repo.SaveDictEntry(userId, MinigameRepository.TypeMiniGameStoryChoice, id, val);
+        db.SaveChanges();
 
-        return GetData(user, id);
+        return Convert(val);
     }
 }

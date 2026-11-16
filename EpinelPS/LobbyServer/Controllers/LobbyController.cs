@@ -1,6 +1,7 @@
 using EpinelPS.Data;
 using EpinelPS.Database;
 using EpinelPS.Interfaces;
+using EpinelPS.Repositories;
 using EpinelPS.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +12,12 @@ namespace EpinelPS.LobbyServer.Controllers;
 /// Controller for lobby
 /// </summary>
 [ApiController]
-public class LobbyController(IUserService UserService, GameContext db) : Controller
+public class LobbyController(
+    IUserService UserService,
+    GameContext db,
+    TeamRepository teamRepo,
+    CosmeticsRepository cosmeticsRepo,
+    OutpostRepository outpostRepo) : Controller
 {
     /// <summary>
     /// Returns latest resource base URL for version number
@@ -42,13 +48,13 @@ public class LobbyController(IUserService UserService, GameContext db) : Control
             ResetHour = ServerConfigStore.ResetHourUtcTime,
             Nickname = userDB.Nickname,
             SynchroLv = 1,
-            OutpostBattleLevel = user.OutpostBattleLevel,
+            OutpostBattleLevel = outpostRepo.GetOutpostBattleLevel(user.ID),
             OutpostBattleTime = new NetOutpostBattleTime() { MaxBattleTime = 864000000000, MaxOverBattleTime = 12096000000000, BattleTime = battleTimeMs },
 
-            Jukeboxv2 = new NetUserJukeboxDataV2() { CommandBgm = new NetJukeboxBgm() { JukeboxTableId = user.CommanderMusic.TableId, Type = NetJukeboxBgmType.JukeboxTableId, Location = NetJukeboxLocation.CommanderRoom } }
+            Jukeboxv2 = new NetUserJukeboxDataV2() { CommandBgm = new NetJukeboxBgm() { JukeboxTableId = cosmeticsRepo.GetJukeboxSetting(user.ID, NetJukeboxLocation.CommanderRoom).TableId, Type = NetJukeboxBgmType.JukeboxTableId, Location = NetJukeboxLocation.CommanderRoom } }
         };
 
-        response.Jukeboxv2.JukeboxTableIds.AddRange(JukeboxUtils.GetUnlockedSongs(user));
+        response.Jukeboxv2.JukeboxTableIds.AddRange(JukeboxUtils.GetUnlockedSongs(user.ID, cosmeticsRepo));
 
 
 
@@ -57,9 +63,16 @@ public class LobbyController(IUserService UserService, GameContext db) : Control
             response.Currency.Add(new NetUserCurrencyData() { Type = (int)item.Key, Value = item.Value });
         }
 
+        var synchroSlots = outpostRepo.GetSynchroSlots(user.ID);
+        var synchroCsns = synchroSlots.Where(x => x.CharacterSerialNumber != 0)
+            .Select(x => x.CharacterSerialNumber)
+            .ToHashSet();
+        int synchroLv = outpostRepo.GetSynchroLevel(user.ID, user.Characters);
+
         foreach (CharacterModel item in user.Characters)
         {
-            response.Character.Add(new NetUserCharacterData() { Default = new() { Csn = item.Csn, Skill1Lv = item.Skill1Lvl, Skill2Lv = item.Skill2Lvl, CostumeId = item.CostumeId, Lv = user.GetCharacterLevel(item.Csn, item.Level), Grade = item.Grade, Tid = item.Tid, UltiSkillLv = item.UltimateLevel }, IsSynchro = user.GetSynchro(item.Csn) });
+            bool isSynchro = item.Csn != 0 && synchroCsns.Contains(item.Csn);
+            response.Character.Add(new NetUserCharacterData() { Default = new() { Csn = item.Csn, Skill1Lv = item.Skill1Lvl, Skill2Lv = item.Skill2Lvl, CostumeId = item.CostumeId, Lv = isSynchro ? synchroLv : item.Level, Grade = item.Grade, Tid = item.Tid, UltiSkillLv = item.UltimateLevel }, IsSynchro = isSynchro });
         }
 
         foreach (NetUserItemData item in NetUtils.GetUserItems(user))
@@ -71,69 +84,30 @@ public class LobbyController(IUserService UserService, GameContext db) : Control
         if (user.Characters.Count > 0)
         {
             List<CharacterModel> highestLevelCharacters = [.. user.Characters.OrderByDescending(x => x.Level).Take(5)];
-            response.SynchroLv = user.GetSynchroLevel();
+            response.SynchroLv = synchroLv;
 
             foreach (CharacterModel? item in highestLevelCharacters)
             {
                 response.SynchroStandardCharacters.Add(item.Csn);
             }
 
-            foreach (KeyValuePair<int, NetUserTeamData> teamInfo in user.UserTeams)
-                response.TypeTeams.Add(teamInfo.Value);
+            foreach (NetUserTeamData teamInfo in teamRepo.GetUserTeams(user.ID).Values)
+                response.TypeTeams.Add(teamInfo);
         }
 
-        if (user.OutpostBuildings != null && user.OutpostBuildings.Count > 0)
-        {
-            bool needsSave = false;
-            foreach (NetUserOutpostData building in user.OutpostBuildings)
-            {
-
-                if (!building.IsDone && DateTime.UtcNow.Ticks >= building.CompleteAt)
-                {
-                    building.IsDone = true;
-                    needsSave = true;
-                }
-            }
-
-            if (needsSave)
-            {
-                UserSessionStore.SaveAll();
-            }
-
-            response.Outposts.AddRange(user.OutpostBuildings);
-        }
-        else
-        {
-            List<NetUserOutpostData> defaultBuildings = new()
-            {
-                new() { SlotId = 1, BuildingId = 22401, IsDone = true, StartAt = 638549982076760660, CompleteAt = 638549982076760660 },
-                new() { SlotId = 4, BuildingId = 22701, IsDone = true, StartAt = 638549982076760660, CompleteAt = 638549982076760660 },
-                new() { SlotId = 5, BuildingId = 22801, IsDone = true, StartAt = 638549982076760660, CompleteAt = 638549982076760660 },
-                new() { SlotId = 6, BuildingId = 22901, IsDone = true, StartAt = 638549982076760660, CompleteAt = 638549982076760660 },
-                new() { SlotId = 7, BuildingId = 23001, IsDone = true, StartAt = 638549982076760660, CompleteAt = 638549982076760660 },
-                new() { SlotId = 3, BuildingId = 23101, IsDone = true, StartAt = 638549982076760660, CompleteAt = 638549982076760660 },
-                new() { SlotId = 2, BuildingId = 23201, IsDone = true, StartAt = 638549982076760660, CompleteAt = 638549982076760660 },
-                new() { SlotId = 9, BuildingId = 23301, IsDone = true, StartAt = 638549982076760660, CompleteAt = 638549982076760660 },
-                new() { SlotId = 8, BuildingId = 23401, IsDone = true, StartAt = 638549982076760660, CompleteAt = 638549982076760660 },
-                new() { SlotId = 10, BuildingId = 23501, IsDone = true, StartAt = 638549982076760660, CompleteAt = 638549982076760660 },
-                new() { SlotId = 38, BuildingId = 33601, IsDone = true, StartAt = 638549982076760660, CompleteAt = 638549982076760660 }
-            };
-
-            response.Outposts.AddRange(defaultBuildings);
-            user.OutpostBuildings = defaultBuildings;
-            UserSessionStore.SaveAll();
-        }
+        response.Outposts.AddRange(outpostRepo.GetOrInitializeOutpostBuildings(user.ID));
 
         response.LastClearedNormalMainStageId = userDB.LastNormalStageCleared;
         response.LastClearedStoryStageId = userDB.LastStoryStageCleared;
         response.LastClearedHardMainStageId = userDB.LastHardStageCleared;
         response.LastClearedMod = userDB.LastClearedDifficulty;
 
-        response.TimeRewardBuffs.AddRange(NetUtils.GetOutpostTimeReward(user));
+        response.TimeRewardBuffs.AddRange(NetUtils.GetOutpostTimeReward(user, outpostRepo));
 
-        response.OwnedLobbyDecoBackgroundIdList.AddRange(user.LobbyDecoBackgroundList);
+        response.OwnedLobbyDecoBackgroundIdList.AddRange(
+            cosmeticsRepo.GetUnlockedCosmetics(user.ID, CosmeticsRepository.CategoryLobbyDecoBackground));
 
-        response.ClearLessons.AddRange(user.CompletedTacticAcademyLessons);
+        response.ClearLessons.AddRange(outpostRepo.GetCompletedTacticAcademyLessons(user.ID));
 
         return response;
     }

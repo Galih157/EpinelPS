@@ -1,5 +1,6 @@
 using EpinelPS.Data;
 using EpinelPS.Database;
+using EpinelPS.Repositories;
 using EpinelPS.Utils;
 using log4net;
 using Newtonsoft.Json;
@@ -15,7 +16,9 @@ public static class PassHelper
         NetPassInfo passInfo = new();
         try
         {
-            var userPass = user.UserPassInfo.GetValueOrDefault(passId);
+            using var ctx = GameContext.CreateNew();
+            var repo = new GachaShopPassRepository(ctx);
+            var userPass = repo.GetPassData(user.ID, passId);
             // If user does not have this pass info, create a new one
             if (userPass == null || userPass.PassId == 0)
             {
@@ -87,11 +90,10 @@ public static class PassHelper
             // Update user's pass info in database
             if (userPass != null && userPass.PassId != 0)
             {
-                if (!user.UserPassInfo.TryAdd(userPass.PassId, userPass))
-                    user.UserPassInfo[userPass.PassId] = userPass;
+                repo.SavePassData(user.ID, userPass);
+                ctx.SaveChanges();
             }
             log.Debug($"UserPassInfo after completing missions: {JsonConvert.SerializeObject(userPass)}");
-            UserSessionStore.SaveAll();
         }
         catch (Exception ex)
         {
@@ -173,7 +175,10 @@ public static class PassHelper
     {
         try
         {
-            if (user.UserPassInfo.TryGetValue(passId, out PassData? passData))
+            using var ctx = GameContext.CreateNew();
+            var repo = new GachaShopPassRepository(ctx);
+            var passData = repo.GetPassData(user.ID, passId);
+            if (passData != null)
             {
                 foreach (var rank in rankList)
                 {
@@ -195,7 +200,8 @@ public static class PassHelper
                     }
                     log.Debug($"Updated pass rank info for user {user.ID} with PassId: {passId}, Ranks: {string.Join(", ", rankList)} userPassInfo: {JsonConvert.SerializeObject(passData)}");
                 }
-                UserSessionStore.SaveAll();
+                repo.SavePassData(user.ID, passData);
+                ctx.SaveChanges();
             }
             else
             {
@@ -219,12 +225,16 @@ public static class PassHelper
             }
             else
             {
+                using var ctx = GameContext.CreateNew();
+                var repo = new GachaShopPassRepository(ctx);
+                PassData? passData = repo.GetPassData(user.ID, passId);
+
                 foreach (var season in seasons)
                 {
                     bool isFreeRewarded = false;
                     bool isPremiumRewarded = false;
                     // check if the user has already claimed these rewards
-                    if (user.UserPassInfo.TryGetValue(passId, out PassData? passData))
+                    if (passData != null)
                     {
                         var existingRank = passData.PassRankList.FirstOrDefault(pr => pr.PassRank == season.PassRank);
                         if (existingRank != null)
@@ -244,6 +254,7 @@ public static class PassHelper
                 // update user pass info to mark these ranks as rewarded
                 // No abnormal judgment was made here,
                 UpdateUserPassInfoRank(user, passId, rankList, true, true);
+                UserSessionStore.SaveUser(user);
             }
         }
         catch (Exception ex)
@@ -273,6 +284,7 @@ public static class PassHelper
                 // update user pass info to mark these ranks as rewarded
                 // No abnormal judgment was made here,
                 UpdateUserPassInfoRank(user, passId, [season.PassRank], !premiumReward, premiumReward, key);
+                UserSessionStore.SaveUser(user);
             }
         }
         catch (Exception ex)
@@ -304,7 +316,11 @@ public static class PassHelper
         user.Currency[CurrencyType.ChargeCash] -= rankPrice;
         passPoint = season.ConditionValue;
         currencie = new() { Type = (int)CurrencyType.ChargeCash, Value = user.Currency[CurrencyType.ChargeCash] };
-        if (user.UserPassInfo.TryGetValue(passId, out PassData? passData))
+
+        using var ctx = GameContext.CreateNew();
+        var repo = new GachaShopPassRepository(ctx);
+        var passData = repo.GetPassData(user.ID, passId);
+        if (passData != null)
         {
             passData.PassPoint = passPoint;
         }
@@ -318,18 +334,21 @@ public static class PassHelper
                 PassRankList = [],
                 PassMissionList = []
             };
-            user.UserPassInfo.Add(passId, passData);
         }
-        UserSessionStore.SaveAll();
+        repo.SavePassData(user.ID, passData);
+        ctx.SaveChanges();
+        UserSessionStore.SaveUser(user);
     }
 
     public static void CompletePassMissions(User user, ref NetRewardData reward, int passId, List<int> missionIds)
     {
-        if (!user.UserPassInfo.TryGetValue(passId, out var passData))
+        using var ctx = GameContext.CreateNew();
+        var repo = new GachaShopPassRepository(ctx);
+        var passData = repo.GetPassData(user.ID, passId) ?? new PassData
         {
-            passData = new();
-            user.UserPassInfo.Add(passId, passData);
-        }
+            PassId = passId,
+            PremiumActive = true
+        };
         log.Debug($"UserPassInfo before completing missions: {JsonConvert.SerializeObject(passData)}");
         int completedPoints = 0;
         var completedMissions = GameData.Instance.PassMissionTable.Values
@@ -358,6 +377,11 @@ public static class PassHelper
                 if (rewardItem.RewardType == RewardType.PassPoint)
                 {
                     completedPoints += rewardItem.RewardValue;
+                    if (existingMission == null)
+                    {
+                        existingMission = new PassMissionData { PassMissionId = mission.Id };
+                        passData.PassMissionList.Add(existingMission);
+                    }
                     existingMission.IsComplete = true;
                     passData.LastCompleteAt = DateTime.Now.ToString("yyyyMMdd");
                 }
@@ -375,6 +399,8 @@ public static class PassHelper
             Value = completedPoints,
             FinalValue = passData.PassPoint
         };
-        UserSessionStore.SaveAll(); // Save user data after updating pass info
+        repo.SavePassData(user.ID, passData);
+        ctx.SaveChanges();
+        UserSessionStore.SaveUser(user); // Save user data after updating pass info
     }
 }

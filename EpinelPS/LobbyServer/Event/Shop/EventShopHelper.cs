@@ -1,5 +1,6 @@
 using EpinelPS.Data;
 using EpinelPS.Database;
+using EpinelPS.Repositories;
 using EpinelPS.Utils;
 using log4net;
 using Newtonsoft.Json;
@@ -11,15 +12,14 @@ public static class EventShopHelper
     private static readonly ILog log = LogManager.GetLogger(typeof(EventShopHelper));
 
 
-    public static void BuyShopProduct(User user, ref ResEventShopBuyProduct response, ReqEventShopBuyProduct req)
+    public static void BuyShopProduct(User user, ref ResEventShopBuyProduct response, ReqEventShopBuyProduct req, EventsRepository repo)
     {
         ResEventShopMultipleBuyProduct MultipleResponse = new();
         List<NetBuyProductRequestData> buyProducts = [new() { ShopProductTid = req.ShopProductTid, Quantity = req.Quantity, Order = req.Order }];
         bool isSuccess = ExecuteBuyProduct(user, ref MultipleResponse, buyProducts);
 
         if (!isSuccess) return;
-        AddEventShopBuyCount(user, ref MultipleResponse, req.EventId, req.ShopProductTid, req.Quantity, req.Order);
-        UserSessionStore.SaveAll();
+        AddEventShopBuyCount(user.ID, ref MultipleResponse, req.EventId, req.ShopProductTid, req.Quantity, req.Order, repo);
 
         // Update currency data
         if (MultipleResponse.Currencies.Count > 0)
@@ -45,44 +45,26 @@ public static class EventShopHelper
 
         if (MultipleResponse.Product.AutoCharge.Count > 0) response.Product.AutoCharge.AddRange(MultipleResponse.Product.AutoCharge);
 
-        // user.AddTrigger(Trigger.MainShopBuy, req.Quantity);
-
         // Save changes to the database
-        UserSessionStore.SaveAll();
+        UserSessionStore.SaveUser(user);
     }
 
-    public static void BuyShopMultipleProduct(User user, ref ResEventShopMultipleBuyProduct response, ReqEventShopMultipleBuyProduct req)
+    public static void BuyShopMultipleProduct(User user, ref ResEventShopMultipleBuyProduct response, ReqEventShopMultipleBuyProduct req, EventsRepository repo)
     {
         bool isSuccess = ExecuteBuyProduct(user, ref response, [.. req.Products]);
 
         if (!isSuccess) return;
         foreach (var item in req.Products)
         {
-            AddEventShopBuyCount(user, ref response, req.EventId, item.ShopProductTid, item.Quantity, item.Order);
+            AddEventShopBuyCount(user.ID, ref response, req.EventId, item.ShopProductTid, item.Quantity, item.Order, repo);
         }
-        UserSessionStore.SaveAll();
+        UserSessionStore.SaveUser(user);
     }
 
-    private static void AddEventShopBuyCount(User user, ref ResEventShopMultipleBuyProduct response, int eventId, int productTid, int quantity, int order)
+    private static void AddEventShopBuyCount(ulong userId, ref ResEventShopMultipleBuyProduct response, int eventId, int productTid, int quantity, int order, EventsRepository repo)
     {
-        if (!user.EventShopBuyCountInfo.TryGetValue(eventId, out var buyCountInfo))
-        {
-            buyCountInfo = new() { EventId = eventId, datas = [] };
-            user.EventShopBuyCountInfo.TryAdd(eventId, buyCountInfo);
-        }
-
-        var index = buyCountInfo.datas.FindIndex(x => x.ProductTid == productTid);
-        if (index >= 0)
-        {
-            buyCountInfo.datas[index].BuyCount += quantity;
-            response.Product.BuyCounts.Add(new NetBuyCountData { Order = order, BuyCount = buyCountInfo.datas[index].BuyCount });
-        }
-        else
-        {
-            buyCountInfo.datas.Add(new() { ProductTid = productTid, BuyCount = quantity });
-            response.Product.BuyCounts.Add(new NetBuyCountData { Order = order, BuyCount = quantity });
-        }
-        user.EventShopBuyCountInfo[eventId] = buyCountInfo;
+        int newBuyCount = repo.AddEventShopBuyCount(userId, eventId, productTid, quantity);
+        response.Product.BuyCounts.Add(new NetBuyCountData { Order = order, BuyCount = newBuyCount });
     }
 
     private static bool ExecuteBuyProduct(User user, ref ResEventShopMultipleBuyProduct response, List<NetBuyProductRequestData> buyProducts)
@@ -139,8 +121,6 @@ public static class EventShopHelper
                 Logging.WriteLine($"Unsupported GoodsType: {shopProduct.GoodsType}");
             }
         }
-
-        UserSessionStore.SaveAll();
 
         return true;
     }
@@ -226,7 +206,7 @@ public static class EventShopHelper
     /// </summary>
     /// <param name="shopId">Shop ID</param>
     /// <returns>Shop Data</returns>
-    public static NetEventShopProductData InitShopData(User user, int eventId)
+    public static NetEventShopProductData InitShopData(ulong userId, int eventId, EventsRepository repo)
     {
         NetEventShopProductData shop = new();
 
@@ -241,8 +221,7 @@ public static class EventShopHelper
                 return shop;
             }
 
-            var userBuyCounts = new List<EventShopProductData>();
-            if (user.EventShopBuyCountInfo.TryGetValue(eventId, out var userBuyCountInfo)) userBuyCounts = userBuyCountInfo.datas;
+            var userBuyCounts = repo.GetEventShopBuys(userId, eventId);
 
             shop.ShopTid = tableShop.Id;
             shop.ShopCategory = (int)tableShop.ShopCategory;

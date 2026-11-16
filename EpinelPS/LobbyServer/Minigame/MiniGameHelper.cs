@@ -1,5 +1,6 @@
 ﻿using EpinelPS.Data;
 using EpinelPS.Database;
+using EpinelPS.Repositories;
 using EpinelPS.Utils;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.EntityFrameworkCore;
@@ -213,108 +214,102 @@ public class MiniGameHelper
 
     public static void InitStellarBladeData(User user, int arcadeId)
     {
-        if (!user.StellarBladeDatas.TryGetValue(arcadeId, out var stellar))
+        using var ctx = GameContext.CreateNew();
+        InitStellarBladeData(user.ID, arcadeId, new MinigameRepository(ctx), ctx);
+    }
+
+    public static StellarBladeDatas InitStellarBladeData(ulong userId, int arcadeId, MinigameRepository repo, GameContext ctx)
+    {
+        if (repo.TryGetDictEntry<StellarBladeDatas>(userId, MinigameRepository.TypeStellarBlade, arcadeId, out var existing) && existing != null)
+            return existing;
+
+        var stellar = new StellarBladeDatas();
+
+        EventSBManagerRecord_Raw? sbm = arcadeId < 1000
+            ? GameData.Instance.EventSBManagerTable.Values.FirstOrDefault(m => m.MinigameType == MiniGameSystemType.Normal)
+            : GameData.Instance.EventSBManagerTable.Values.FirstOrDefault(m => m.MinigameType == MiniGameSystemType.Arcade);
+
+        if (sbm != null)
         {
-            stellar = new StellarBladeDatas();
-            user.StellarBladeDatas.TryAdd(arcadeId, stellar);
-
-            EventSBManagerRecord_Raw? sbm = new();
-
-            if (arcadeId < 1000)
-            {
-                sbm = GameData.Instance.EventSBManagerTable.Values
-                    .Where(m => m.MinigameType == MiniGameSystemType.Normal).FirstOrDefault();
-            }
-            else
-            {
-                sbm = GameData.Instance.EventSBManagerTable.Values
-                    .Where(m => m.MinigameType == MiniGameSystemType.Arcade).FirstOrDefault();
-            }
             //任务
-            List<EventSBMissionRecord_Raw>? alist = GameData.Instance.EventSBMissionTable.Values
+            List<EventSBMissionRecord_Raw> alist = GameData.Instance.EventSBMissionTable.Values
                 .Where(x => x.GroupId == sbm.MissionGroupId && x.MissionCategory == SBMissionCategory.Achievement)
                 .ToList();
             foreach (var item in alist)
             {
-                StellarBladeMissionData missionData = new()
+                stellar.MissionData.Add(new StellarBladeMissionData
                 {
                     IsReceived = false,
                     MissionId = item.Id,
                     Progress = 0
-                };
-                stellar.MissionData.Add(missionData);
+                });
             }
 
-            List<EventSBMissionRecord_Raw>? dlist = GameData.Instance.EventSBMissionTable.Values
+            List<EventSBMissionRecord_Raw> dlist = GameData.Instance.EventSBMissionTable.Values
                 .Where(x => x.GroupId == sbm.MissionGroupId && x.MissionCategory == SBMissionCategory.DailyMission)
                 .ToList();
-            if (dlist.Count > 0)
+            foreach (var item in dlist)
             {
-                foreach (var item in dlist)
+                stellar.DailyMissionData.Add(new StellarBladeMissionData
                 {
-                    StellarBladeMissionData missionData = new()
-                    {
-                        IsReceived = false,
-                        MissionId = item.Id,
-                        Progress = 0
-                    };
-                    stellar.DailyMissionData.Add(missionData);
-                }
+                    IsReceived = false,
+                    MissionId = item.Id,
+                    Progress = 0
+                });
             }
 
-            List<EventSBMissionRecord_Raw>? plist = GameData.Instance.EventSBMissionTable.Values
+            List<EventSBMissionRecord_Raw> plist = GameData.Instance.EventSBMissionTable.Values
                 .Where(x => x.GroupId == sbm.MissionGroupId && x.MissionCategory == SBMissionCategory.DailyPoint)
                 .ToList();
-            if (plist.Count > 0)
+            foreach (var item in plist)
             {
-                foreach (var item in plist)
+                stellar.DailyPointMissionData.Add(new StellarBladeMissionData
                 {
-                    StellarBladeMissionData missionData = new()
-                    {
-                        IsReceived = false,
-                        MissionId = item.Id,
-                        Progress = 0
-                    };
-                    stellar.DailyPointMissionData.Add(missionData);
-                }
+                    IsReceived = false,
+                    MissionId = item.Id,
+                    Progress = 0
+                });
             }
 
             //资源
-            List<EventSBCurrencyRecord_Raw>? curlist = GameData.Instance.EventSBCurrencyTable.Values.ToList();
-            foreach (var item in curlist)
+            foreach (var item in GameData.Instance.EventSBCurrencyTable.Values)
             {
                 stellar.Currency.Add(new() { Amount = 0, CurrencyType = (int)item.CurrencyType });
             }
 
-
-            //人物        
+            //人物
             EventSBCharacterRecord_Raw? charrd = GameData.Instance.EventSBCharacterTable.Values
-                .Where(c => c.Id == sbm.CharacterId).FirstOrDefault();
+                .FirstOrDefault(c => c.Id == sbm.CharacterId);
 
-            stellar.CharacterData = new()
+            if (charrd != null)
             {
-                DefaultAttackSkillId = charrd.DefaultAttackSkillId
-            };
+                stellar.CharacterData = new()
+                {
+                    DefaultAttackSkillId = charrd.DefaultAttackSkillId
+                };
 
-            List<int>? learnskilllist = GameData.Instance.EventSBCharacterSkillTable.Values
-                .Where(s => s.GroupId == charrd.SkillGroupId && s.IsDefaultLearn == true)
-                .Select(s => s.Id)
-                .ToList();
+                List<int> learnskilllist = GameData.Instance.EventSBCharacterSkillTable.Values
+                    .Where(s => s.GroupId == charrd.SkillGroupId && s.IsDefaultLearn == true)
+                    .Select(s => s.Id)
+                    .ToList();
 
-            stellar.CharacterData.LearnedSkillIdList.AddRange(learnskilllist);
-            foreach (SBCharacterEnhanceType type in System.Enum.GetValues<SBCharacterEnhanceType>())
-            {
-                stellar.CharacterData.EnhanceDataList.Add(new StellarBladeCharacterData.NetEnhanceData() { EnhanceLevel = 1, EnhanceType = (int)type });
+                stellar.CharacterData.LearnedSkillIdList.AddRange(learnskilllist);
+                foreach (SBCharacterEnhanceType type in System.Enum.GetValues<SBCharacterEnhanceType>())
+                {
+                    stellar.CharacterData.EnhanceDataList.Add(new StellarBladeCharacterData.NetEnhanceData() { EnhanceLevel = 1, EnhanceType = (int)type });
+                }
             }
 
-
             var first = GameData.Instance.EventSBStageTable.Values
-                .Where(s => s.GroupId == sbm.StageGroupId).FirstOrDefault();
+                .FirstOrDefault(s => s.GroupId == sbm.StageGroupId);
 
-            stellar.LastEnteredStageId = first.Id;
-
-            UserSessionStore.SaveAll();
+            if (first != null)
+                stellar.LastEnteredStageId = first.Id;
         }
+
+        repo.SaveDictEntry(userId, MinigameRepository.TypeStellarBlade, arcadeId, stellar);
+        ctx.SaveChanges();
+        return stellar;
     }
 
 
@@ -491,8 +486,6 @@ public class MiniGameHelper
             default:
                 break;
         }
-
-        UserSessionStore.SaveAll();
     }
 
 
@@ -519,6 +512,7 @@ public class MiniGameHelper
                 EventSBCurrencyRecord_Raw? ctype = GameData.Instance.EventSBCurrencyTable.Values
                     .Where(x => x.Id == reward.RewardId).FirstOrDefault();
 
+                if (ctype == null) break;
 
                 NetStellarBladeCurrency? existing = ret.CurrencyList.FirstOrDefault(c => c.CurrencyType == (int)ctype.CurrencyType);
                 if (existing != null)
@@ -539,8 +533,6 @@ public class MiniGameHelper
                 {
                     currency.Amount += reward.RewardAmount;
                 }
-
-                UserSessionStore.SaveAll();
                 break;
             case SBRewardType.SBItem:
                 // TODO: 处理道具奖励
@@ -562,13 +554,16 @@ public class MiniGameHelper
                 foreach (var item in glist)
                 {
                     StellarBladeMissionData? miss = stellar.MissionData.FirstOrDefault(m => m.MissionId == item.Id);
-                    if (stellar.Today == dateDay)
+                    if (miss != null)
                     {
-                        miss.Progress += mission.RewardValue;
-                    }
-                    else
-                    {
-                        miss.Progress = mission.RewardValue;
+                        if (stellar.Today == dateDay)
+                        {
+                            miss.Progress += mission.RewardValue;
+                        }
+                        else
+                        {
+                            miss.Progress = mission.RewardValue;
+                        }
                     }
                 }
                 break;
@@ -583,12 +578,20 @@ public class MiniGameHelper
                 break;
         }
 
-        UserSessionStore.SaveAll();
         return result;
     }
 
     public static TowerDefenseData InitTDData(int aid, User user)
     {
+        using var ctx = GameContext.CreateNew();
+        return InitTDData(aid, user.ID, new MinigameRepository(ctx), ctx);
+    }
+
+    public static TowerDefenseData InitTDData(int aid, ulong userId, MinigameRepository repo, GameContext ctx)
+    {
+        if (repo.TryGetDictEntry<TowerDefenseData>(userId, MinigameRepository.TypeTowerDefense, aid, out var existing) && existing != null)
+            return existing;
+
         TowerDefenseData defenseData = new TowerDefenseData
         {
             ChallengeMaxScore = 0,
@@ -623,8 +626,8 @@ public class MiniGameHelper
             }
         }
 
-        user.TowerDefenseDatas.TryAdd(aid, defenseData);
-        UserSessionStore.SaveAll();
+        repo.SaveDictEntry(userId, MinigameRepository.TypeTowerDefense, aid, defenseData);
+        ctx.SaveChanges();
 
         return defenseData;
     }
@@ -674,8 +677,6 @@ public class MiniGameHelper
                 data.HasUnconfirmedAlbum = true;
             }
         }
-
-        UserSessionStore.SaveAll();
     }
 
 

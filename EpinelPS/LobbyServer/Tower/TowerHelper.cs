@@ -36,12 +36,15 @@ public class TowerHelper
         if (record.Floor < 1 || record.Floor > maxFloor)
             throw new Exception($"invalid floor {record.Floor} for {record.Type} (max={maxFloor})");
 
-        if (user.TowerProgress.TryGetValue(record.Type, out int progress) && progress >= maxFloor)
-            throw new Exception($"tower {record.Type} already fully cleared (progress={progress}, max={maxFloor})");
-
         var triggerType = TowerClearTriggers[record.Type];
+        Dictionary<CorporationTowerType, int> towerProgress;
         using (var ctx = GameContext.CreateNew())
         {
+            var progressRepo = new Repositories.ProgressRepository(ctx);
+            towerProgress = progressRepo.GetTowerProgress(user.ID);
+            if (towerProgress.TryGetValue(record.Type, out int progress) && progress >= maxFloor)
+                throw new Exception($"tower {record.Type} already fully cleared (progress={progress}, max={maxFloor})");
+
             if (ctx.Triggers.Any(x => x.UserId == user.ID && x.Type == triggerType && x.ConditionId == towerId && x.Value == 1))
                 throw new Exception("floor already cleared");
 
@@ -56,11 +59,16 @@ public class TowerHelper
             }
         }
 
-        if (!user.TowerProgress.TryGetValue(record.Type, out int value) || value < record.Floor)
-            user.TowerProgress[record.Type] = record.Floor;
+        using (var towerCtx = GameContext.CreateNew())
+        {
+            if (!towerProgress.TryGetValue(record.Type, out int value) || value < record.Floor)
+                new Repositories.ProgressRepository(towerCtx).SetTowerFloor(user.ID, record.Type, record.Floor);
 
-        if (record.Type is not CorporationTowerType.ALL)
-            user.ResetableData.TowerCount[record.Type] += 1;
+            if (record.Type is not CorporationTowerType.ALL)
+                new Repositories.ResetRepository(towerCtx).AddDailyTowerCount(user.ID, record.Type, 1);
+
+            towerCtx.SaveChanges();
+        }
 
         user.AddTrigger(TowerClearTriggers[record.Type], 1, towerId);
 
@@ -83,15 +91,16 @@ public class TowerHelper
         if (record.Floor < 1 || record.Floor > maxFloor)
             throw new Exception($"invalid floor {record.Floor} for {record.Type} (max={maxFloor})");
 
-        user.TowerProgress.TryGetValue(record.Type, out int progress);
-
-        if (progress >= maxFloor)
-            throw new Exception($"tower {record.Type} already fully cleared (progress={progress}, max={maxFloor})");
-
         var triggerType = TowerClearTriggers[record.Type];
+        int progress = 0;
         HashSet<int> clearedTowerIds;
         using (var ctx = GameContext.CreateNew())
         {
+            new Repositories.ProgressRepository(ctx).GetTowerProgress(user.ID).TryGetValue(record.Type, out progress);
+
+            if (progress >= maxFloor)
+                throw new Exception($"tower {record.Type} already fully cleared (progress={progress}, max={maxFloor})");
+
             if (ctx.Triggers.Any(x => x.UserId == user.ID && x.Type == triggerType && x.ConditionId == towerId && x.Value == 1))
                 throw new Exception("floor already cleared");
 
@@ -136,10 +145,15 @@ public class TowerHelper
             Console.WriteLine($"Completed floor {floor.Floor} - Reward added");
         }
 
-        user.TowerProgress[record.Type] = record.Floor;
+        using (var towerCtx = GameContext.CreateNew())
+        {
+            new Repositories.ProgressRepository(towerCtx).SetTowerFloor(user.ID, record.Type, record.Floor);
 
-        if (record.Type is not CorporationTowerType.ALL)
-            user.ResetableData.TowerCount[record.Type] += totalFloorsCleared;
+            if (record.Type is not CorporationTowerType.ALL)
+                new Repositories.ResetRepository(towerCtx).AddDailyTowerCount(user.ID, record.Type, totalFloorsCleared);
+
+            towerCtx.SaveChanges();
+        }
 
         Console.WriteLine($"Total floors cleared: {totalFloorsCleared}");
 

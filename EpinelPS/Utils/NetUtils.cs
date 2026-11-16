@@ -1,5 +1,6 @@
 ﻿using EpinelPS.Data;
 using EpinelPS.Database;
+using EpinelPS.Repositories;
 using Google.Protobuf.Collections;
 using Microsoft.AspNetCore.Mvc;
 using Paseto;
@@ -216,69 +217,54 @@ public class NetUtils
         double baseValue = value * ratio / 10000.0;
         double minuteValue = baseValue + baseValue * boost / 100.0;
 
-
         return (long)Math.Floor(minuteValue * elapsedMinutes);
     }
 
+    private static int GetBattleRecordValue(OutpostBattleRecord battleData, CurrencyType type) => type switch
+    {
+        CurrencyType.CharacterExp2 => battleData.CharacterExp2,
+        CurrencyType.CharacterExp => battleData.CharacterExp1,
+        CurrencyType.Gold => battleData.Credit,
+        CurrencyType.UserExp => battleData.UserExp,
+        _ => 0
+    };
+
+    private static double GetOutpostTimeRewardRatio(CurrencyType type) => type switch
+    {
+        CurrencyType.CharacterExp2 => 1,
+        CurrencyType.CharacterExp => 3,
+        CurrencyType.Gold => 3,
+        CurrencyType.UserExp => 1,
+        _ => 0
+    };
+
     public static double CalculateBoostValueForOutpost(User user, CurrencyType type)
     {
-        return user.OutpostBuffs.GetTotalPercentages(type) / 100.0;
+        using var db = GameContext.CreateNew();
+        return new OutpostRepository(db).GetOutpostBuffs(user.ID).GetTotalPercentages(type) / 100.0;
     }
 
     public static long GetOutpostRewardAmount(User user, CurrencyType type, double mins, bool includeBoost)
     {
-        OutpostBattleRecord battleData = GameData.Instance.OutpostBattle[user.OutpostBattleLevel.Level];
-
-        int value = 0;
-        double ratio = 0;
-        double boost = 1.0;
-        if (includeBoost)
-            boost += CalculateBoostValueForOutpost(user, type);
-
-        switch (type)
-        {
-            case CurrencyType.CharacterExp2:
-                value = battleData.CharacterExp2;
-                ratio = 1;
-                break;
-            case CurrencyType.CharacterExp:
-                value = battleData.CharacterExp1;
-                ratio = 3;
-                break;
-            case CurrencyType.Gold:
-                value = battleData.Credit;
-                ratio = 3;
-                break;
-            case CurrencyType.UserExp:
-                value = battleData.UserExp;
-                ratio = 1;
-                break;
-        }
-        return CalcOutpostRewardAmount(value, ratio, boost, mins);
+        using var db = GameContext.CreateNew();
+        var repo = new OutpostRepository(db);
+        var buffs = repo.GetOutpostBuffs(user.ID);
+        int battleLevel = repo.GetOutpostBattleLevel(user.ID).Level;
+        return GetOutpostRewardAmount(buffs, battleLevel, type, mins, includeBoost, GetOutpostTimeRewardRatio(type));
     }
 
-    private static long GetOutpostRewardAmount(User user, CurrencyType type, double mins, bool includeBoost, double ratio)
+    private static long GetOutpostRewardAmount(OutpostBuffs buffs, int battleLevel, CurrencyType type, double mins, bool includeBoost, double ratio)
     {
-        OutpostBattleRecord battleData = GameData.Instance.OutpostBattle[user.OutpostBattleLevel.Level];
-        double boost = 1.0;
-        if (includeBoost)
-            boost += CalculateBoostValueForOutpost(user, type);
-
-        int value = type switch
-        {
-            CurrencyType.CharacterExp2 => battleData.CharacterExp2,
-            CurrencyType.CharacterExp => battleData.CharacterExp1,
-            CurrencyType.Gold => battleData.Credit,
-            CurrencyType.UserExp => battleData.UserExp,
-            _ => 0
-        };
+        OutpostBattleRecord battleData = GameData.Instance.OutpostBattle[battleLevel];
+        double boost = 1.0 + (includeBoost ? buffs.GetTotalPercentages(type) / 100.0 : 0.0);
+        int value = GetBattleRecordValue(battleData, type);
 
         return CalcOutpostRewardAmount(value, ratio, boost, mins);
     }
 
-    private static void AddOutpostRewardCurrency(User user, NetRewardData reward, CurrencyType type, TimeSpan duration, bool addToUser, double ratio)
+    private static void AddOutpostRewardCurrency(User user, OutpostBuffs buffs, int battleLevel, NetRewardData reward, CurrencyType type, TimeSpan duration, bool addToUser, double ratio)
     {
-        long rewardValue = GetOutpostRewardAmount(user, type, duration.TotalMinutes, true, ratio);
+        long rewardValue = GetOutpostRewardAmount(buffs, battleLevel, type, duration.TotalMinutes, true, ratio);
         long finalValue;
 
         if (addToUser)
@@ -301,75 +287,76 @@ public class NetUtils
 
     public static NetRewardData GetOutpostReward(User user, TimeSpan duration, bool addToUser = false)
     {
+        using var db = GameContext.CreateNew();
+        return GetOutpostReward(user, duration, addToUser, new OutpostRepository(db));
+    }
+
+    internal static NetRewardData GetOutpostReward(User user, TimeSpan duration, bool addToUser, OutpostRepository outpostRepo)
+    {
+        var buffs = outpostRepo.GetOutpostBuffs(user.ID);
+        int battleLevel = outpostRepo.GetOutpostBattleLevel(user.ID).Level;
+
         NetRewardData result = new();
 
-        AddOutpostRewardCurrency(user, result, CurrencyType.CharacterExp2, duration, addToUser, 1);
-        AddOutpostRewardCurrency(user, result, CurrencyType.CharacterExp, duration, addToUser, 3);
-        AddOutpostRewardCurrency(user, result, CurrencyType.Gold, duration, addToUser, 3);
-        AddOutpostRewardCurrency(user, result, CurrencyType.UserExp, duration, addToUser, 3);
+        AddOutpostRewardCurrency(user, buffs, battleLevel, result, CurrencyType.CharacterExp2, duration, addToUser, 1);
+        AddOutpostRewardCurrency(user, buffs, battleLevel, result, CurrencyType.CharacterExp, duration, addToUser, 3);
+        AddOutpostRewardCurrency(user, buffs, battleLevel, result, CurrencyType.Gold, duration, addToUser, 3);
+        AddOutpostRewardCurrency(user, buffs, battleLevel, result, CurrencyType.UserExp, duration, addToUser, 3);
 
         return result;
     }
 
     internal static List<NetTimeReward> GetOutpostTimeReward(User user)
     {
-        List<NetTimeReward> res = [];
+        using var db = GameContext.CreateNew();
+        return GetOutpostTimeReward(user, new OutpostRepository(db));
+    }
+
+    internal static List<NetTimeReward> GetOutpostTimeReward(User user, OutpostRepository outpostRepo)
+    {
+        var buffs = outpostRepo.GetOutpostBuffs(user.ID);
+        int battleLevel = outpostRepo.GetOutpostBattleLevel(user.ID).Level;
 
         // NetTimeRewardBuff
         // FunctionType: 1: value increase, 2: percentage increase
         // Tid: Outpost building ID
+        NetTimeReward goldBuff = BuildTimeReward(1, buffs, battleLevel, CurrencyType.Gold, 1, 10000, buffs.CreditPercentages);
+        NetTimeReward battleDataBuff = BuildTimeReward(2, buffs, battleLevel, CurrencyType.CharacterExp, 1, 10000, buffs.BattleDataPercentages);
+        NetTimeReward xpBuff = BuildTimeReward(3, buffs, battleLevel, CurrencyType.UserExp, 1, 10000, buffs.UserExpPercentages);
+        NetTimeReward coredustBuff = BuildTimeReward(4, buffs, battleLevel, CurrencyType.CharacterExp2, 60, 100, buffs.CoreDustPercentages);
 
-        NetTimeReward goldBuff = new()
+        return [battleDataBuff, goldBuff, xpBuff, coredustBuff];
+    }
+
+    private static NetTimeReward BuildTimeReward(
+        int useId,
+        OutpostBuffs buffs,
+        int battleLevel,
+        CurrencyType type,
+        double mins,
+        long multiplier,
+        IEnumerable<int> percentages)
+    {
+        double ratio = GetOutpostTimeRewardRatio(type);
+        var reward = new NetTimeReward
         {
-            UseId = 1,
-            ValuePerMinAfterBuff = GetOutpostRewardAmount(user, CurrencyType.Gold, 1, true) * 10000,
-            ValuePerMinBeforeBuff = GetOutpostRewardAmount(user, CurrencyType.Gold, 1, false) * 10000
+            UseId = useId,
+            ValuePerMinAfterBuff = GetOutpostRewardAmount(buffs, battleLevel, type, mins, true, ratio) * multiplier,
+            ValuePerMinBeforeBuff = GetOutpostRewardAmount(buffs, battleLevel, type, mins, false, ratio) * multiplier
         };
-        foreach (int item in user.OutpostBuffs.CreditPercentages)
+
+        foreach (int item in percentages)
         {
-            goldBuff.Buffs.Add(new NetTimeRewardBuff() { Tid = 22401, FunctionType = 2, SourceType = OutpostBuffSourceType.TacticAcademy, Value = item });
+            reward.Buffs.Add(new NetTimeRewardBuff
+            {
+                Tid = 22401,
+                FunctionType = 2,
+                SourceType = OutpostBuffSourceType.TacticAcademy,
+                Value = item
+            });
         }
 
-
-        NetTimeReward battleDataBuff = new()
-        {
-            UseId = 2,
-            ValuePerMinAfterBuff = GetOutpostRewardAmount(user, CurrencyType.CharacterExp, 1, true) * 10000,
-            ValuePerMinBeforeBuff = GetOutpostRewardAmount(user, CurrencyType.CharacterExp, 1, false) * 10000
-        };
-        foreach (int item in user.OutpostBuffs.BattleDataPercentages)
-        {
-            battleDataBuff.Buffs.Add(new NetTimeRewardBuff() { Tid = 22401, FunctionType = 2, SourceType = OutpostBuffSourceType.TacticAcademy, Value = item });
-        }
-
-        NetTimeReward xpBuff = new()
-        {
-            UseId = 3,
-            ValuePerMinAfterBuff = GetOutpostRewardAmount(user, CurrencyType.UserExp, 1, true) * 10000,
-            ValuePerMinBeforeBuff = GetOutpostRewardAmount(user, CurrencyType.UserExp, 1, false) * 10000
-        };
-        foreach (int item in user.OutpostBuffs.UserExpPercentages)
-        {
-            xpBuff.Buffs.Add(new NetTimeRewardBuff() { Tid = 22401, FunctionType = 2, SourceType = OutpostBuffSourceType.TacticAcademy, Value = item });
-        }
-
-        NetTimeReward coredustBuff = new()
-        {
-            UseId = 4,
-            ValuePerMinAfterBuff = GetOutpostRewardAmount(user, CurrencyType.CharacterExp2, 60, true) * 100,
-            ValuePerMinBeforeBuff = GetOutpostRewardAmount(user, CurrencyType.CharacterExp2, 60, false) * 100
-        };
-        foreach (int item in user.OutpostBuffs.CoreDustPercentages)
-        {
-            coredustBuff.Buffs.Add(new NetTimeRewardBuff() { Tid = 22401, FunctionType = 2, SourceType = OutpostBuffSourceType.TacticAcademy, Value = item });
-        }
-
-        res.Add(battleDataBuff);
-        res.Add(goldBuff);
-        res.Add(xpBuff);
-        res.Add(coredustBuff);
-
-        return res;
+        return reward;
     }
 
     private static NetWholeTeamSlot? LookupCharacter(User user, long csn, int slot)
@@ -395,19 +382,21 @@ public class NetUtils
     internal static NetWholeUserTeamData GetDisplayedTeam(User user)
     {
         NetWholeUserTeamData result = new() { TeamNumber = 1, Type = 2 };
+        using var ctx = GameContext.CreateNew();
+        long[] repTeam = new Repositories.TeamRepository(ctx).GetRepresentationTeam(user.ID);
 
-        if (user.RepresentationTeamDataNew.Length == 5)
+        if (repTeam.Length == 5)
         {
-            result.Slots.Add(LookupCharacter(user, user.RepresentationTeamDataNew[0], 1));
-            result.Slots.Add(LookupCharacter(user, user.RepresentationTeamDataNew[1], 2));
-            result.Slots.Add(LookupCharacter(user, user.RepresentationTeamDataNew[2], 3));
-            result.Slots.Add(LookupCharacter(user, user.RepresentationTeamDataNew[3], 4));
-            result.Slots.Add(LookupCharacter(user, user.RepresentationTeamDataNew[4], 5));
+            result.Slots.Add(LookupCharacter(user, repTeam[0], 1));
+            result.Slots.Add(LookupCharacter(user, repTeam[1], 2));
+            result.Slots.Add(LookupCharacter(user, repTeam[2], 3));
+            result.Slots.Add(LookupCharacter(user, repTeam[3], 4));
+            result.Slots.Add(LookupCharacter(user, repTeam[4], 5));
         }
 
         int totalCP = 0;
 
-        foreach (long item in user.RepresentationTeamDataNew)
+        foreach (long item in repTeam)
         {
             totalCP += FormulaUtils.CalculateCP(user, item);
         }

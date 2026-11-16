@@ -3,6 +3,7 @@ using EpinelPS.Data;
 using EpinelPS.Database;
 using EpinelPS.LobbyServer.SoloraidMuseum;
 using EpinelPS.Models.Admin;
+using EpinelPS.Repositories;
 using EpinelPS.Utils;
 using EpinelPS.Commands.Core;
 using EpinelPS.Commands.Services;
@@ -17,7 +18,7 @@ namespace EpinelPS.Controllers;
 
 [Route("adminapi")]
 [ApiController]
-public class AdminApiController(GameContext DbContext) : ControllerBase
+public class AdminApiController(GameContext DbContext, SoloRaidRepository soloRaidRepo) : ControllerBase
 {
     private static readonly AsyncLocal<string?> RequestLanguage = new();
     private readonly GameContext dbContext = DbContext;
@@ -176,7 +177,7 @@ public class AdminApiController(GameContext DbContext) : ControllerBase
         if (!AdminController.CheckAuth(HttpContext)) return Unauthorized();
         var user = UserSessionStore.GetUser(userId);
         if (user is null) return NotFound(new { error = "user not found" });
-        var stage = SoloRaidMuseumHelper.GetStage(user, stageId);
+        var stage = SoloRaidMuseumHelper.GetStage(user.ID, stageId, soloRaidRepo);
         var mode = noLimit ? stage.NoLimit : stage.Challenge;
         return new SoloRaidMuseumRecordModel
         {
@@ -221,7 +222,7 @@ public class AdminApiController(GameContext DbContext) : ControllerBase
         if (!GameData.Instance.MuseumStageTable.ContainsKey(request.StageId))
             return BadRequest(new { error = "unknown museum stage" });
 
-        var stage = SoloRaidMuseumHelper.GetStage(user, request.StageId);
+        var stage = SoloRaidMuseumHelper.GetStage(user.ID, request.StageId, soloRaidRepo);
         var mode = request.NoLimit ? stage.NoLimit : stage.Challenge;
         mode.StageJoinCount = request.StageJoinCount;
         mode.TotalDamage = request.TotalDamage;
@@ -234,7 +235,7 @@ public class AdminApiController(GameContext DbContext) : ControllerBase
         mode.CurrentLogs = ToMuseumLogs(request.CurrentLogs, mode.CurrentLogs);
         mode.OpenTeams = mode.CurrentLogs.Select(x => x.TeamNumber).Distinct().ToList();
         var noLimitUnlocked = SoloRaidMuseumHelper.RefreshNoLimitUnlock(stage);
-        UserSessionStore.SaveUser(user);
+        soloRaidRepo.SaveMuseumStage(user.ID, stage);
         Logging.WriteLine($"[Admin] solo raid museum updated user={request.UserId}, stage={request.StageId}, noLimit={request.NoLimit}, logs={mode.Logs.Count}, currentLogs={mode.CurrentLogs.Count}, noLimitUnlocked={noLimitUnlocked}", LogType.Info);
         return RunCmdResponse.OK;
     }
@@ -248,7 +249,7 @@ public class AdminApiController(GameContext DbContext) : ControllerBase
         if (!GameData.Instance.MuseumStageTable.ContainsKey(request.StageId))
             return BadRequest(new { error = "unknown museum stage" });
 
-        var stage = SoloRaidMuseumHelper.GetStage(user, request.StageId);
+        var stage = SoloRaidMuseumHelper.GetStage(user.ID, request.StageId, soloRaidRepo);
         var multiplier = stage.DebugDamageMultiplier;
         var teams = stage.Teams;
         stage.Challenge = new();
@@ -259,7 +260,7 @@ public class AdminApiController(GameContext DbContext) : ControllerBase
         stage.StageMode = SoloRaidMuseumStageMode.Challenge;
         stage.DebugDamageMultiplier = multiplier;
         stage.Teams = teams;
-        UserSessionStore.SaveUser(user);
+        soloRaidRepo.SaveMuseumStage(user.ID, stage);
         Logging.WriteLine($"[Admin] solo raid museum season reset user={request.UserId}, stage={request.StageId}", LogType.Info);
         return RunCmdResponse.OK;
     }

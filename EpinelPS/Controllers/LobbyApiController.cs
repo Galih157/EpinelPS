@@ -1,7 +1,5 @@
-﻿using EpinelPS.LobbyServer;
-using EpinelPS.Utils;
+﻿using EpinelPS.Utils;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
 
 namespace EpinelPS.Controllers;
 
@@ -12,12 +10,10 @@ public class LobbyApiController : ControllerBase
     [HttpPost]
     [Route("{**all}", Order = int.MaxValue)]
     [Consumes("application/octet-stream+protobuf")]
-    public async Task CatchAll(string all)
+    [Produces("application/octet-stream+protobuf")]
+    public ActionResult<ResGetNow> CatchAll(string all)
     {
-        Stopwatch st = Stopwatch.StartNew();
-        await LobbyHandler.DispatchSingle(HttpContext);
-        st.Stop();
-
-        Logging.WriteLine($"POST {HttpContext.Request.Path.Value}: {HttpContext.Response.StatusCode}", LogType.Info);
+        Logging.WriteLine($"[LobbyApiController] Unhandled POST {HttpContext.Request.Path.Value}", LogType.Error);
+        return Ok(new ResGetNow());
     }
 }

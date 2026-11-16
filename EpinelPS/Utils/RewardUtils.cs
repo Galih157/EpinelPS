@@ -1,4 +1,6 @@
 using EpinelPS.Data;
+using EpinelPS.Database;
+using EpinelPS.Repositories;
 using Google.Protobuf.WellKnownTypes;
 
 namespace EpinelPS.Utils;
@@ -338,58 +340,32 @@ public class RewardUtils
         }
         else if (rewardType == RewardType.Memorial)
         {
-            if (!user.Memorial.Contains(rewardId))
+            if (TryUnlockCosmetic(user.ID, CosmeticsRepository.CategoryMemorial, rewardId))
             {
                 ret.Memorial.Add(rewardId);
-                user.Memorial.Add(rewardId);
             }
         }
         else if (rewardType == RewardType.Bgm)
         {
-            if (!user.JukeboxBgm.Contains(rewardId))
+            if (TryUnlockCosmetic(user.ID, CosmeticsRepository.CategoryJukeboxBgm, rewardId))
             {
                 ret.JukeboxBgm.Add(rewardId);
-                user.JukeboxBgm.Add(rewardId);
                 var jukebox = GameData.Instance.jukeboxListDataRecords.Values.FirstOrDefault(x => x.Id == rewardId);
-                user.AddTrigger(Trigger.ObtainJukeboxTheme, 1, jukebox.Theme);
+                if (jukebox != null)
+                    user.AddTrigger(Trigger.ObtainJukeboxTheme, 1, jukebox.Theme);
             }
         }
         else if (rewardType == RewardType.InfraCoreExp)
         {
-            int beforeLv = user.InfraCoreLvl;
-            int beforeExp = user.InfraCoreExp;
-
-            user.InfraCoreExp += rewardCount;
-            user.InfraCoreLvl = GameData.Instance.GetInfraCoreLev(user.InfraCoreExp);
-
-
-            /*// Check for level ups
-            Dictionary<int, InfraCoreGradeRecord> gradeTable = GameData.Instance.InfracoreTable;
-            int newLevel = user.InfraCoreLvl;
-
-            foreach (var grade in gradeTable.Values.OrderBy(g => g.Grade))
-            {
-                if (user.InfraCoreExp >= grade.InfraCoreExp)
-                {
-                    newLevel = grade.Grade + 1;
-                }
-                else
-                {
-                    break;
-                }
-            }
-
-            if (newLevel > user.InfraCoreLvl)
-            {
-                user.InfraCoreLvl = newLevel;
-            }*/
-            Logging.WriteLine($"�������ľ��� {user.InfraCoreExp} ,�ȼ� {user.InfraCoreLvl}");
+            using var db = GameContext.CreateNew();
+            var (beforeExp, beforeLv, currentExp, currentLv) = new OutpostRepository(db).AddInfraCoreExp(user.ID, rewardCount);
+            Logging.WriteLine($"�������ľ��� {currentExp} ,�ȼ� {currentLv}");
             ret.InfraCoreExp = new NetIncreaseExpData()
             {
                 BeforeLv = beforeLv,
                 BeforeExp = beforeExp,
-                CurrentLv = user.InfraCoreLvl,
-                CurrentExp = user.InfraCoreExp,
+                CurrentLv = currentLv,
+                CurrentExp = currentExp,
                 GainExp = rewardCount,
                 IncreaseExp = rewardCount
             };
@@ -429,7 +405,10 @@ public class RewardUtils
                     Lv = 0,
                     Exp = 0
                 };
-                user.FavoriteItems.Add(newFavoriteItem);
+                using (var db = GameContext.CreateNew())
+                {
+                    new BondLiberationRepository(db).AddFavoriteItem(user.ID, newFavoriteItem);
+                }
 
                 ret.UserFavoriteItems.Add(newFavoriteItem);
 
@@ -565,7 +544,8 @@ public class RewardUtils
 
                 if (character.OriginalRare == OriginalRareType.SSR || character.OriginalRare == OriginalRareType.SR)
                 {
-                    user.BondInfo.Add(new() { NameCode = character.NameCode, Lv = 1 });
+                    using var db = GameContext.CreateNew();
+                    new BondLiberationRepository(db).EnsureBond(user.ID, character.NameCode, 1);
                 }
             }
         }
@@ -575,7 +555,7 @@ public class RewardUtils
             if (record != null)
             {
                 ret.UserTitleList.Add(record.Id);
-                user.TitleList.Add(record.Id);
+                TryUnlockCosmetic(user.ID, CosmeticsRepository.CategoryTitle, record.Id);
             }
         }
         else if (rewardType == RewardType.Frame)
@@ -591,7 +571,7 @@ public class RewardUtils
                 };
 
                 ret.ProfileFrame.Add(frameData);
-                user.AddUnique(user.FrameList, record.Id);
+                TryUnlockCosmetic(user.ID, CosmeticsRepository.CategoryFrame, record.Id);
 
             }
         }
@@ -602,7 +582,7 @@ public class RewardUtils
             if (record != null)
             {
                 ret.CharacterCostume.Add(record.Id);
-                user.AddUnique(user.CostumeList, record.Id);
+                TryUnlockCosmetic(user.ID, CosmeticsRepository.CategoryCostume, record.Id);
             }
         }
         else if (rewardType == RewardType.Album)
@@ -613,11 +593,18 @@ public class RewardUtils
             if (record != null)
             {
                 ret.JukeboxThemeTableIds.Add(record.Id);
-                user.AddUnique(user.JukeboxThemeList, record.Id);
                 var list = GameData.Instance.jukeboxListDataRecords.Values.Where(x => x.Theme == record.Id).ToList();
+                using (var ctx = GameContext.CreateNew())
+                {
+                    var repo = new CosmeticsRepository(ctx);
+                    bool changed = repo.UnlockCosmetic(user.ID, CosmeticsRepository.CategoryJukeboxTheme, record.Id);
+                    if (repo.UnlockCosmetics(user.ID, CosmeticsRepository.CategoryJukeboxBgm, list.Select(s => s.Id)) > 0)
+                        changed = true;
+                    if (changed)
+                        ctx.SaveChanges();
+                }
                 foreach (var song in list)
                 {
-                    user.AddUnique(user.JukeboxBgm, song.Id);
                     user.AddTrigger(Trigger.ObtainJukeboxTheme, 1, song.Theme);
                 }
             }
@@ -631,7 +618,7 @@ public class RewardUtils
             if (record != null)
             {
                 ret.Livewallpaper.Add(record.Id);
-                user.AddUnique(user.LiveWallpaperList, record.Id);
+                TryUnlockCosmetic(user.ID, CosmeticsRepository.CategoryLiveWallpaper, record.Id);
             }
 
         }
@@ -646,12 +633,12 @@ public class RewardUtils
             {
                 if (CardObject.ObjectType == ObjectType.BackGround)
                 {
-                    user.AddUnique(user.BackgroundList, CardObject.Id);
+                    TryUnlockCosmetic(user.ID, CosmeticsRepository.CategoryBackground, CardObject.Id);
                     ret.ProfileCardObjects.Add(CardObject.Id);
                 }
                 else if (CardObject.ObjectType == ObjectType.Sticker)
                 {
-                    user.AddUnique(user.StickerList, CardObject.Id);
+                    TryUnlockCosmetic(user.ID, CosmeticsRepository.CategorySticker, CardObject.Id);
                     ret.ProfileCardObjects.Add(CardObject.Id);
                 }
             }
@@ -661,6 +648,16 @@ public class RewardUtils
         {
             Logging.WriteLine("TODO: Reward type " + rewardType, LogType.Warning);
         }
+    }
+
+    private static bool TryUnlockCosmetic(ulong userId, string category, int cosmeticId)
+    {
+        using var ctx = GameContext.CreateNew();
+        var repo = new CosmeticsRepository(ctx);
+        if (!repo.UnlockCosmetic(userId, category, cosmeticId))
+            return false;
+        ctx.SaveChanges();
+        return true;
     }
 
 

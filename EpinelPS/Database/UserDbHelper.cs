@@ -8,11 +8,8 @@ public static class UserDbHelper
     {
         ulong maxSdkId = db.SdkUsers.Select(u => u.ID).AsEnumerable().DefaultIfEmpty(0UL).Max();
         ulong maxGameId = db.Users.Select(u => u.ID).AsEnumerable().DefaultIfEmpty(0UL).Max();
-        ulong maxCachedId = UserSessionStore.Users.Count > 0
-            ? UserSessionStore.Users.Max(u => u.ID)
-            : 0;
 
-        ulong next = Math.Max(10000UL, Math.Max(maxSdkId, Math.Max(maxGameId, maxCachedId))) + 1;
+        ulong next = Math.Max(10000UL, Math.Max(maxSdkId, maxGameId)) + 1;
         while (db.SdkUsers.Any(u => u.ID == next) || db.Users.Any(u => u.ID == next))
             next++;
 

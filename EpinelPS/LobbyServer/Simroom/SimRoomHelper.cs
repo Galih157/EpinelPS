@@ -1,5 +1,6 @@
 using EpinelPS.Data;
 using EpinelPS.Database;
+using EpinelPS.Repositories;
 using EpinelPS.Utils;
 using Google.Protobuf.WellKnownTypes;
 using log4net;
@@ -28,10 +29,14 @@ public static class SimRoomHelper
 
         bool isOverclock = overclockOptionList is not null && overclockOptionList.Count > 0 && overclockSeason > 0 && overclockSubSeason > 0;
 
+        using var ctx = GameContext.CreateNew();
+        var repo = new ResetRepository(ctx);
+        var simRoomData = repo.GetSimRoomData(user.ID);
+
         List<NetSimRoomEvent> netSimRooms = [];
-        var currentOCData = user.ResetableData.SimRoomData.CurrentSeasonData;
-        int currentDifficulty = user.ResetableData.SimRoomData.CurrentDifficulty;
-        int currentChapter = user.ResetableData.SimRoomData.CurrentChapter;
+        var currentOCData = simRoomData.CurrentSeasonData;
+        int currentDifficulty = simRoomData.CurrentDifficulty;
+        int currentChapter = simRoomData.CurrentChapter;
         int currentOCSeason = currentOCData.CurrentSeason;
         int currentOCSubSeason = currentOCData.CurrentSubSeason;
         List<int> currentOCList = currentOCData.CurrentOptionList;
@@ -45,7 +50,7 @@ public static class SimRoomHelper
             currentOCList = overclockOptionList ?? [];
         }
 
-        var events = user.ResetableData.SimRoomData.Events;
+        var events = simRoomData.Events;
         if (events.Count > 1)
         {
             return [.. events.Select(MToNet)];
@@ -161,8 +166,9 @@ public static class SimRoomHelper
         user.AddTrigger(Trigger.SimulationRoomStart, value: 1);
         user.AddTrigger(Trigger.SimulationRoomClearCount1Only, value: 1);
         user.AddTrigger(Trigger.SimulationRoomClearWithoutCondition, value: 1);
-        user.ResetableData.SimRoomData.Events = events;
-        UserSessionStore.SaveAll();
+        simRoomData.Events = events;
+        repo.SaveSimRoomData(user.ID, simRoomData);
+        ctx.SaveChanges();
         return netSimRooms;
     }
 
@@ -174,7 +180,8 @@ public static class SimRoomHelper
     /// <returns>List<int></returns>
     public static List<int> GetBuffOptions(User user, NetSimRoomEventLocationInfo location)
     {
-        var events = user.ResetableData.SimRoomData.Events;
+        using var ctx = GameContext.CreateNew();
+        var events = new ResetRepository(ctx).GetSimRoomData(user.ID).Events;
         var simRoomEventIndex = events.FindIndex(x => x.Location.Chapter == location.Chapter && x.Location.Stage == location.Stage && x.Location.Order == location.Order);
         if (simRoomEventIndex > -1)
         {
@@ -256,7 +263,9 @@ public static class SimRoomHelper
             }
             else
             {
-                if (user.UserTeams.TryGetValue((int)TeamType.SimulationRoom, out var teamData))
+                using var ctx = GameContext.CreateNew();
+                var teamData = new Repositories.TeamRepository(ctx).GetUserTeam(user.ID, (int)TeamType.SimulationRoom);
+                if (teamData != null)
                 {
                     var team = teamData.Teams.FirstOrDefault(t => t.TeamNumber == teamNumber);
                     if (team is not null) return team;
@@ -537,8 +546,13 @@ public static class SimRoomHelper
             }
 
             events[index] = simRoomEvent;
-            user.ResetableData.SimRoomData.Events = events;
-            log.Debug($"UpdateUserSimRoomEvent After UserSimRoomEventData: {JsonConvert.SerializeObject(user.ResetableData.SimRoomData.Events)}");
+            using var ctx = GameContext.CreateNew();
+            var repo = new ResetRepository(ctx);
+            var simRoomData = repo.GetSimRoomData(user.ID);
+            simRoomData.Events = events;
+            repo.SaveSimRoomData(user.ID, simRoomData);
+            ctx.SaveChanges();
+            log.Debug($"UpdateUserSimRoomEvent After UserSimRoomEventData: {JsonConvert.SerializeObject(events)}");
         }
         catch (Exception e)
         {
@@ -548,9 +562,12 @@ public static class SimRoomHelper
 
     public static List<SimRoomCharacterHp> UpdateUserRemainingHps(User user, List<NetSimRoomCharacterHp>? remainingHps = null, int teamNumber = 1, int hpValue = 10000)
     {
+        using var ctx = GameContext.CreateNew();
+        var repo = new ResetRepository(ctx);
+        var simRoomData = repo.GetSimRoomData(user.ID);
         try
         {
-            var userRemainingHps = user.ResetableData.SimRoomData.RemainingHps ?? [];
+            var userRemainingHps = simRoomData.RemainingHps ?? [];
 
             // Update from input parameters
             if (remainingHps?.Count > 0)
@@ -562,14 +579,16 @@ public static class SimRoomHelper
             userRemainingHps = InitializeTeamHps(user, userRemainingHps, teamNumber, hpValue);
 
             // Save and return
-            user.ResetableData.SimRoomData.RemainingHps = userRemainingHps;
+            simRoomData.RemainingHps = userRemainingHps;
+            repo.SaveSimRoomData(user.ID, simRoomData);
+            ctx.SaveChanges();
             return userRemainingHps;
         }
         catch (Exception e)
         {
             log.Error($"Update UserRemainingHps Exception: {e.Message}");
             log.Error($"Stack Trace: {e.StackTrace}");
-            return user.ResetableData.SimRoomData.RemainingHps ?? [];
+            return simRoomData.RemainingHps ?? [];
         }
     }
 
@@ -587,7 +606,9 @@ public static class SimRoomHelper
 
     private static List<SimRoomCharacterHp> InitializeTeamHps(User user, List<SimRoomCharacterHp> userRemainingHps, int teamNumber, int hpValue)
     {
-        if (!user.UserTeams.TryGetValue((int)TeamType.SimulationRoom, out var userTeam))
+        using var ctx = GameContext.CreateNew();
+        var userTeam = new Repositories.TeamRepository(ctx).GetUserTeam(user.ID, (int)TeamType.SimulationRoom);
+        if (userTeam == null)
             return userRemainingHps;
 
         var team = userTeam.Teams.FirstOrDefault(x => x.TeamNumber == teamNumber);
@@ -618,7 +639,10 @@ public static class SimRoomHelper
     {
         // check if reward is received
         NetRewardData? reward = null;
-        if (!IsRewardReceived(user, difficultyId, chapterId))
+        using var ctx = GameContext.CreateNew();
+        var repo = new ResetRepository(ctx);
+        var simRoomData = repo.GetSimRoomData(user.ID);
+        if (!IsRewardReceived(simRoomData, difficultyId, chapterId))
         {
             // get all chapter records for the current difficulty
             var chapterRecords = GameData.Instance.SimulationRoomChapterTable.Values
@@ -627,7 +651,7 @@ public static class SimRoomHelper
             if (chapterRecords.Any())
             {
                 // get last received reward chapter
-                var receivedRewardChapters = user.ResetableData.SimRoomData.ReceivedRewardChapters ?? [];
+                var receivedRewardChapters = simRoomData.ReceivedRewardChapters ?? [];
                 var receivedRewardChapter = receivedRewardChapters
                     .OrderBy(x => x.Difficulty).ThenBy(x => x.Chapter).LastOrDefault();
 
@@ -657,7 +681,14 @@ public static class SimRoomHelper
 
                 if (shouldAddRewardChapter)
                 {
-                    AddRewardChapter(user, difficultyId, chapterId);
+                    simRoomData.ReceivedRewardChapters ??= [];
+                    simRoomData.ReceivedRewardChapters.Add(new SimRoomChapterInfo
+                    {
+                        Difficulty = difficultyId,
+                        Chapter = chapterId
+                    });
+                    repo.SaveSimRoomData(user.ID, simRoomData);
+                    ctx.SaveChanges();
                 }
                 foreach (var item in IncrementalRewards)
                 {
@@ -677,7 +708,10 @@ public static class SimRoomHelper
     {
         // check if reward is received
         NetRewardData? reward = null;
-        var currentSeasonData = user.ResetableData.SimRoomData.CurrentSeasonData;
+        using var ctx = GameContext.CreateNew();
+        var repo = new ResetRepository(ctx);
+        var simRoomData = repo.GetSimRoomData(user.ID);
+        var currentSeasonData = simRoomData.CurrentSeasonData;
         if (currentSeasonData is null) return null;
         if (!currentSeasonData.IsOverclock) return null;
 
@@ -700,12 +734,14 @@ public static class SimRoomHelper
         // Update User Latest Option
         if (currentOptionLevel > 0)
         {
-            user.ResetableData.SimRoomData.CurrentSeasonData.LatestOption = new OverclockHighScoreData()
+            simRoomData.CurrentSeasonData.LatestOption = new OverclockHighScoreData()
             {
                 Season = currentSeasonData.CurrentSeason,
                 OptionLevel = currentOptionLevel,
                 OptionList = currentOptionList
             };
+            repo.SaveSimRoomData(user.ID, simRoomData);
+            ctx.SaveChanges();
         }
 
         if (currentOptionLevel <= lastOptionLevel) return null;
@@ -740,23 +776,11 @@ public static class SimRoomHelper
     /// Check if reward is received
     /// </summary>
     /// <returns>True if reward is received, otherwise false</returns>
-    private static bool IsRewardReceived(User user, int difficultyId, int chapterId)
+    private static bool IsRewardReceived(SimRoomData simRoomData, int difficultyId, int chapterId)
     {
-        var isReceived = user.ResetableData.SimRoomData.ReceivedRewardChapters.Any(x => x.Chapter == chapterId && x.Difficulty == difficultyId);
+        var isReceived = simRoomData.ReceivedRewardChapters.Any(x => x.Chapter == chapterId && x.Difficulty == difficultyId);
         log.Debug($"IsRewardReceived (diff: {difficultyId}, chapter: {chapterId}): {isReceived}");
         return isReceived;
-    }
-
-    /// <summary>
-    /// Add reward chapter
-    /// </summary>
-    private static void AddRewardChapter(User user, int difficulty, int chapter)
-    {
-        user.ResetableData.SimRoomData.ReceivedRewardChapters.Add(new SimRoomChapterInfo()
-        {
-            Difficulty = difficulty,
-            Chapter = chapter
-        });
     }
 
     /// <summary>
@@ -785,7 +809,10 @@ public static class SimRoomHelper
 
     public static void UpdateOverclockHighScoreData(User user, NetSimRoomEventLocationInfo location)
     {
-        var currentSeasonData = user.ResetableData.SimRoomData.CurrentSeasonData;
+        using var ctx = GameContext.CreateNew();
+        var repo = new ResetRepository(ctx);
+        var simRoomData = repo.GetSimRoomData(user.ID);
+        var currentSeasonData = simRoomData.CurrentSeasonData;
 
         // Check if current season is overclock, if not, quit
         if (currentSeasonData is null || !currentSeasonData.IsOverclock)
@@ -793,7 +820,7 @@ public static class SimRoomHelper
             return;
         }
 
-        var events = user.ResetableData.SimRoomData.Events;
+        var events = simRoomData.Events;
         var simRoomEventIndex = events.FindIndex(x =>
             x.Location.Chapter == location.Chapter && x.Location.Stage == location.Stage && x.Location.Order == location.Order);
         if (simRoomEventIndex > -1)
@@ -827,7 +854,9 @@ public static class SimRoomHelper
                 highScoreData.CreatedAt = DateTime.UtcNow.Date.ToTimestamp();
                 currentSeasonData.CurrentSeasonHighScore = highScoreData;
                 currentSeasonData.CurrentSubSeasonHighScore = highScoreData;
-                user.ResetableData.SimRoomData.CurrentSeasonData = currentSeasonData;
+                simRoomData.CurrentSeasonData = currentSeasonData;
+                repo.SaveSimRoomData(user.ID, simRoomData);
+                ctx.SaveChanges();
             }
         }
         else

@@ -10,90 +10,6 @@ namespace EpinelPS.LobbyServer;
 
 public static class LobbyHandler
 {
-    public static readonly Dictionary<string, LobbyMessage> Handlers = [];
-    static LobbyHandler()
-    {
-        foreach (System.Type type in typeof(LobbyMessage).Assembly.GetTypes())
-        {
-            if (type.GetCustomAttributes(typeof(GameRequestAttribute), true).Length > 0)
-            {
-                GameRequestAttribute? attrib = (GameRequestAttribute?)Attribute.GetCustomAttribute(type, typeof(GameRequestAttribute));
-                if (attrib == null)
-                {
-                    Logging.WriteLine("WARNING: Failed to get attribute for " + type.FullName, LogType.Warning);
-                    continue;
-                }
-
-
-                object? instance = Activator.CreateInstance(type);
-                if (instance is LobbyMessage handler)
-                {
-                    Handlers.Add(attrib.Url, handler);
-                }
-                else
-                {
-                    Logging.WriteLine($"WARNING: Type {type.FullName} has PacketPathAttribute but does not implement LobbyMsgHandler", LogType.Warning);
-                }
-            }
-        }
-    }
-    public static async Task DispatchSingle(HttpContext ctx)
-    {
-        LobbyMessage? handler = null;
-
-        string fullPath = ctx.Request.Path.Value ?? throw new Exception();
-        string path = fullPath.Replace("/v1", "");
-
-
-        // handle authentication
-        if (ctx.Request.Headers.ContainsKey("Authorization"))
-        {
-            try
-            {
-                PasetoTokenValidationResult encryptionToken = new PasetoBuilder().Use(ProtocolVersion.V4, Purpose.Local)
-                           .WithKey(ServerConfigStore.LauncherTokenKey, Encryption.SymmetricKey)
-                           .Decode(ctx.Request.Headers.Authorization.ToString().Replace("Bearer ", ""), new PasetoTokenValidationParameters() { ValidateLifetime = true });
-
-                if (encryptionToken.IsValid)
-                {
-                    var id = ((System.Text.Json.JsonElement)encryptionToken.Paseto.Payload["userId"]).GetUInt64();
-
-                    if (id == 0) throw new Exception("403");
-
-                    ctx.Items["UserID"] = id;
-                }
-            }
-            catch
-            {
-
-            }
-        }
-
-        foreach (KeyValuePair<string, LobbyMessage> item in Handlers)
-        {
-            if (path == item.Key)
-            {
-                handler = item.Value;
-            }
-        }
-
-        if (handler == null)
-        {
-            Logging.WriteLine($"[LobbyHandler] No handler for: {path}", LogType.Error);
-            //ctx.Response.StatusCode = 404;
-
-            // to prevent "reloading" of the game for now, return empty response
-            // this may cause more problems later on
-
-            await new EmptyHandler().HandleAsync(ctx);
-        }
-        else
-        {
-            await handler.HandleAsync(ctx);
-            return;
-        }
-    }
-
     /// <summary>
     /// Private key, Token
     /// </summary>
@@ -130,11 +46,6 @@ public static class LobbyHandler
         return JsonSerializer.Deserialize<GameClientInfo>(p ?? throw new Exception("data cannot be null"));
     }
 
-    public static void Init()
-    {
-        // By calling this function, we force .NET to initialize handler dictanary to catch errors early on.
-    }
-
     public static NetUserData CreateNetUserDataFromUser(User user)
     {
         var gameUser = UserDbHelper.GetOrCreateGameUser(user.ID);
@@ -146,25 +57,30 @@ public static class LobbyHandler
             Frame = gameUser.ProfileFrame,
             Icon = gameUser.ProfileIconId,
             IconPrism = gameUser.ProfileIconIsPrism,
-            InfraCoreExp = user.InfraCoreExp,
-            InfraCoreLv = user.InfraCoreLvl,
             Desc = gameUser.Description
         };
 
-
-        // Restore completed tutorials.
-        foreach (KeyValuePair<int, ClearedTutorialData> item in user.ClearedTutorialDataNew)
+        using (var ctx = GameContext.CreateNew())
         {
-            ret.Tutorials.Add(new NetTutorialData()
+            var progressRepo = new Repositories.ProgressRepository(ctx);
+            foreach (KeyValuePair<int, ClearedTutorialData> item in progressRepo.GetClearedTutorials(user.ID))
             {
-                GroupId = item.Key,
-                LastClearedTid = item.Value.Id,
-                LastClearedVersion = item.Value.VersionGroup
-            });
-        }
+                ret.Tutorials.Add(new NetTutorialData()
+                {
+                    GroupId = item.Key,
+                    LastClearedTid = item.Value.Id,
+                    LastClearedVersion = item.Value.VersionGroup
+                });
+            }
 
-        ret.CounselCount = user.ResetableData.DailyCounselCount[1];
-        ret.OutpostFastBattleCount = user.ResetableData.WipeoutCount;        
+            var resetRepo = new Repositories.ResetRepository(ctx);
+            var outpostRepo = new Repositories.OutpostRepository(ctx);
+            var (infraCoreExp, infraCoreLvl) = outpostRepo.GetInfraCore(user.ID);
+            ret.InfraCoreExp = infraCoreExp;
+            ret.InfraCoreLv = infraCoreLvl;
+            ret.CounselCount = resetRepo.GetDailyCounselCount(user.ID, 1, 3);
+            ret.OutpostFastBattleCount = resetRepo.GetWipeoutCount(user.ID);
+        }
         return ret;
     }
     public static NetWholeUserData CreateWholeUserDataFromDbUser(User user)
@@ -191,16 +107,15 @@ public static class LobbyHandler
     {
         using var ctx2 = GameContext.CreateNew();
         var userDB = UserDbHelper.GetOrCreateGameUser(ctx2, id);
-        var user = UserSessionStore.GetUser(id);
         NetWholeUserData ret = new()
         {
-            Lv = user.userPointData.UserLevel,
+            Lv = userDB.UserLevel,
             Frame = userDB.ProfileFrame,
             Icon = userDB.ProfileIconId,
             IconPrism = userDB.ProfileIconIsPrism,
             UserTitleId = userDB.TitleId,
             Nickname = userDB.Nickname,
-            Usn = (long)user.ID,
+            Usn = (long)id,
             LastActionAt = DateTimeOffset.UtcNow.Ticks,
             Server = 1001
         };

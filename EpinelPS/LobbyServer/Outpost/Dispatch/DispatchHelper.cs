@@ -1,4 +1,5 @@
 ﻿using EpinelPS.Data;
+using EpinelPS.Repositories;
 
 namespace EpinelPS.LobbyServer.Outpost.Dispatch;
 
@@ -7,15 +8,14 @@ public class DispatchHelper
     public static T SelectItemByProbability<T>(List<T> items, Func<T, double> probabilitySelector)
     {
         if (!items.Any())
-            return default;
+            return default!;
 
         double totalProb = items.Sum(probabilitySelector);
 
         if (totalProb <= 0)
-            return default;
+            return default!;
 
-        Random random = new Random();
-        double randomValue = random.NextDouble() * totalProb;
+        double randomValue = Random.Shared.NextDouble() * totalProb;
 
         double cumulativeProb = 0;
 
@@ -32,9 +32,9 @@ public class DispatchHelper
         return items.Last();
     }
 
-    public static void SyncDispatchLevel(User user)
+    public static void SyncDispatchLevel(ulong userId, OutpostRepository repo)
     {
-        var completed = user.CompletedTacticAcademyLessons;
+        var completed = repo.GetCompletedTacticAcademyLessons(userId);
         int count = 0;
         foreach (var lid in completed)
         {
@@ -42,13 +42,16 @@ public class DispatchHelper
             if (lesson != null && lesson.LessonType == LessonType.Dispatch)
                 count++;
         }
+
         int newLv = Math.Max(1, count);
-        if (newLv != user.DispatchLv)
+        var state = repo.GetDispatchState(userId);
+        if (newLv != state.DispatchLv)
         {
-            user.DispatchLv = newLv;
-            user.DispatchCollectionLv = newLv;
-            user.DispatchFavoriteLv = newLv;
-            user.UserDispatchData.Today = 0;
+            state.DispatchLv = newLv;
+            state.DispatchCollectionLv = newLv;
+            state.DispatchFavoriteLv = newLv;
+            state.Today = 0;
+            repo.SaveDispatchState(userId, state);
         }
     }
 }

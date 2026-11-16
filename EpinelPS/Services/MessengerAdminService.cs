@@ -1,18 +1,21 @@
 using EpinelPS.Data;
+using EpinelPS.Database;
 using EpinelPS.LobbyServer.Messenger;
 using EpinelPS.Models.Admin;
+using EpinelPS.Repositories;
 
 namespace EpinelPS.Services;
 
-public class MessengerAdminService
+public class MessengerAdminService(SocialMailRepository repo, GameContext db)
 {
     public MessengerManagementModel BuildModel(User user)
     {
-        Dictionary<string, int> conversationCounts = user.MessengerData
+        List<NetMessage> userMessages = repo.GetMessages(user.ID);
+        Dictionary<string, int> conversationCounts = userMessages
             .GroupBy(message => message.ConversationId)
             .ToDictionary(group => group.Key, group => group.Count());
 
-        List<MessengerMessageModel> messages = user.MessengerData
+        List<MessengerMessageModel> messages = userMessages
             .OrderByDescending(message => message.Seq)
             .Select(message => Describe(user, message, conversationCounts[message.ConversationId]))
             .ToList();
@@ -24,13 +27,13 @@ public class MessengerAdminService
             ConversationCount = conversationCounts.Count,
             RoomCount = messages.Where(message => !string.IsNullOrEmpty(message.RoomId)).Select(message => message.RoomId).Distinct().Count(),
             Messages = messages,
-            History = user.MessengerRepairHistory.OrderByDescending(entry => entry.CreatedAtUtc).ToList()
+            History = repo.GetRepairHistory(user.ID)
         };
     }
 
     public MessengerMessageModel Describe(User user, NetMessage message)
     {
-        int count = user.MessengerData.Count(item => item.ConversationId == message.ConversationId);
+        int count = repo.GetMessages(user.ID).Count(item => item.ConversationId == message.ConversationId);
         return Describe(user, message, count);
     }
 
@@ -43,14 +46,15 @@ public class MessengerAdminService
             return false;
         }
 
-        if (user.MessengerData.Any(message => message.MessageId == dialog.Id))
+        if (repo.HasMessageId(user.ID, dialog.Id ?? ""))
         {
             error = "This dialog message already exists for the user.";
             return false;
         }
 
-        NetMessage message = user.CreateMessage(dialog, input.State);
-        AddAudit(user, "Created", message, "Created manually from MessengerDialogTable. No trigger was added.");
+        NetMessage message = repo.CreateMessage(user.ID, dialog.ConversationId ?? "", dialog.Id ?? "", input.State);
+        repo.AddRepairAuditEntry(user.ID, "Created", message, "Created manually from MessengerDialogTable. No trigger was added.");
+        db.SaveChanges();
         return true;
     }
 
@@ -63,60 +67,69 @@ public class MessengerAdminService
             return false;
         }
 
-        NetMessage? message = user.MessengerData.FirstOrDefault(item => item.Seq == input.Seq);
-        if (message == null)
+        var entity = repo.GetTrackedMessageBySeq(user.ID, input.Seq);
+        if (entity == null)
         {
             error = "The message no longer exists.";
             return false;
         }
 
-        AddAudit(user, "State updated", message, $"State changed from {message.State} to {input.State}.");
-        message.State = input.State;
+        var snapshot = SocialMailRepository.MapToNetMessage(entity);
+        repo.AddRepairAuditEntry(user.ID, "State updated", snapshot, $"State changed from {entity.State} to {input.State}.");
+        entity.State = input.State;
+        db.SaveChanges();
         return true;
     }
 
     public bool TryDelete(User user, long seq, out string error)
     {
         error = "";
-        NetMessage? message = user.MessengerData.FirstOrDefault(item => item.Seq == seq);
-        if (message == null)
+        var entity = repo.GetTrackedMessageBySeq(user.ID, seq);
+        if (entity == null)
         {
             error = "The message no longer exists.";
             return false;
         }
 
-        MessengerMessageModel description = Describe(user, message);
+        var snapshot = SocialMailRepository.MapToNetMessage(entity);
+        MessengerMessageModel description = Describe(user, snapshot);
         if (!description.CanSafelyDelete)
         {
             error = "Only a lone opener in a currently locked room can be removed here. This record needs manual investigation.";
             return false;
         }
 
-        AddAudit(user, "Deleted", message, description.Status);
-        user.MessengerData.Remove(message);
+        repo.AddRepairAuditEntry(user.ID, "Deleted", snapshot, description.Status);
+        repo.RemoveMessage(entity);
+        db.SaveChanges();
         return true;
     }
 
     public bool TryRestore(User user, string auditId, out string error)
     {
         error = "";
-        MessengerRepairAuditEntry? entry = user.MessengerRepairHistory.FirstOrDefault(item => item.Id == auditId && item.Action == "Deleted");
+        MessengerRepairAuditEntry? entry = repo.GetRepairAuditEntry(user.ID, auditId, "Deleted");
         if (entry == null)
         {
             error = "The deleted-message audit record was not found.";
             return false;
         }
 
-        if (user.MessengerData.Any(message => message.Seq == entry.Message.Seq))
+        if (repo.HasMessageSeq(user.ID, entry.Message.Seq))
         {
             error = "A message with this sequence number already exists.";
             return false;
         }
 
-        NetMessage restored = entry.Message.Clone();
-        user.MessengerData.Add(restored);
-        Database.UserDbHelper.UpdateGameUser(user.ID, u => u.LastMessageId = Math.Max(u.LastMessageId, restored.Seq + 1));
-        AddAudit(user, "Restored", restored, $"Restored deleted audit entry {entry.Id}.");
+        NetMessage restored = repo.CreateMessage(
+            user.ID,
+            entry.Message.ConversationId ?? "",
+            entry.Message.MessageId ?? "",
+            entry.Message.State,
+            explicitSeq: entry.Message.Seq,
+            explicitCreatedAt: entry.Message.CreatedAt);
+        repo.AddRepairAuditEntry(user.ID, "Restored", restored, $"Restored deleted audit entry {entry.Id}.");
+        db.SaveChanges();
         return true;
     }
 
@@ -164,15 +177,5 @@ public class MessengerAdminService
             CanSafelyDelete = canSafelyDelete,
             Status = status
         };
-    }
-
-    private static void AddAudit(User user, string action, NetMessage message, string note)
-    {
-        user.MessengerRepairHistory.Add(new MessengerRepairAuditEntry
-        {
-            Action = action,
-            Note = note,
-            Message = message.Clone()
-        });
     }
 }

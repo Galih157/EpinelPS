@@ -216,7 +216,8 @@ public class EventHelper
     /// <returns>List of active lobby private banners</returns>
     public static List<LobbyPrivateBannerRecord> GetLobbyPrivateBannerData(User user)
     {
-        var lobbyPrivateBannerIds = user.LobbyPrivateBannerIds;
+        using var ctx = GameContext.CreateNew();
+        var lobbyPrivateBannerIds = new Repositories.CosmeticsRepository(ctx).GetLobbyPrivateBannerIds(user.ID);
         var lobbyPrivateBannerRecords = GameData.Instance.LobbyPrivateBannerTable.Values;
         List<LobbyPrivateBannerRecord> lobbyPrivateBanners = [];
 

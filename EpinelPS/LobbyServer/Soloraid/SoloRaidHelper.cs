@@ -1,5 +1,6 @@
 using EpinelPS.Data;
 using EpinelPS.Database;
+using EpinelPS.Repositories;
 using EpinelPS.Utils;
 using Google.Protobuf.Collections;
 using log4net;
@@ -14,7 +15,7 @@ public class SoloRaidHelper
     /// <summary>
     /// Open a solo raid
     /// </summary>
-    public static int OpenSoloRaid(User user, int raidId, int raidLevel, SoloRaidType type = SoloRaidType.Normal)
+    public static int OpenSoloRaid(User user, int raidId, int raidLevel, SoloRaidRepository repo, SoloRaidType type = SoloRaidType.Normal)
     {
         if (raidId == 0) raidId = GetRaidId();
 
@@ -37,7 +38,7 @@ public class SoloRaidHelper
 
         var levelHp = statEnhance.Sum(m => m.LevelHp); // Monster level hp = statEnhance.Sum(m => m.LevelHp)
 
-        var raid = GetSoloRaidData(user, raidId, isAdd: true);
+        var raid = GetSoloRaidData(user, raidId, repo, isAdd: true)!;
         switch (type)
         {
             case SoloRaidType.Normal:
@@ -70,16 +71,18 @@ public class SoloRaidHelper
         };
         raid.SoloRaidLevels.Add(level);
 
-        user.SoloRaidData[raidId] = raid;
+        repo.SaveSoloRaid(user.ID, raidId, raid);
         return type == SoloRaidType.Trial ? raid.TrialCount : raid.RaidOpenCount;
     }
 
-    public static void CloseSoloRaid(User user, int raidId, int raidLevel, SoloRaidType type = SoloRaidType.Normal)
+    public static void CloseSoloRaid(User user, int raidId, int raidLevel, SoloRaidRepository repo, SoloRaidType type = SoloRaidType.Normal)
     {
         Logging.WriteLine($"CloseSoloRaid: raidId: {raidId}, raidLevel: {raidLevel}, type: {type}");
         if (raidId == 0) raidId = GetRaidId();
 
-        var raid = GetSoloRaidData(user, raidId, isAdd: false);
+        var raid = GetSoloRaidData(user, raidId, repo, isAdd: false);
+        if (raid is null) return;
+
         // Reset the raid data
         if (type == SoloRaidType.Normal) raid.RaidOpenCount--; // If the raid is a normal raid, decrement the raid open count
         if (raid.RaidOpenCount < 0) raid.RaidOpenCount = 0; // If the raid open count is less than 0, set it to 0
@@ -106,14 +109,14 @@ public class SoloRaidHelper
                 raid.SoloRaidLevels.Add(level);
             }
         }
-        user.SoloRaidData[raidId] = raid;
-        UserSessionStore.SaveAll();
+
+        repo.SaveSoloRaid(user.ID, raidId, raid);
     }
 
     /// <summary>
     /// Gets the user solo raid info
     /// </summary>
-    public static NetUserSoloRaidInfo GetUserSoloRaidInfo(User user)
+    public static NetUserSoloRaidInfo GetUserSoloRaidInfo(User user, SoloRaidRepository repo)
     {
         int SoloRaidManagerTid = GetRaidId();
         NetUserSoloRaidInfo info = new()
@@ -124,11 +127,11 @@ public class SoloRaidHelper
             Period = GetSoloRaidPeriod(),
         };
 
-        var raidData = GetSoloRaidData(user, SoloRaidManagerTid);
+        var raidData = GetSoloRaidData(user, SoloRaidManagerTid, repo);
         if (raidData is null) return info;
         info.RaidOpenCount = raidData.RaidOpenCount;
 
-        int lastClearLevel = GetLastClearLevelId(user, SoloRaidManagerTid);
+        int lastClearLevel = GetLastClearLevelId(raidData);
         info.LastClearLevel = lastClearLevel;
 
         var openLevelData = raidData.SoloRaidLevels.Where(r => r.IsOpen).OrderBy(x => x.RaidLevel).FirstOrDefault();
@@ -143,13 +146,15 @@ public class SoloRaidHelper
         return info;
     }
 
-    public static void SetDamage(User user, ref ResSetSoloRaidDamage response, ReqSetSoloRaidDamage req)
+    public static void SetDamage(User user, ref ResSetSoloRaidDamage response, ReqSetSoloRaidDamage req, SoloRaidRepository repo)
     {
         (int rewardId, int FirstRewardId, var levelData) =
-            SetDamage(user, req.RaidLevel, req.Damage, req.AntiCheatBattleData.WaveId, req.AntiCheatBattleData.Characters);
+            SetDamage(user, req.RaidLevel, req.Damage, req.AntiCheatBattleData.WaveId, req.AntiCheatBattleData.Characters, repo);
 
         if (rewardId > 0) response.Reward = RewardUtils.RegisterRewardsForUser(user, rewardId);
         if (FirstRewardId > 0) response.FirstClearReward = RewardUtils.RegisterRewardsForUser(user, FirstRewardId);
+        if (rewardId > 0 || FirstRewardId > 0)
+            UserSessionStore.SaveUser(user);
 
         response.Info = new NetNormalSoloRaid
         {
@@ -163,10 +168,10 @@ public class SoloRaidHelper
         response.JoinData = GetJoinData(levelData);
     }
 
-    public static void SetDamagePractice(User user, ref ResSetSoloRaidPracticeDamage response, ReqSetSoloRaidPracticeDamage req)
+    public static void SetDamagePractice(User user, ref ResSetSoloRaidPracticeDamage response, ReqSetSoloRaidPracticeDamage req, SoloRaidRepository repo)
     {
         (_, _, var levelData) =
-            SetDamage(user, req.RaidLevel, req.Damage, req.AntiCheatBattleData.WaveId, req.AntiCheatBattleData.Characters, SoloRaidType.Practice);
+            SetDamage(user, req.RaidLevel, req.Damage, req.AntiCheatBattleData.WaveId, req.AntiCheatBattleData.Characters, repo, SoloRaidType.Practice);
 
         response.Info = new NetPracticeSoloRaid
         {
@@ -180,10 +185,10 @@ public class SoloRaidHelper
         response.JoinData = GetJoinData(levelData);
     }
 
-    public static void SetDamageTrial(User user, ref ResSetSoloRaidTrialDamage response, ReqSetSoloRaidTrialDamage req)
+    public static void SetDamageTrial(User user, ref ResSetSoloRaidTrialDamage response, ReqSetSoloRaidTrialDamage req, SoloRaidRepository repo)
     {
         (_, _, var levelData) =
-            SetDamage(user, req.RaidLevel, req.Damage, req.AntiCheatBattleData.WaveId, req.AntiCheatBattleData.Characters, SoloRaidType.Trial);
+            SetDamage(user, req.RaidLevel, req.Damage, req.AntiCheatBattleData.WaveId, req.AntiCheatBattleData.Characters, repo, SoloRaidType.Trial);
 
         response.Info = new NetTrialSoloRaid
         {
@@ -197,12 +202,13 @@ public class SoloRaidHelper
         response.JoinData = GetJoinData(levelData);
     }
 
-    public static void GetLevelInfo(User user, ref ResGetLevelSoloRaid response, int raidLevel)
+    public static void GetLevelInfo(User user, ref ResGetLevelSoloRaid response, int raidLevel, SoloRaidRepository repo)
     {
         int raidId = GetRaidId();
 
         response.PeriodResult = SoloRaidPeriodResult.Success;
-        var raidData = GetSoloRaidData(user, raidId, isAdd: false);
+        var raidData = GetSoloRaidData(user, raidId, repo, isAdd: false);
+        if (raidData is null) return;
         var levelData = GetSoloRaidLevelData(raidData, raidLevel, SoloRaidType.Normal, true);
         if (levelData is null) return;
 
@@ -215,12 +221,13 @@ public class SoloRaidHelper
         response.JoinData = GetJoinData(levelData);
     }
 
-    public static void GetLevelPracticeInfo(User user, ref ResGetLevelPracticeSoloRaid response, int raidLevel)
+    public static void GetLevelPracticeInfo(User user, ref ResGetLevelPracticeSoloRaid response, int raidLevel, SoloRaidRepository repo)
     {
         int raidId = GetRaidId();
 
         response.PeriodResult = SoloRaidPeriodResult.Success;
-        var raidData = GetSoloRaidData(user, raidId, isAdd: false);
+        var raidData = GetSoloRaidData(user, raidId, repo, isAdd: false);
+        if (raidData is null) return;
         var levelData = GetSoloRaidLevelData(raidData, raidLevel, SoloRaidType.Practice, true);
         if (levelData is null) return;
 
@@ -234,12 +241,13 @@ public class SoloRaidHelper
         response.JoinData = GetJoinData(levelData);
     }
 
-    public static void GetLevelTrialInfo(User user, ref ResGetLevelTrialSoloRaid response, int raidLevel)
+    public static void GetLevelTrialInfo(User user, ref ResGetLevelTrialSoloRaid response, int raidLevel, SoloRaidRepository repo)
     {
         int raidId = GetRaidId();
 
         response.PeriodResult = SoloRaidPeriodResult.Success;
-        var raidData = GetSoloRaidData(user, raidId, isAdd: false);
+        var raidData = GetSoloRaidData(user, raidId, repo, isAdd: false);
+        if (raidData is null) return;
         var levelData = GetSoloRaidLevelData(raidData, raidLevel, SoloRaidType.Trial, true);
         if (levelData is null) return;
 
@@ -253,25 +261,12 @@ public class SoloRaidHelper
         response.JoinData = GetJoinData(levelData);
     }
 
-    public static void GetSoloRaidLog(User user, ref ResGetSoloRaidLogs response, int raidId, int raidLevel)
+    public static void GetSoloRaidLog(User user, ref ResGetSoloRaidLogs response, int raidId, int raidLevel, SoloRaidRepository repo)
     {
-        // ResGetSoloRaidLogs Fields:
-        //  RepeatedField<NetSoloRaidLog> Logs
-        //  SoloRaidBanResult BanResult
-        //  RepeatedField<NetSoloRaidLog> PracticeLogs
-        // NetSoloRaidLog Fields:
-        //  long Damage
-        //  RepeatedField<NetSoloRaidTeamCharacter> Team
-        //  bool Kill
-        // NetSoloRaidTeamCharacter Fields:
-        //  int Slot
-        //  int Tid
-        //  int Lv
-        //  int Combat
-        //  int CostumeId
-
         if (raidId == 0) raidId = GetRaidId();
-        var raidData = GetSoloRaidData(user, raidId);
+        var raidData = GetSoloRaidData(user, raidId, repo);
+        if (raidData is null) return;
+
         var levelData = GetSoloRaidLevelData(raidData, raidLevel, SoloRaidType.Normal);
         if (levelData is not null && levelData.Logs.Count > 0)
         {
@@ -295,26 +290,12 @@ public class SoloRaidHelper
         }
     }
 
-    public static void GetSoloRaidRanking(User user, ref ResGetSoloRaidRanking response)
+    public static void FastBattle(User user, ref ResFastBattleSoloRaid response, int raidId, int raidLevel, int clearCount, SoloRaidRepository repo)
     {
-        // ResGetSoloRaidRanking Fields:
-        //  RepeatedField<NetSoloRaidRankingData> Rankings
-        //  NetSoloRaidRankingData User
-        //  long TotalUserCount
-        //  SoloRaidBanResult BanResult
-        // NetSoloRaidRankingData Fields:
-        //  long Ranking
-        //  long Damage
-        //  NetWholeUserData User
-        //  long ReportBattleId
-        //  Google.Protobuf.WellKnownTypes.Timestamp ReportBattleDate
-        //  
-    }
-    public static void FastBattle(User user, ref ResFastBattleSoloRaid response, int raidId, int raidLevel, int clearCount)
-    {
-        var raidData = GetSoloRaidData(user, raidId, isAdd: true);
+        var raidData = GetSoloRaidData(user, raidId, repo, isAdd: true)!;
         raidData.RaidOpenCount += clearCount;
-        user.SoloRaidData[raidId] = raidData;
+        repo.SaveSoloRaid(user.ID, raidId, raidData);
+
         response.PeriodResult = SoloRaidPeriodResult.Success;
         if (GameData.Instance.SoloRaidManagerTable.TryGetValue(raidId, out var manager))
         {
@@ -329,23 +310,21 @@ public class SoloRaidHelper
                     reward.MergeFrom(newReward);
                 }
                 response.Reward = reward;
+                UserSessionStore.SaveUser(user);
             }
         }
         response.RaidOpenCount = raidData.RaidOpenCount;
-
-        UserSessionStore.SaveAll();
     }
-
 
     public static (int rewardId, int FirstRewardId, SoloRaidLevelData levelData)
         SetDamage(User user, int raidLevel, long damage, int waveId,
-            RepeatedField<NetAntiCheatCharacter> characters, SoloRaidType type = SoloRaidType.Normal)
+            RepeatedField<NetAntiCheatCharacter> characters, SoloRaidRepository repo, SoloRaidType type = SoloRaidType.Normal)
     {
         int rewardId = 0;
         int FirstRewardId = 0;
         int raidId = GetRaidId();
 
-        var raidData = GetSoloRaidData(user, raidId, isAdd: true);
+        var raidData = GetSoloRaidData(user, raidId, repo, isAdd: true)!;
         var levelData = GetSoloRaidLevelData(raidData, raidLevel, type, isOpen: true);
         var oldLevel = GetSoloRaidLevelData(raidData, raidLevel, type, isOpen: false);
 
@@ -427,7 +406,7 @@ public class SoloRaidHelper
         {
             raidData.SoloRaidLevels.Add(levelData);
         }
-        user.SoloRaidData[raidId] = raidData;
+        repo.SaveSoloRaid(user.ID, raidId, raidData);
 
         return (rewardId, FirstRewardId, levelData);
     }
@@ -447,28 +426,24 @@ public class SoloRaidHelper
     /// <summary>
     /// Gets the solo raid data for the user
     /// </summary>
-    public static SoloRaidInfo? GetSoloRaidData(User user, int raidId, bool isAdd = false)
+    public static SoloRaidInfo? GetSoloRaidData(User user, int raidId, SoloRaidRepository repo, bool isAdd = false)
     {
-        // Get the solo raid data for the raidId, if not found, isAdd is true, create a new one
-        if (!user.SoloRaidData.TryGetValue(raidId, out var raidData))
+        var raidData = repo.GetSoloRaid(user.ID, raidId);
+        if (raidData is null)
         {
-            raidData = new() { RaidId = raidId, LastDateDay = user.GetDateDay() };
-            if (isAdd) user.SoloRaidData.TryAdd(raidId, raidData);
-            return isAdd ? raidData : null;
+            return isAdd ? new SoloRaidInfo { RaidId = raidId, LastDateDay = user.GetDateDay() } : null;
         }
 
-        ResetOpenCount(user, ref raidData);
+        if (ResetOpenCount(user, raidData))
+            repo.SaveSoloRaid(user.ID, raidId, raidData);
+
         return raidData;
     }
 
-    /// <summary>
-    /// Gets the last clear level id 
-    /// </summary>
-    public static int GetLastClearLevelId(User user, int raidId)
+    private static int GetLastClearLevelId(SoloRaidInfo raidData)
     {
-        var raidData = GetSoloRaidData(user, raidId, isAdd: false);
-        if (raidData is null || !raidData.SoloRaidLevels.Where(r => r.IsClear && r.Type == SoloRaidType.Normal).Any()) return 0;
-        return raidData.SoloRaidLevels.Where(r => r.IsClear && r.Type == SoloRaidType.Normal).Max(r => r.RaidLevel);
+        var cleared = raidData.SoloRaidLevels.Where(r => r.IsClear && r.Type == SoloRaidType.Normal);
+        return cleared.Any() ? cleared.Max(r => r.RaidLevel) : 0;
     }
 
     public static SoloRaidLevelData? GetSoloRaidLevelData(SoloRaidInfo raidData, int raidLevel, SoloRaidType type, bool isOpen = false)
@@ -476,15 +451,15 @@ public class SoloRaidHelper
         return raidData.SoloRaidLevels.FirstOrDefault(r => r.RaidLevel == raidLevel && r.Type == type && r.IsOpen == isOpen);
     }
 
-    public static void ResetOpenCount(User user, ref SoloRaidInfo? raidData)
+    public static bool ResetOpenCount(User user, SoloRaidInfo raidData)
     {
-        if (raidData is null) return;
         int newDateDay = user.GetDateDay();
-        if (newDateDay <= raidData.LastDateDay) return;
+        if (newDateDay <= raidData.LastDateDay) return false;
         Logging.WriteLine($"Reset OpenCount: LastDateDay: {raidData.LastDateDay}, NewDateDay: {newDateDay}, Old: {raidData.RaidOpenCount}, New: 0 ", LogType.Warning);
         raidData.LastDateDay = newDateDay;
         raidData.RaidOpenCount = 0;
         raidData.TrialCount = 0;
+        return true;
     }
 
     /// <summary>

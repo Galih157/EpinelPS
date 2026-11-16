@@ -1,5 +1,6 @@
 using EpinelPS.Data;
 using EpinelPS.Database;
+using EpinelPS.Repositories;
 using EpinelPS.Utils;
 using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
@@ -12,7 +13,13 @@ public static class AzxHelper
 {
     private static readonly ILog log = LogManager.GetLogger(typeof(AzxHelper));
 
-    public static void AcquireReward(User user, ref NetRewardData reward, int azxId, RepeatedField<int> missionIds)
+    public static void AcquireReward(
+        User user,
+        MinigameRepository repo,
+        GameContext db,
+        ref NetRewardData reward,
+        int azxId,
+        RepeatedField<int> missionIds)
     {
         log.Debug($"Acquiring reward for user {user.ID}, azxId: {azxId}, missionIds: {JsonConvert.SerializeObject(missionIds)}");
         if (missionIds.Count == 0 || azxId == 0) return;
@@ -21,6 +28,7 @@ public static class AzxHelper
             var missions = GameData.Instance.EventAZXAppleGameMissionTable.Values.Where(x =>
                 x.MissionRewardId > 0 && missionIds.Contains(x.Id)).ToList();
             if (missions.Count == 0) return;
+
             List<Reward_Data> rewardDatas = [];
             foreach (var mission in missions)
             {
@@ -36,17 +44,23 @@ public static class AzxHelper
                         rewardDatas.Add(rewardItem);
                 }
             }
+
             foreach (var rewardData in rewardDatas)
             {
                 RewardUtils.AddSingleObject(user, ref reward, rewardData.RewardId, rewardData.RewardType, rewardData.RewardValue);
             }
 
-            var azxInfo = GetAzxInfo(user, azxId);
+            var azxInfo = GetAzxInfo(user.ID, azxId, repo);
             azxInfo.AchievementMissionDataList.AddRange(missionIds.Select(x =>
                 new AchievementMissionData() { MissionId = x, IsReceived = true }));
 
-            user.MiniGameAzxInfo[azxId] = azxInfo;
-            UserSessionStore.SaveAll();
+            repo.SaveDictEntry(user.ID, MinigameRepository.TypeMiniGameAzx, azxId, azxInfo);
+            db.SaveChanges();
+
+            if (rewardDatas.Count > 0)
+            {
+                UserSessionStore.SaveUser(user);
+            }
         }
         catch (Exception ex)
         {
@@ -54,21 +68,10 @@ public static class AzxHelper
         }
     }
 
-    public static void GetRanking(User user, int azxId, ref ResGetMiniGameAzxRanking response)
+    public static void GetRanking(ulong userId, int azxId, MinigameRepository repo, ref ResGetMiniGameAzxRanking response)
     {
-        // ResGetMiniGameAzxRanking Fields
-        //  NetMiniGameAzxRankingData UserGuildRanking
-        //  RepeatedField<NetMiniGameAzxRankingData> GuildRankingList
-        // NetMiniGameAzxRankingData Fields
-        //  int Rank
-        //  NetMiniGameAzxScoreAndTime ScoreAndTime
-        //  NetWholeUserData User
-        //  NetMiniGameAzxScoreAndTime Fields
-        //      int Score
-        //      Google.Protobuf.WellKnownTypes.Duration TimeToScore
-
         int dateDay = GetDateDay();
-        var azxInfo = GetAzxInfo(user, azxId);
+        var azxInfo = GetAzxInfo(userId, azxId, repo);
         var scoreData = azxInfo.ScoreDatas.Find(x => x.DateDay == dateDay && x.AzxId == azxId);
         int score = scoreData?.HighScore ?? 0;
         Duration timeToScore = scoreData?.HighScoreTime ?? new Duration() { Seconds = 0, Nanos = 0 };
@@ -81,7 +84,7 @@ public static class AzxHelper
                 Score = score,
                 TimeToScore = timeToScore
             },
-            User = LobbyHandler.CreateWholeUserDataFromDbUser(user.ID)
+            User = LobbyHandler.CreateWholeUserDataFromDbUser(userId)
         };
         response.GuildRankingList.Add(new NetMiniGameAzxRankingData()
         {
@@ -91,27 +94,17 @@ public static class AzxHelper
                 Score = 80000,
                 TimeToScore = new Duration() { Seconds = 118, Nanos = 432877000 }
             },
-            User = LobbyHandler.CreateWholeUserDataFromDbUser(user.ID)
+            User = LobbyHandler.CreateWholeUserDataFromDbUser(userId)
         });
-
-        UserSessionStore.SaveAll();
     }
 
-    public static void FinishAzx(User user, ReqFinishMiniGameAzx req, ref ResFinishMiniGameAzx response)
+    public static void FinishAzx(
+        User user,
+        MinigameRepository repo,
+        GameContext db,
+        ReqFinishMiniGameAzx req,
+        ref ResFinishMiniGameAzx response)
     {
-        // ReqEnterMiniGameAzx Fields
-        //  int AzxId
-        //  NetMiniGameAzxScoreAndTime ScoreAndTime
-        //  int PlayBoardId
-        //  int PlayCharacterId
-        //  RepeatedField<NetSkillUseCountData> SkillUseCountList
-        //  int CutSceneId
-
-        // ResFinishMiniGameAzx Fields
-        //  NetRewardData Reward
-        //  NetMiniGameAzxDailyMissionData DailyMissionData
-        //  bool IsNewHighScore
-        //  bool IsNewHighScoreTime
         try
         {
             log.Debug($"Finishing AZX for user {user.ID}, data: {JsonConvert.SerializeObject(req)}");
@@ -122,8 +115,9 @@ public static class AzxHelper
 
             NetMiniGameAzxDailyMissionData dailyMissionData = new() { IsDailyRewarded = false, DailyAccumulatedScore = 0 };
             NetRewardData reward = new();
+            bool rewardGranted = false;
 
-            var azxInfo = GetAzxInfo(user, req.AzxId);
+            var azxInfo = GetAzxInfo(user.ID, req.AzxId, repo);
 
             if (req.CutSceneId > 0 && azxInfo.CutSceneDataList.Find(x => x.CutSceneId == req.CutSceneId) is null)
             {
@@ -138,6 +132,7 @@ public static class AzxHelper
                     azxInfo.ScoreDatas[scoreDataIndex].IsDailyRewarded = true;
                     dailyMissionData.IsDailyRewarded = true;
                     RewardUtils.AddSingleCurrencyObject(user, ref reward, CurrencyType.FreeCash, 30);
+                    rewardGranted = true;
                 }
                 azxInfo.ScoreDatas[scoreDataIndex].AccumulatedScore += score;
                 dailyMissionData.DailyAccumulatedScore = azxInfo.ScoreDatas[scoreDataIndex].AccumulatedScore;
@@ -146,7 +141,8 @@ public static class AzxHelper
                     response.IsNewHighScore = true;
                     azxInfo.ScoreDatas[scoreDataIndex].HighScore = score;
                 }
-                if (azxInfo.ScoreDatas[scoreDataIndex].HighScoreTime.ToTimeSpan() > timeToScore.ToTimeSpan())
+                Duration? existingTime = azxInfo.ScoreDatas[scoreDataIndex].HighScoreTime;
+                if (existingTime == null || existingTime.ToTimeSpan() > timeToScore.ToTimeSpan())
                 {
                     response.IsNewHighScoreTime = true;
                     azxInfo.ScoreDatas[scoreDataIndex].HighScoreTime = timeToScore;
@@ -160,6 +156,7 @@ public static class AzxHelper
                     isDailyRewarded = true;
                     dailyMissionData.IsDailyRewarded = true;
                     RewardUtils.AddSingleCurrencyObject(user, ref reward, CurrencyType.FreeCash, 30);
+                    rewardGranted = true;
                 }
                 response.IsNewHighScoreTime = true;
                 response.IsNewHighScore = true;
@@ -175,14 +172,12 @@ public static class AzxHelper
                 dailyMissionData.DailyAccumulatedScore = score;
             }
 
-            //  int PlayBoardId
-            //  int PlayCharacterId
             azxInfo.CharacterCount ??= [];
             if (azxInfo.CharacterCount.TryGetValue(req.PlayCharacterId, out var characterCount))
                 azxInfo.CharacterCount[req.PlayCharacterId] = characterCount + 1;
             else
                 azxInfo.CharacterCount.Add(req.PlayCharacterId, 1);
-            //  RepeatedField<NetSkillUseCountData> SkillUseCountList
+
             if (req.SkillUseCountList != null && req.SkillUseCountList.Count > 0)
             {
                 azxInfo.SkillCount ??= [];
@@ -197,9 +192,14 @@ public static class AzxHelper
 
             response.DailyMissionData = dailyMissionData;
             response.Reward = reward;
-            // Save changes
-            user.MiniGameAzxInfo[req.AzxId] = azxInfo;
-            UserSessionStore.SaveAll();
+
+            repo.SaveDictEntry(user.ID, MinigameRepository.TypeMiniGameAzx, req.AzxId, azxInfo);
+            db.SaveChanges();
+
+            if (rewardGranted)
+            {
+                UserSessionStore.SaveUser(user);
+            }
         }
         catch (Exception ex)
         {
@@ -207,15 +207,23 @@ public static class AzxHelper
         }
     }
 
-    public static void EnterAzx(User user, ref ResEnterMiniGameAzx response, int azxId, int playBoardId, int playCharacterId)
+    public static void EnterAzx(
+        ulong userId,
+        MinigameRepository repo,
+        GameContext db,
+        ref ResEnterMiniGameAzx response,
+        int azxId,
+        int playBoardId,
+        int playCharacterId)
     {
         log.Debug($"Entering AZX AzxId: {azxId}, PlayBoardId: {playBoardId}, PlayCharacterId: {playCharacterId}");
         try
         {
-            var azxInfo = GetAzxInfo(user, azxId);
+            var azxInfo = GetAzxInfo(userId, azxId, repo);
             azxInfo.SelectedBoardId = playBoardId;
             azxInfo.SelectedCharacterId = playCharacterId;
-            user.MiniGameAzxInfo[azxId] = azxInfo;
+            repo.SaveDictEntry(userId, MinigameRepository.TypeMiniGameAzx, azxId, azxInfo);
+            db.SaveChanges();
             response.PreviousSRankCount = 0;
         }
         catch (Exception ex)
@@ -224,20 +232,19 @@ public static class AzxHelper
         }
     }
 
-    public static void GetAzxData(User user, int azxId, ref ResGetMiniGameAzxData response)
+    public static void GetAzxData(ulong userId, int azxId, MinigameRepository repo, ref ResGetMiniGameAzxData response)
     {
-        log.Debug($"Getting AZX data for user {user.ID}");
+        log.Debug($"Getting AZX data for user {userId}");
 
-        var azxInfo = GetAzxInfo(user, azxId);
-        // Initialize score data if null
+        var azxInfo = GetAzxInfo(userId, azxId, repo);
         azxInfo.ScoreDatas ??= [];
-        // Get sum score
+        azxInfo.SkillCount ??= [];
+        azxInfo.CharacterCount ??= [];
         int sumScore = azxInfo.ScoreDatas.Sum(x => x.AccumulatedScore);
 
         log.Debug($"AZX data: {JsonConvert.SerializeObject(azxInfo)}");
         try
         {
-            // AchievementMissionDataList
             var missions = GameData.Instance.EventAZXAppleGameMissionTable.Values.ToList();
 
             foreach (var mission in missions)
@@ -275,7 +282,6 @@ public static class AzxHelper
 
         try
         {
-            // ConditionalBoardDataList
             azxInfo.ConditionalBoardDataList ??= [];
             var boards = GameData.Instance.EventAZXAppleGameBoardTable.Values.ToList();
             foreach (var board in boards)
@@ -290,7 +296,6 @@ public static class AzxHelper
                     IsUnlocked = isUnlocked
                 });
             }
-            // SelectedBoardId
             int selectedBoardId = azxInfo.SelectedBoardId > 0 ? azxInfo.SelectedBoardId : boards.Min(x => x.Id);
             response.SelectedBoardId = selectedBoardId;
         }
@@ -301,7 +306,6 @@ public static class AzxHelper
 
         try
         {
-            // ConditionalCharacterDataList
             azxInfo.ConditionalCharacterDataList ??= [];
             var characters = GameData.Instance.EventAZXAppleGameCharacterTable.Values.ToList();
             foreach (var character in characters)
@@ -316,7 +320,6 @@ public static class AzxHelper
                     IsUnlocked = isUnlocked
                 });
             }
-            // SelectedCharacterId
             int selectedCharacterId = azxInfo.SelectedCharacterId > 0 ? azxInfo.SelectedCharacterId : characters.Min(x => x.Id);
             response.SelectedCharacterId = selectedCharacterId;
         }
@@ -327,7 +330,6 @@ public static class AzxHelper
 
         try
         {
-            // ConditionalSkillDataList
             azxInfo.ConditionalSkillDataList ??= [];
             foreach (var skill in GameData.Instance.EventAZXAppleGameSkillTable.Values)
             {
@@ -365,7 +367,6 @@ public static class AzxHelper
 
         try
         {
-            // NetMiniGameAzxDailyMissionData DailyMissionData
             azxInfo.ScoreDatas ??= [];
             int dateDay = GetDateDay();
             var scoreData = azxInfo.ScoreDatas.Find(x => x.DateDay == dateDay && x.AzxId == azxId);
@@ -386,127 +387,101 @@ public static class AzxHelper
         response.IsTutorialConfirmed = azxInfo.IsTutorialConfirmed;
     }
 
-    public static void SetTutorialConfirmed(User user, int azxId)
+    public static void SetTutorialConfirmed(ulong userId, int azxId, MinigameRepository repo, GameContext db)
     {
         log.Debug($"Setting tutorial confirmed for AZX {azxId}");
-        try
+        UpdateAndSave(userId, azxId, repo, db, "Setting AZX tutorial confirmed failed", azxInfo =>
         {
-            var azxInfo = GetAzxInfo(user, azxId);
             azxInfo.IsTutorialConfirmed = true;
-            user.MiniGameAzxInfo[azxId] = azxInfo;
             log.Debug($"Tutorial data after: {azxInfo.IsTutorialConfirmed}");
-        }
-        catch (Exception ex)
-        {
-            Logging.WriteLine($"Setting AZX tutorial confirmed failed: {ex.Message}", LogType.Error);
-        }
+        });
     }
 
-    public static void SetBoardUnlocked(User user, int azxId, int boardId)
+    public static void SetBoardUnlocked(ulong userId, int azxId, int boardId, MinigameRepository repo, GameContext db)
     {
         log.Debug($"Setting board {boardId} unlocked for AZX {azxId}");
-        try
+        UpdateAndSave(userId, azxId, repo, db, "Setting AZX board unlocked failed", azxInfo =>
         {
-
-            var azxInfo = GetAzxInfo(user, azxId);
             azxInfo.ConditionalBoardDataList ??= [];
             log.Debug($"Board data before: {JsonConvert.SerializeObject(azxInfo.ConditionalBoardDataList)}");
             var itemIndex = azxInfo.ConditionalBoardDataList.FindIndex(x => x.BoardId == boardId);
             if (itemIndex >= 0)
-            {
                 azxInfo.ConditionalBoardDataList[itemIndex].IsUnlocked = true;
-            }
             else
-            {
                 azxInfo.ConditionalBoardDataList.Add(new ConditionalBoardData() { BoardId = boardId, IsUnlocked = true });
-            }
-            user.MiniGameAzxInfo[azxId] = azxInfo;
             log.Debug($"Board data after: {JsonConvert.SerializeObject(azxInfo.ConditionalBoardDataList)}");
-        }
-        catch (Exception ex)
-        {
-            Logging.WriteLine($"Setting AZX board unlocked failed: {ex.Message}", LogType.Error);
-        }
+        });
     }
 
-    public static void SetSkillUnlocked(User user, int azxId, int skillId)
+    public static void SetSkillUnlocked(ulong userId, int azxId, int skillId, MinigameRepository repo, GameContext db)
     {
         log.Debug($"Setting skill {skillId} unlocked for AZX {azxId}");
-        try
+        UpdateAndSave(userId, azxId, repo, db, "Setting AZX skill unlocked failed", azxInfo =>
         {
-            var azxInfo = GetAzxInfo(user, azxId);
             azxInfo.ConditionalSkillDataList ??= [];
             log.Debug($"Skill data before: {JsonConvert.SerializeObject(azxInfo.ConditionalSkillDataList)}");
             var itemIndex = azxInfo.ConditionalSkillDataList.FindIndex(x => x.SkillId == skillId);
             if (itemIndex >= 0)
-            {
                 azxInfo.ConditionalSkillDataList[itemIndex].IsUnlocked = true;
-            }
             else
-            {
                 azxInfo.ConditionalSkillDataList.Add(new ConditionalSkillData() { SkillId = skillId, IsUnlocked = true });
-            }
-            user.MiniGameAzxInfo[azxId] = azxInfo;
             log.Debug($"Skill data after: {JsonConvert.SerializeObject(azxInfo.ConditionalSkillDataList)}");
-        }
-        catch (Exception ex)
-        {
-            Logging.WriteLine($"Setting AZX skill unlocked failed: {ex.Message}", LogType.Error);
-        }
+        });
     }
 
-    public static void SetCharacterUnlocked(User user, int azxId, int characterId)
+    public static void SetCharacterUnlocked(ulong userId, int azxId, int characterId, MinigameRepository repo, GameContext db)
     {
         log.Debug($"Setting character {characterId} unlocked for AZX {azxId}");
-        try
+        UpdateAndSave(userId, azxId, repo, db, "Setting AZX character unlocked failed", azxInfo =>
         {
-            var azxInfo = GetAzxInfo(user, azxId);
             azxInfo.ConditionalCharacterDataList ??= [];
             log.Debug($"Character data before: {JsonConvert.SerializeObject(azxInfo.ConditionalCharacterDataList)}");
             var itemIndex = azxInfo.ConditionalCharacterDataList.FindIndex(x => x.CharacterId == characterId);
             if (itemIndex >= 0)
-            {
                 azxInfo.ConditionalCharacterDataList[itemIndex].IsUnlocked = true;
-            }
             else
-            {
                 azxInfo.ConditionalCharacterDataList.Add(new ConditionalCharacterData() { CharacterId = characterId, IsUnlocked = true });
-            }
-            user.MiniGameAzxInfo[azxId] = azxInfo;
             log.Debug($"Character data after: {JsonConvert.SerializeObject(azxInfo.ConditionalCharacterDataList)}");
-        }
-        catch (Exception ex)
-        {
-            Logging.WriteLine($"Setting AZX character unlocked failed: {ex.Message}", LogType.Error);
-        }
+        });
     }
 
-    public static void SetCutSceneConfirmed(User user, int azxId, List<int> cutSceneIdList)
+    public static void SetCutSceneConfirmed(ulong userId, int azxId, List<int> cutSceneIdList, MinigameRepository repo, GameContext db)
     {
         log.Debug($"Setting cutscenes confirmed for AZX {azxId}: {string.Join(", ", cutSceneIdList)}");
-        try
+        UpdateAndSave(userId, azxId, repo, db, "Setting AZX cutscene confirmed failed", azxInfo =>
         {
-            var azxInfo = GetAzxInfo(user, azxId);
             azxInfo.CutSceneDataList ??= [];
             log.Debug($"Cutscene data before: {JsonConvert.SerializeObject(azxInfo.CutSceneDataList)}");
             foreach (var item in cutSceneIdList)
             {
                 var itemIndex = azxInfo.CutSceneDataList.FindIndex(x => x.CutSceneId == item);
                 if (itemIndex >= 0)
-                {
                     azxInfo.CutSceneDataList[itemIndex].IsNew = false;
-                }
                 else
-                {
                     azxInfo.CutSceneDataList.Add(new CutSceneData() { CutSceneId = item, IsNew = false });
-                }
             }
-            user.MiniGameAzxInfo[azxId] = azxInfo;
             log.Debug($"Cutscene data after: {JsonConvert.SerializeObject(azxInfo.CutSceneDataList)}");
+        });
+    }
+
+    private static void UpdateAndSave(
+        ulong userId,
+        int azxId,
+        MinigameRepository repo,
+        GameContext db,
+        string errorPrefix,
+        Action<MiniGameAzxData> apply)
+    {
+        try
+        {
+            var azxInfo = GetAzxInfo(userId, azxId, repo);
+            apply(azxInfo);
+            repo.SaveDictEntry(userId, MinigameRepository.TypeMiniGameAzx, azxId, azxInfo);
+            db.SaveChanges();
         }
         catch (Exception ex)
         {
-            Logging.WriteLine($"Setting AZX cutscene confirmed failed: {ex.Message}", LogType.Error);
+            Logging.WriteLine($"{errorPrefix}: {ex.Message}", LogType.Error);
         }
     }
 
@@ -527,17 +502,10 @@ public static class AzxHelper
         });
     }
 
-    public static MiniGameAzxData GetAzxInfo(User user, int azxId)
+    public static MiniGameAzxData GetAzxInfo(ulong userId, int azxId, MinigameRepository repo)
     {
-        if (!user.MiniGameAzxInfo.TryGetValue(azxId, out var azxInfo))
-        {
-            log.Debug($"Creating new AZX info for {azxId}");
-            user.MiniGameAzxInfo.TryAdd(azxId, new MiniGameAzxData() { });
-            azxInfo = new MiniGameAzxData() { };
-        }
+        var azxInfo = repo.GetOrCreateDictEntry<MiniGameAzxData>(userId, MinigameRepository.TypeMiniGameAzx, azxId);
         log.Debug($"Getting AZX info for {azxId}, data: {JsonConvert.SerializeObject(azxInfo)}");
         return azxInfo;
     }
-
-
 }

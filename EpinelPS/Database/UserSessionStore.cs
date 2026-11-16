@@ -1,116 +1,91 @@
 using System.Collections.Concurrent;
+using EpinelPS.Repositories;
 
 namespace EpinelPS.Database;
 
 public static class UserSessionStore
 {
     private static readonly object LoadLock = new();
-
-    public static ConcurrentDictionary<ulong, User> UsersById { get; } = new();
-
-    public static IReadOnlyCollection<User> Users => GetAllUsers();
-
-    public static List<User> GetAllUsers() => [.. UsersById.Values];
+    private static readonly ConcurrentDictionary<ulong, byte> InitializedUsers = new();
 
     public static User? GetUser(ulong id)
     {
-        if (UsersById.TryGetValue(id, out var existing))
-            return existing;
-
         using var db = GameContext.CreateNew();
         bool existsInSql = db.SdkUsers.Any(u => u.ID == id) || db.Users.Any(u => u.ID == id);
         if (!existsInSql)
             return null;
 
         UserDbHelper.GetOrCreateGameUser(db, id);
-        lock (LoadLock)
-        {
-            if (UsersById.TryGetValue(id, out existing))
-                return existing;
-
-            var user = new User { ID = id };
-            LobbyUserStore.LoadUser(db, user);
-            UsersById[id] = user;
-            return user;
-        }
+        var user = new User { ID = id };
+        LoadUserFromDb(db, user);
+        EnsureInitialized(db, user);
+        return user;
     }
 
     public static User GetOrAddUser(ulong id)
     {
-        if (UsersById.TryGetValue(id, out var existing))
-            return existing;
+        using var db = GameContext.CreateNew();
+        UserDbHelper.GetOrCreateGameUser(db, id);
+        var user = new User { ID = id };
+        LoadUserFromDb(db, user);
+        EnsureInitialized(db, user);
+        return user;
+    }
+
+    private static void EnsureInitialized(GameContext db, User user)
+    {
+        if (InitializedUsers.ContainsKey(user.ID))
+            return;
 
         lock (LoadLock)
         {
-            if (UsersById.TryGetValue(id, out existing))
-                return existing;
-
-            using var db = GameContext.CreateNew();
-            UserDbHelper.GetOrCreateGameUser(db, id);
-            var user = new User { ID = id };
-            LobbyUserStore.LoadUser(db, user);
-            UsersById[id] = user;
-            return user;
+            if (InitializedUsers.TryAdd(user.ID, 0))
+            {
+                InitializeLoadedUser(db, user);
+            }
+            else
+            {
+                LoadUserFromDb(db, user);
+            }
         }
     }
 
-    public static void AddUser(User user)
+    private static void LoadUserFromDb(GameContext db, User user)
     {
-        ArgumentNullException.ThrowIfNull(user);
-        UsersById[user.ID] = user;
+        new InventoryRepository(db).LoadUserInventory(user);
+        new ProgressRepository(db).LoadUserCore(user);
     }
 
-    public static bool RemoveUser(ulong id) => UsersById.TryRemove(id, out _);
-
-    public static void LoadAllUsers()
+    private static void SaveUserToDb(GameContext db, User user)
     {
-        var users = GetAllUsers();
-        LobbyUserStore.LoadAllUsers(users);
-        foreach (var user in users)
+        new InventoryRepository(db).SaveUserInventory(user);
+        new ProgressRepository(db).SaveUserCore(user);
+        db.SaveChanges();
+    }
+
+    private static void InitializeLoadedUser(GameContext db, User user)
+    {
+        var gameUser = UserDbHelper.GetOrCreateGameUser(db, user.ID);
+        if (gameUser.LastNormalStageCleared >= 6000002)
         {
-            UsersById[user.ID] = user;
+            LobbyServer.Stage.ClearStage.EnsureDefaultCharacters(user);
         }
+        LobbyServer.Stage.ClearStage.ReconcileMainQuests(user, logToConsole: false);
+        Utils.MessengerMessageCreator.CreateAllEligibleOpeners(user, logToConsole: false);
+        user.Currency[Data.CurrencyType.GuildCoin] = Math.Max(user.GetCurrencyVal(Data.CurrencyType.GuildCoin), 100000);
+        SaveUserToDb(db, user);
     }
+
+    public static bool RemoveUser(ulong id) => InitializedUsers.TryRemove(id, out _);
 
     public static void SaveUser(User user)
     {
         ArgumentNullException.ThrowIfNull(user);
-        UsersById[user.ID] = user;
         if (GameContext.Options != null)
         {
-            LobbyUserStore.SaveUser(user);
+            using var db = GameContext.CreateNew();
+            SaveUserToDb(db, user);
         }
-    }
-
-    public static void SaveAll()
-    {
-        if (GameContext.Options != null)
-        {
-            LobbyUserStore.SaveAll(GetAllUsers());
-        }
-    }
-
-    public static int CurrentJukeboxBgm(int position)
-    {
-        var activeJukeboxBgm = new List<int>();
-        //important first position holds lobby bgm id and second commanders room bgm id
-        foreach (var user in Users)
-        {
-            if (user.JukeboxBgm == null || user.JukeboxBgm.Count == 0)
-            {
-                user.JukeboxBgm = [2, 5];
-            }
-
-            activeJukeboxBgm.AddRange(user.JukeboxBgm);
-        }
-
-        if (activeJukeboxBgm.Count == 0)
-        {
-            return 8995001;
-        }
-
-        position = (position == 2 && activeJukeboxBgm.Count > 1) ? 2 : 1;
-        return activeJukeboxBgm[position - 1];
     }
 
     public static bool IsSickPulls(User selectedUser)

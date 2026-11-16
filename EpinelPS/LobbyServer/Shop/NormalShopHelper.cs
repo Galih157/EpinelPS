@@ -1,6 +1,7 @@
 using EpinelPS.Data;
 using EpinelPS.Database;
 using EpinelPS.LobbyServer.Event;
+using EpinelPS.Repositories;
 using EpinelPS.Utils;
 using System.Text.Json;
 
@@ -52,11 +53,16 @@ public static class NormalShopHelper
         var category = (int)shop.ShopCategory;
         bool isMileage = category == MileageCategory;
         bool manualReroll = reroll;
-        if (!user.NormalShopStates.TryGetValue(category, out var state))
+        bool needsSave = false;
+
+        using var ctx = GameContext.CreateNew();
+        var repo = new GachaShopPassRepository(ctx);
+        var state = repo.GetNormalShopState(user.ID, category);
+        if (state == null)
         {
             state = new NormalShopState();
-            user.NormalShopStates[category] = state;
             reroll = true;
+            needsSave = true;
         }
         state.PinnedBuyCounts ??= [];
         if (isMileage)
@@ -65,7 +71,11 @@ public static class NormalShopHelper
                 .Where(x => GameData.Instance.ContentsShopProductTable.TryGetValue(x.Value, out var sp) && IsCharacterRow(sp))
                 .Select(x => x.Key)
                 .ToList();
-            products.ForEach(p => state.ProductIdsByOrder.Remove(p));
+            if (products.Count > 0)
+            {
+                products.ForEach(p => state.ProductIdsByOrder.Remove(p));
+                needsSave = true;
+            }
         }
 
         bool automaticRenewal = state.NextRenewAt > 0 && state.NextRenewAt <= now.Ticks;
@@ -78,6 +88,13 @@ public static class NormalShopHelper
             state.NextRenewAt = GetNextRenewAt(shop, now);
             if (manualReroll && !automaticRenewal)
                 state.RenewCount++;
+            needsSave = true;
+        }
+
+        if (needsSave)
+        {
+            repo.SaveNormalShopState(user.ID, category, state);
+            ctx.SaveChanges();
         }
 
         var result = new NetShopProductData
@@ -149,7 +166,9 @@ public static class NormalShopHelper
         state = null;
         _ = GetShopData(user, shopCategory);
 
-        if (!user.NormalShopStates.TryGetValue(shopCategory, out state))
+        using var ctx = GameContext.CreateNew();
+        state = new GachaShopPassRepository(ctx).GetNormalShopState(user.ID, shopCategory);
+        if (state == null)
             return false;
 
         // Some client versions send the list index instead of ProductOrder.
@@ -185,20 +204,30 @@ public static class NormalShopHelper
         if (requests.Count == 0 || requests.Any(x => x.Quantity <= 0))
             return false;
 
+        using var ctx = GameContext.CreateNew();
+        var repo = new GachaShopPassRepository(ctx);
+        NormalShopState? categoryState = null;
+
         var resolved = new List<(PurchaseRequest Request, ContentsShopProductRecord Product, NormalShopState State, bool Pinned)>();
         foreach (var request in requests)
         {
             // Active banner rate-up units (Mileage shop only)
             if (TryGetPinnedProduct(user, shopCategory, request.ProductId, out var pinnedProduct) && pinnedProduct != null)
             {
-                _ = GetShopData(user, shopCategory); // makes sure state exists and the daily reset ran
-                var pinnedState = user.NormalShopStates[shopCategory];
-                pinnedState.PinnedBuyCounts ??= [];
-                int pinnedCount = pinnedState.PinnedBuyCounts.GetValueOrDefault(pinnedProduct.Id);
+                if (categoryState == null)
+                {
+                    _ = GetShopData(user, shopCategory); // makes sure state exists and the daily reset ran
+                    categoryState = repo.GetNormalShopState(user.ID, shopCategory);
+                }
+                if (categoryState == null)
+                    return false;
+
+                categoryState.PinnedBuyCounts ??= [];
+                int pinnedCount = categoryState.PinnedBuyCounts.GetValueOrDefault(pinnedProduct.Id);
                 if (pinnedCount + request.Quantity > pinnedProduct.BuyLimitCount)
                     return false;
 
-                resolved.Add((request with { Order = pinnedProduct.ProductOrder }, pinnedProduct, pinnedState, true));
+                resolved.Add((request with { Order = pinnedProduct.ProductOrder }, pinnedProduct, categoryState, true));
                 continue;
             }
 
@@ -206,14 +235,18 @@ public static class NormalShopHelper
                 product == null || state == null)
                 return false;
 
-            int actualOrder = state.ProductIdsByOrder.First(x => x.Value == product.Id).Key;
+            categoryState ??= state;
+            int actualOrder = categoryState.ProductIdsByOrder.First(x => x.Value == product.Id).Key;
             var normalizedRequest = request with { Order = actualOrder };
-            int currentBuyCount = state.BuyCountsByOrder.GetValueOrDefault(actualOrder);
+            int currentBuyCount = categoryState.BuyCountsByOrder.GetValueOrDefault(actualOrder);
             if (product.IsLimit && currentBuyCount + normalizedRequest.Quantity > product.BuyLimitCount)
                 return false;
 
-            resolved.Add((normalizedRequest, product, state, false));
+            resolved.Add((normalizedRequest, product, categoryState, false));
         }
+
+        if (categoryState == null)
+            return false;
 
         var currencyCosts = resolved
             .Where(x => x.Product.PriceType == PriceType.Currency)
@@ -263,6 +296,8 @@ public static class NormalShopHelper
             purchased.Add(new PurchasedProduct(entry.Product, entry.Request.Order, entry.Request.Quantity, newCount));
         }
 
+        repo.SaveNormalShopState(user.ID, shopCategory, categoryState);
+        ctx.SaveChanges();
         return true;
     }
 

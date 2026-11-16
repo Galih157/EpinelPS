@@ -3,6 +3,7 @@ using EpinelPS.Database;
 using EpinelPS.LobbyServer.Stage;
 using EpinelPS.LobbyServer.Tower;
 using EpinelPS.Models.Admin;
+using EpinelPS.Repositories;
 using Google.Protobuf;
 using Microsoft.Data.Sqlite;
 using System.Net.Security;
@@ -103,15 +104,19 @@ public class AdminCommands
                 // Ensure starter characters exist
                 ClearStage.EnsureDefaultCharacters(user);
 
+                using var progressDb = GameContext.CreateNew();
+                var progressRepo = new ProgressRepository(progressDb);
+                var outpostRepo = new OutpostRepository(progressDb);
+
                 // Ensure prologue stages (chapter 0: 6000001..6000003) are completed
                 var prologueStages = GameData.Instance.GetStageIdsForChapter(0, true)
                     .Select(stageId => GameData.Instance.GetStageData(stageId)!)
                     .OrderBy(stage => stage.Id);
                 foreach (CampaignStageRecord stageData in prologueStages)
                 {
-                    if (!user.IsStageCompleted(stageData.Id))
+                    if (!progressRepo.IsStageCompleted(user.ID, stageData.Id))
                     {
-                        ClearStage.CompleteStage(user, stageData.Id, true, recordMainQuest: false);
+                        ClearStage.CompleteStage(user, stageData.Id, progressDb, progressRepo, outpostRepo, true, recordMainQuest: false);
                     }
                 }
 
@@ -132,10 +137,10 @@ public class AdminCommands
 
                     foreach (CampaignStageRecord stageData in stages.Take(stageLimit))
                     {
-                        if (!user.IsStageCompleted(stageData.Id))
+                        if (!progressRepo.IsStageCompleted(user.ID, stageData.Id))
                         {
                             Console.WriteLine("Completing stage " + stageData.Id);
-                            ClearStage.CompleteStage(user, stageData.Id, true, recordMainQuest: false);
+                            ClearStage.CompleteStage(user, stageData.Id, progressDb, progressRepo, outpostRepo, true, recordMainQuest: false);
                         }
                         lastClearedStageId = stageData.Id;
                     }
@@ -147,20 +152,14 @@ public class AdminCommands
                     List<string> stages = [.. GameData.Instance.GetScenarioStageIdsForChapter(chapter)
                         .Where(stageId => GameData.Instance.IsValIdScenarioStage(stageId, chapterNumber, stageNumber))];
 
-                    foreach (string? stage in stages)
-                    {
-                        if (!user.CompletedScenarios.Contains(stage))
-                        {
-                            user.CompletedScenarios.Add(stage);
-                        }
-                    }
+                    progressRepo.CompleteStages(user.ID, stages);
                 }
 
                 // Ensure prologue map is initialized
                 string prologueMapId = GameData.Instance.GetMapIdFromChapter(1, ChapterMod.Normal);
-                if (!user.FieldInfoNew.ContainsKey(prologueMapId))
+                if (progressRepo.GetFieldInfo(user.ID, prologueMapId) == null)
                 {
-                    user.FieldInfoNew.Add(prologueMapId, new FieldInfoNew());
+                    progressRepo.SaveFieldInfo(user.ID, prologueMapId, new FieldInfoNew());
                 }
 
                 // Ensure the field map for each chapter up to target is initialized
@@ -169,12 +168,12 @@ public class AdminCommands
                 for (int c = 1; c <= chapterNumber; c++)
                 {
                     string mapId = GameData.Instance.GetMapIdFromChapter(c + 1, ChapterMod.Normal);
-                    if (!user.FieldInfoNew.ContainsKey(mapId))
+                    if (progressRepo.GetFieldInfo(user.ID, mapId) == null)
                     {
-                        user.FieldInfoNew.Add(mapId, new FieldInfoNew());
+                        progressRepo.SaveFieldInfo(user.ID, mapId, new FieldInfoNew());
                     }
                     // Invalidate stale local map json so the client fetches a fresh field state
-                    user.MapJson.Remove(mapId);
+                    progressRepo.RemoveMapJson(user.ID, mapId);
                 }
 
                 UserDbHelper.UpdateGameUser(user.ID, u => u.LastNormalStageCleared = lastClearedStageId);
@@ -184,10 +183,11 @@ public class AdminCommands
                 HashSet<int> validQuestSet = [.. validQuests];
 
                 // Prune any quests that were beyond this stage (cleans up any previous corruption)
-                List<int> invalidQuests = user.MainQuestData.Keys.Where(k => !validQuestSet.Contains(k)).ToList();
-                foreach (int badKey in invalidQuests)
+                var mainQuests = progressRepo.GetMainQuests(user.ID);
+                List<int> invalidQuests = mainQuests.Keys.Where(k => !validQuestSet.Contains(k)).ToList();
+                if (invalidQuests.Count > 0)
                 {
-                    user.MainQuestData.Remove(badKey);
+                    progressRepo.RemoveMainQuests(user.ID, invalidQuests);
                 }
 
                 // Clean up any stale MainQuestClear triggers in database
@@ -216,7 +216,11 @@ public class AdminCommands
                 int completedQuestTriggers = 0;
                 foreach (int questId in validQuests)
                 {
-                    user.MainQuestData.TryAdd(questId, false);
+                    if (!mainQuests.ContainsKey(questId))
+                    {
+                        progressRepo.UpsertMainQuest(user.ID, questId, false);
+                        mainQuests[questId] = false;
+                    }
 
                     if (GameData.Instance.QuestDataRecords.TryGetValue(questId, out MainQuestRecord? quest))
                     {
@@ -237,13 +241,15 @@ public class AdminCommands
                     }
                 }
 
+                progressDb.SaveChanges();
+
                 // Reconcile ChapterClear triggers for all completed normal chapters up to target progression
                 int completedChapterTriggers = 0;
                 for (int c = 1; c <= chapterNumber; c++)
                 {
                     List<CampaignStageRecord> chapterStages = GetNormalMainStages(c);
                     CampaignStageRecord? bossStage = chapterStages.LastOrDefault();
-                    if (bossStage != null && user.IsStageCompleted(bossStage.Id))
+                    if (bossStage != null && progressRepo.IsStageCompleted(user.ID, bossStage.Id))
                     {
                         if (existingTriggers.Add((Trigger.ChapterClear, bossStage.ChapterId)))
                         {
@@ -258,7 +264,7 @@ public class AdminCommands
                 Logging.WriteLine($"[Admin] CompleteStage recorded {completedQuestTriggers} MainQuestClear and {completedChapterTriggers} ChapterClear triggers for user {user.ID} up to stage {lastClearedStageId}", LogType.Info);
 
                 // Save changes to user data
-                UserSessionStore.SaveAll();
+                UserSessionStore.SaveUser(user);
 
             }
             else
@@ -313,35 +319,28 @@ public class AdminCommands
         }
 
         // Also trigger EventDungeonStageClear for all events and populate EventInfo
+        using var eventsDb = GameContext.CreateNew();
+        var eventsRepo = new Repositories.EventsRepository(eventsDb);
         foreach (var eventKv in GameData.Instance.EventDungeonTable)
         {
             int eventId = eventKv.Value.Id;
             triggersToAdd.Add((Trigger.EventDungeonStageClear, 1, eventId));
 
             // Populate EventInfo with all stage IDs cleared
-            if (user.EventInfo.ContainsKey(eventId))
+            var eventData = eventsRepo.GetOrCreateEvent(userId, eventId);
+            if (eventStages.ContainsKey(eventId))
             {
-                var eventData = user.EventInfo[eventId];
-                if (eventStages.ContainsKey(eventId))
+                foreach (var stageId in eventStages[eventId])
                 {
-                    foreach (var stageId in eventStages[eventId])
-                    {
-                        if (!eventData.ClearedStages.Contains(stageId))
-                            eventData.ClearedStages.Add(stageId);
-                    }
-                    eventData.LastStage = eventStages[eventId].Max();
+                    if (!eventData.ClearedStages.Contains(stageId))
+                        eventData.ClearedStages.Add(stageId);
                 }
+                eventData.LastStage = eventStages[eventId].Max();
             }
-            else
-            {
-                var clearedStages = eventStages.ContainsKey(eventId) ? eventStages[eventId].ToList() : new List<int>();
-                user.EventInfo.Add(eventId, new EventData()
-                {
-                    LastStage = clearedStages.Any() ? clearedStages.Max() : 0,
-                    ClearedStages = clearedStages
-                });
-            }
+            eventsRepo.UpsertEvent(userId, eventId, eventData);
         }
+
+        eventsDb.SaveChanges();
 
         // Batch-add triggers
         foreach (var (type, value, conditionId) in triggersToAdd)
@@ -350,7 +349,7 @@ public class AdminCommands
         }
 
         Console.WriteLine($"Completed {completedCount} event stages for user {userId}");
-        UserSessionStore.SaveAll();
+        UserSessionStore.SaveUser(user);
         return RunCmdResponse.OK;
     }
 
@@ -376,13 +375,20 @@ public class AdminCommands
         User? user = UserSessionStore.GetUser(userId);
         if (user == null) return new RunCmdResponse() { error = "invalId user ID" };
 
+        using var db = GameContext.CreateNew();
+        var repo = new Repositories.SocialMailRepository(db);
+        var progressRepo = new ProgressRepository(db);
+        var existingConvIds = repo.GetConversationIds(user.ID);
+        var subQuests = progressRepo.GetSubQuests(user.ID);
+
         int enrolledCount = 0;
         int createdCount = 0;
         foreach (SubQuestRecord subQuest in GameData.Instance.Subquests.Values)
         {
-            if (!user.SubQuestData.ContainsKey(subQuest.Id))
+            if (!subQuests.ContainsKey(subQuest.Id))
             {
-                user.SetSubQuest(subQuest.Id, false);
+                progressRepo.UpsertSubQuest(user.ID, subQuest.Id, false);
+                subQuests[subQuest.Id] = false;
                 enrolledCount++;
             }
 
@@ -394,15 +400,19 @@ public class AdminCommands
             if (opener == null)
                 continue;
 
-            if (user.MessengerData.Any(message => message.ConversationId == opener.ConversationId))
+            if (existingConvIds.Contains(opener.ConversationId))
                 continue;
 
-            user.CreateMessage(opener);
+            repo.CreateMessage(user.ID, opener.ConversationId ?? "", opener.Id ?? "");
+            existingConvIds.Add(opener.ConversationId);
             createdCount++;
         }
 
+        if (enrolledCount > 0 || createdCount > 0)
+            db.SaveChanges();
+
         Logging.WriteLine($"[Admin] UnlockAllSubquestMessages user={user.ID}, Enrolled={enrolledCount}, Created={createdCount}", LogType.Warning);
-        UserSessionStore.SaveAll();
+        UserSessionStore.SaveUser(user);
         return RunCmdResponse.OK;
     }
 
@@ -412,6 +422,9 @@ public class AdminCommands
         List<CharacterRecord> allCharacters = [.. GameData.Instance.CharacterTable.Values
             .GroupBy(c => c.NameCode)  // Group by NameCode to treat same NameCode as one character                     3999 = marian
             .SelectMany(g => g.Where(c => c.GradeCoreId == 1 || c.GradeCoreId == 101 || c.GradeCoreId == 201 || c.NameCode == 3999))];
+
+        using var bondDb = GameContext.CreateNew();
+        var bondRepo = new Repositories.BondLiberationRepository(bondDb);
 
         foreach (CharacterRecord? character in allCharacters)
         {
@@ -429,7 +442,7 @@ public class AdminCommands
                     UltimateLevel = 1
                 });
 
-                user.BondInfo.Add(new() { NameCode = character.NameCode, Lv = 1 });
+                bondRepo.EnsureBond(user.ID, character.NameCode, 1);
                 user.AddTrigger(Trigger.ObtainCharacter, 1, character.NameCode);
                 user.AddTrigger(Trigger.ObtainCharacterNew, 1, 0);
                 if (character.OriginalRare == OriginalRareType.SSR)
@@ -437,46 +450,48 @@ public class AdminCommands
             }
         }
 
+        bondDb.SaveChanges();
+
         // A character can unlock a Messenger room even when the conversation
         // itself is gated by an already-completed campaign/event trigger.
         MessengerMessageCreator.CreateAllEligibleOpeners(user);
 
-        UserSessionStore.SaveAll();
+        UserSessionStore.SaveUser(user);
 
         return RunCmdResponse.OK;
     }
 
     public static RunCmdResponse AddAllCostumes(User user)
     {
-        foreach (var kv in GameData.Instance.CharacterCostumeTable)
-        {
-            user.AddUnique(user.CostumeList, kv.Key);
-        }
-        UserSessionStore.SaveAll();
+        using var db = GameContext.CreateNew();
+        var repo = new Repositories.CosmeticsRepository(db);
+        if (repo.UnlockCosmetics(user.ID, Repositories.CosmeticsRepository.CategoryCostume, GameData.Instance.CharacterCostumeTable.Keys) > 0)
+            db.SaveChanges();
         return RunCmdResponse.OK;
     }
 
     public static RunCmdResponse AddAllCollections(User user)
     {
+        using var db = GameContext.CreateNew();
+        var bondRepo = new Repositories.BondLiberationRepository(db);
+
         // 1. Set all characters' bond level to 30
         foreach (CharacterModel character in user.Characters)
         {
             if (!GameData.Instance.CharacterTable.TryGetValue(character.Tid, out var charRecord)) continue;
 
-            NetUserAttractiveData? bondInfo = user.BondInfo.FirstOrDefault(b => b.NameCode == charRecord.NameCode);
-            if (bondInfo == null)
-            {
-                bondInfo = new NetUserAttractiveData { NameCode = charRecord.NameCode };
-                user.BondInfo.Add(bondInfo);
-            }
+            NetUserAttractiveData bondInfo = bondRepo.GetBond(user.ID, charRecord.NameCode)
+                ?? new NetUserAttractiveData { NameCode = charRecord.NameCode };
             bondInfo.Lv = 30;
             bondInfo.Exp = 0;
+            bondRepo.UpsertBond(user.ID, bondInfo);
         }
 
         // 2. Add all collections, equipping to matching character if found
+        var favoriteItems = bondRepo.GetFavoriteItems(user.ID);
         foreach (FavoriteItemRecord record in GameData.Instance.FavoriteItemTable.Values)
         {
-            NetUserFavoriteItemData? item = user.FavoriteItems.FirstOrDefault(f => f.Tid == record.Id);
+            NetUserFavoriteItemData? item = favoriteItems.FirstOrDefault(f => f.Tid == record.Id);
             if (item == null)
             {
                 item = new NetUserFavoriteItemData
@@ -487,7 +502,7 @@ public class AdminCommands
                     Lv = record.MaxLevel,
                     Exp = 0
                 };
-                user.FavoriteItems.Add(item);
+                favoriteItems.Add(item);
             }
 
             // Try to equip to a character matching this collection's NameCode
@@ -497,7 +512,7 @@ public class AdminCommands
 
             if (match != null)
             {
-                NetUserFavoriteItemData? other = user.FavoriteItems.FirstOrDefault(f => f.Csn == match.Csn && f.Tid != record.Id);
+                NetUserFavoriteItemData? other = favoriteItems.FirstOrDefault(f => f.Csn == match.Csn && f.Tid != record.Id);
                 if (other != null) other.Csn = 0;
 
                 item.Csn = match.Csn;
@@ -505,7 +520,9 @@ public class AdminCommands
             }
         }
 
-        UserSessionStore.SaveAll();
+        bondRepo.SaveFavoriteItems(user.ID, favoriteItems);
+        db.SaveChanges();
+        UserSessionStore.SaveUser(user);
         return RunCmdResponse.OK;
     }
 
@@ -513,20 +530,19 @@ public class AdminCommands
     {
         level = Math.Clamp(level, 1, 30);
 
+        using var db = GameContext.CreateNew();
+        var bondRepo = new Repositories.BondLiberationRepository(db);
+
         foreach (CharacterModel character in user.Characters)
         {
             if (!GameData.Instance.CharacterTable.TryGetValue(character.Tid, out var charRecord)) continue;
 
-            NetUserAttractiveData? bondInfo = user.BondInfo.FirstOrDefault(b => b.NameCode == charRecord.NameCode);
-            if (bondInfo == null)
-            {
-                bondInfo = new NetUserAttractiveData { NameCode = charRecord.NameCode };
-                user.BondInfo.Add(bondInfo);
-            }
+            NetUserAttractiveData bondInfo = bondRepo.GetBond(user.ID, charRecord.NameCode)
+                ?? new NetUserAttractiveData { NameCode = charRecord.NameCode };
             bondInfo.Lv = level;
             bondInfo.Exp = 0;
+            bondRepo.UpsertBond(user.ID, bondInfo);
         }
-        UserSessionStore.SaveAll();
         return RunCmdResponse.OK;
     }
 
@@ -553,7 +569,7 @@ public class AdminCommands
             }
         }
 
-        UserSessionStore.SaveAll();
+        UserSessionStore.SaveUser(user);
         return RunCmdResponse.OK;
     }
 
@@ -561,11 +577,13 @@ public class AdminCommands
     {
         if (amount1 > 0)
         {
+            using var eqDb = GameContext.CreateNew();
+            var bondRepo = new Repositories.BondLiberationRepository(eqDb);
             foreach (FavoriteItemRecord tableItem in GameData.Instance.FavoriteItemTable.Values)
             {
                 foreach (int i in Enumerable.Range(0, amount1))
                 {
-                    user.FavoriteItems.Add(new NetUserFavoriteItemData
+                    bondRepo.AddFavoriteItem(user.ID, new NetUserFavoriteItemData
                     {
                         FavoriteItemId = user.GenerateUniqueItemId(),
                         Tid = tableItem.Id,
@@ -574,8 +592,9 @@ public class AdminCommands
                         Exp = 0
                     });
                 }
-                UserSessionStore.SaveAll();
             }
+            eqDb.SaveChanges();
+            UserSessionStore.SaveUser(user);
         }
 
         if (amount2 > 0)
@@ -600,7 +619,7 @@ public class AdminCommands
                     item.Count += amount2;
                 }
             }
-            UserSessionStore.SaveAll();
+            UserSessionStore.SaveUser(user);
             foreach (ItemPieceRecord tableItem in GameData.Instance.PieceItems.Values)
             {
                 DbItemData? item = user.Items.FirstOrDefault(i => i.ItemType == tableItem.Id);
@@ -644,38 +663,43 @@ public class AdminCommands
                             Corp = corp
                         });
                     }
-                    UserSessionStore.SaveAll();
+                    UserSessionStore.SaveUser(user);
                 }
             }
         }
         Console.WriteLine($"Added {amount1} of all FavoriteItem, {amount2} of all consumables, and {amount3} of all equipment to user " + user.ID);
-        UserSessionStore.SaveAll();
+        UserSessionStore.SaveUser(user);
         return RunCmdResponse.OK;
     }
 
     public static RunCmdResponse FinishAllTutorials(User user)
     {
+        using var db = GameContext.CreateNew();
+        var progressRepo = new ProgressRepository(db);
+        var tutorials = progressRepo.GetClearedTutorials(user.ID);
+
         foreach (var tutorial in GameData.Instance.TutorialTable.Values)
         {
-            if (!user.ClearedTutorialDataNew.ContainsKey(tutorial.GroupId))
+            if (!tutorials.TryGetValue(tutorial.GroupId, out var cleared))
             {
-                user.ClearedTutorialDataNew.Add(tutorial.GroupId, new ClearedTutorialData()
+                var data = new ClearedTutorialData()
                 {
                     Id = tutorial.Id,
                     VersionGroup = tutorial.VersionGroup
-                });
+                };
+                tutorials[tutorial.GroupId] = data;
+                progressRepo.UpsertTutorial(user.ID, tutorial.GroupId, tutorial.Id, tutorial.VersionGroup);
             }
-            else
+            else if (tutorial.Id > cleared.Id)
             {
-                if (tutorial.Id > user.ClearedTutorialDataNew[tutorial.GroupId].Id)
-                {
-                    user.ClearedTutorialDataNew[tutorial.GroupId].Id = tutorial.Id;
-                    user.ClearedTutorialDataNew[tutorial.GroupId].VersionGroup = tutorial.VersionGroup;
-                }
+                cleared.Id = tutorial.Id;
+                cleared.VersionGroup = tutorial.VersionGroup;
+                progressRepo.UpsertTutorial(user.ID, tutorial.GroupId, tutorial.Id, tutorial.VersionGroup);
             }
         }
 
-        UserSessionStore.SaveAll();
+        db.SaveChanges();
+        UserSessionStore.SaveUser(user);
         return RunCmdResponse.OK;
     }
 
@@ -752,7 +776,7 @@ public class AdminCommands
         }
 
         Console.WriteLine($"Core level of all characters have been set to {inputGrade}");
-        UserSessionStore.SaveAll();
+        UserSessionStore.SaveUser(user);
 
         return RunCmdResponse.OK;
     }
@@ -766,7 +790,7 @@ public class AdminCommands
             character.Level = level;
         }
         Console.WriteLine("Set all characters' level to " + level);
-        UserSessionStore.SaveAll();
+        UserSessionStore.SaveUser(user);
         return RunCmdResponse.OK;
     }
 
@@ -780,7 +804,7 @@ public class AdminCommands
             character.Skill2Lvl = skillLevel;
         }
         Console.WriteLine("Set all characters' skill levels to " + skillLevel);
-        UserSessionStore.SaveAll();
+        UserSessionStore.SaveUser(user);
         return RunCmdResponse.OK;
     }
 
@@ -802,7 +826,10 @@ public class AdminCommands
 
             if (GameData.Instance.CharacterTable.TryGetValue(characterId, out CharacterRecord? charData))
             {
-                user.BondInfo.Add(new() { NameCode = charData.NameCode, Lv = 1 });
+                using (var bondDb = GameContext.CreateNew())
+                {
+                    new Repositories.BondLiberationRepository(bondDb).EnsureBond(user.ID, charData.NameCode, 1);
+                }
                 user.AddTrigger(Trigger.ObtainCharacter, 1, charData.NameCode);
                 user.AddTrigger(Trigger.ObtainCharacterNew, 1);
                 if (charData.OriginalRare == OriginalRareType.SSR)
@@ -812,7 +839,7 @@ public class AdminCommands
             MessengerMessageCreator.CreateAllEligibleOpeners(user);
 
             Console.WriteLine($"Added character {characterId} to user");
-            UserSessionStore.SaveAll();
+            UserSessionStore.SaveUser(user);
             return RunCmdResponse.OK;
         }
         else
@@ -846,7 +873,7 @@ public class AdminCommands
             }
         }
 
-        UserSessionStore.SaveAll();
+        UserSessionStore.SaveUser(user);
         return RunCmdResponse.OK;
     }
 
@@ -883,8 +910,10 @@ public class AdminCommands
                 }
             }
             // 保存到用户邮件
-            user.MailDatas.TryAdd(mailData.Msn, mailData);
-            UserSessionStore.SaveAll();
+            using var db = GameContext.CreateNew();
+            var repo = new Repositories.SocialMailRepository(db);
+            repo.AddMail(user.ID, mailData);
+            db.SaveChanges();
 
             return RunCmdResponse.OK;
         }
@@ -908,8 +937,12 @@ public class AdminCommands
                 Console.WriteLine($"Tower: {tower}, Floor: {floor} | ALL means Tribe Tower");
 
                 var currentFloor = 0;
-                if (user?.TowerProgress != null && user.TowerProgress.TryGetValue(tower, out var savedProgress))
-                    currentFloor = savedProgress;
+                using (var towerDb = GameContext.CreateNew())
+                {
+                    var towerProgress = new ProgressRepository(towerDb).GetTowerProgress(user.ID);
+                    if (towerProgress.TryGetValue(tower, out var savedProgress))
+                        currentFloor = savedProgress;
+                }
 
                 if (floor <= currentFloor)
                     return new RunCmdResponse()
@@ -963,7 +996,7 @@ public class AdminCommands
                 });
 
                 Console.WriteLine("Tower Clear Reward: " + JsonSerializer.Serialize(reward));
-                UserSessionStore.SaveAll();
+                UserSessionStore.SaveUser(user);
             }
             else
                 return new RunCmdResponse() { error = "Tower and floor number must be valid integers" };

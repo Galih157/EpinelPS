@@ -1,5 +1,4 @@
 ﻿using EpinelPS.Data;
-using EpinelPS.Database;
 
 namespace EpinelPS.LobbyServer.Minigame.BubbleMarch;
 
@@ -84,8 +83,6 @@ public class BmHelper
                 }
             }
         }
-
-        UserSessionStore.SaveAll();
     }
 }
 

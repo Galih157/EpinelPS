@@ -41,7 +41,7 @@ public static class InterceptionHelper
             response.BonusReward = RewardUtils.RegisterRewardsForUser(user, percentReward);
         }
 
-        UserSessionStore.SaveAll();
+        UserSessionStore.SaveUser(user);
 
         return response;
     }

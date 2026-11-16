@@ -48,9 +48,6 @@ internal class Program
 
             await GameData.CreateAsync();
 
-            Logging.WriteLine("Register handlers");
-            LobbyHandler.Init();
-
             Logging.WriteLine("Starting ASP.NET core on ports 80 and 443");
             WebApplicationBuilder builder = WebApplication.CreateBuilder(new WebApplicationOptions
             {
@@ -90,7 +87,38 @@ internal class Program
             GameContext.InitializeOptions(connectionString, connectionType);
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddScoped<IUserService, UserService>();
-            builder.Services.AddSingleton<MessengerAdminService>();
+            builder.Services.AddScoped<EpinelPS.Repositories.SocialMailRepository>();
+            builder.Services.AddScoped<EpinelPS.Repositories.TeamRepository>();
+            builder.Services.AddScoped<EpinelPS.Repositories.CosmeticsRepository>();
+            builder.Services.AddScoped<EpinelPS.Repositories.ExplorationRepository>();
+            builder.Services.AddScoped<EpinelPS.Repositories.SoloRaidRepository>();
+            builder.Services.AddScoped<EpinelPS.Repositories.EventsRepository>();
+            builder.Services.AddScoped<EpinelPS.Repositories.BondLiberationRepository>();
+            builder.Services.AddScoped<EpinelPS.Repositories.GachaShopPassRepository>();
+            builder.Services.AddScoped<EpinelPS.Repositories.ResetRepository>();
+            builder.Services.AddScoped<EpinelPS.Repositories.OutpostRepository>();
+            builder.Services.AddScoped<EpinelPS.Repositories.MinigameRepository>();
+            builder.Services.AddScoped<EpinelPS.Repositories.InventoryRepository>();
+            builder.Services.AddScoped<EpinelPS.Repositories.ProgressRepository>();
+            builder.Services.AddScoped<BadgeService>();
+            builder.Services.AddScoped<MailService>();
+            builder.Services.AddScoped<MessengerService>();
+            builder.Services.AddScoped<MessengerAdminService>();
+            builder.Services.AddScoped<TeamService>();
+            builder.Services.AddScoped<JukeboxService>();
+            builder.Services.AddScoped<CosmeticsService>();
+            builder.Services.AddScoped<ExplorationService>();
+            builder.Services.AddScoped<EventsService>();
+            builder.Services.AddScoped<BondLiberationService>();
+            builder.Services.AddScoped<GachaShopPassService>();
+            builder.Services.AddScoped<ResetService>();
+            builder.Services.AddScoped<OutpostService>();
+            builder.Services.AddScoped<MinigameEventService>();
+            builder.Services.AddScoped<MinigameArcadeService>();
+            builder.Services.AddScoped<InventoryCharacterService>();
+            builder.Services.AddScoped<StageQuestService>();
+            builder.Services.AddScoped<LobbyUserMiscService>();
+            builder.Services.AddScoped<GuildService>();
             builder.Services.AddDbContext<GameContext>(options =>
             {
                 switch (connectionType?.ToLowerInvariant())
@@ -141,21 +169,6 @@ internal class Program
             // The scope is disposed automatically after app.Run() returns.
             using IServiceScope gameContextScope = app.Services.CreateScope();
             GameContext.SetInstance(gameContextScope.ServiceProvider.GetRequiredService<GameContext>());
-
-            UserSessionStore.LoadAllUsers();
-
-            foreach (var user in UserSessionStore.GetAllUsers())
-            {
-                if (UserDbHelper.GetOrCreateGameUser(user.ID).LastNormalStageCleared >= 6000002)
-                {
-                    ClearStage.EnsureDefaultCharacters(user);
-                }
-                ClearStage.ReconcileMainQuests(user, logToConsole: false);
-                MessengerMessageCreator.CreateAllEligibleOpeners(user, logToConsole: false);
-                // Restock Union Chips (GuildCoin) to at least 100,000 on every server restart
-                user.Currency[CurrencyType.GuildCoin] = Math.Max(user.GetCurrencyVal(CurrencyType.GuildCoin), 100000);
-            }
-            UserSessionStore.SaveAll();
 
             app.UseDefaultFiles();
             app.UseStaticFiles();
