@@ -49,7 +49,7 @@ public class ChooseCharacter : LobbyMessage
         response.Data = libd;
 
         //response.Error = LiberateDataExpiredError.Success;
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 

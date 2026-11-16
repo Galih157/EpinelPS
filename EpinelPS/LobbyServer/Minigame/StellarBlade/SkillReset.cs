@@ -44,7 +44,7 @@ public class SkillReset : LobbyMessage
         }
 
         
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         // TODO
         await WriteDataAsync(response);
     }

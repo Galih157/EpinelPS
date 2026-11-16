@@ -42,7 +42,7 @@ public class RunDispatchList : LobbyMessage
 
             response.SuccessTidList.Add(item.Tid);
         }
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

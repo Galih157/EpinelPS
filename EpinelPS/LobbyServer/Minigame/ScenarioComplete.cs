@@ -26,7 +26,7 @@ public class ScenarioComplete : LobbyMessage
             user.MiniGameScenarios.Add(req.ArcadeId, evt);
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         
         // TODO
         await WriteDataAsync(response);

@@ -55,7 +55,7 @@ public class FinishGeneralStage : LobbyMessage
             }
         }
         // TODO
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

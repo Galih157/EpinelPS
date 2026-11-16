@@ -17,7 +17,7 @@ public class DefaultAttackSkillSet : LobbyMessage
             stellar.CharacterData.DefaultAttackSkillId = req.AttackSkillId;
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         // TODO
         await WriteDataAsync(response);
     }

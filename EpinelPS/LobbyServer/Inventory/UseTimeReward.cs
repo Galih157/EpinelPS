@@ -44,7 +44,7 @@ public class UseTimeReward : LobbyMessage
         // update client sIde item count
         response.Reward.UserItems.Add(NetUtils.UserItemDataToNet(timeReward));
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

@@ -18,7 +18,7 @@ public class SetCharacterCostume : LobbyMessage
                 break;
             }
         }
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         ResSetCharacterCostume response = new();
 

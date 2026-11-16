@@ -19,7 +19,7 @@ public class StartFavoriteItemQuest : LobbyMessage
 
         user.FavoriteItemQuests.Add(newQuest);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         ResStartFavoriteItemQuest response = new();
         await WriteDataAsync(response);

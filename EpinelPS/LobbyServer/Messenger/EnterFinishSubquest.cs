@@ -56,7 +56,7 @@ public class EnterFinishSubquest : LobbyMessage
         {
             int state = isCompleted ? 2 : (conversation.Value.MessageType == MessengerMessageType.Reward ? 1 : 0);
             response.Message = user.CreateMessage(conversation.Value, state);
-            JsonDb.Save();
+            UserSessionStore.SaveAll();
         }
 
         await WriteDataAsync(response);

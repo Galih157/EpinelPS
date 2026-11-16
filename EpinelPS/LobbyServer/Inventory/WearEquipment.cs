@@ -37,7 +37,7 @@ public class WearEquipment : LobbyMessage
             }
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

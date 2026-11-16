@@ -44,7 +44,7 @@ public class GetLiberateData : LobbyMessage
             response.OpenLiberateTypeIdList.AddRange(user.OpenLiberateTypeIdList);
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

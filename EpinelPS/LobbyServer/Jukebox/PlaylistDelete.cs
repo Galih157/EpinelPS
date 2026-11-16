@@ -30,7 +30,7 @@ public class DeleteJukeboxPlaylist : LobbyMessage
                 }
             }
 
-            JsonDb.Save();
+            UserSessionStore.SaveAll();
         }
 
         await WriteDataAsync(response);

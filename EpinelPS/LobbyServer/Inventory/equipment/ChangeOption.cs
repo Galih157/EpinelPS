@@ -105,7 +105,7 @@ public class ChangeOption : LobbyMessage
             }
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

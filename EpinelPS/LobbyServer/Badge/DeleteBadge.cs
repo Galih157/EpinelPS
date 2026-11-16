@@ -17,7 +17,7 @@ public class DeleteBadge : LobbyMessage
             user.Badges.RemoveAll(x => x.Seq == badgeId);
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

@@ -37,7 +37,7 @@ public class ContentsOpen(IUserService db) : Controller
             user.ContentsOpenUnlocked.Add(18, new(true, true));
             user.ContentsOpenUnlocked.Add(19, new(true, true));
             user.ContentsOpenUnlocked.Add(2, new(true, true)); // Shop
-            JsonDb.Save();
+            UserSessionStore.SaveAll();
         }
 
         foreach (KeyValuePair<int, UnlockData> item in user.ContentsOpenUnlocked.OrderBy(x => x.Key))
@@ -78,7 +78,7 @@ public class ContentsOpen(IUserService db) : Controller
             }
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         return response;
     }
 
@@ -106,7 +106,7 @@ public class ContentsOpen(IUserService db) : Controller
             }
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         return response;
     }

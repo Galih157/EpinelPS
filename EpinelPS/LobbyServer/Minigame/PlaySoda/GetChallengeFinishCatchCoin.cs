@@ -32,6 +32,6 @@ public class GetChallengeFinishCatchCoin : LobbyMessage
 
         await WriteDataAsync(new ResFinishArcadePlaySodaCatchCoinChallenge());
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
     }
 }

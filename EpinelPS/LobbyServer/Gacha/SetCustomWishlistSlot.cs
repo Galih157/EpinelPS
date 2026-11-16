@@ -32,7 +32,7 @@ public class SetCustomWishlistSlot : LobbyMessage
         Logging.WriteLine($"[SetCustomWishlistSlot] Updated wishlist for user {user.ID}: [{string.Join(", ", user.CharacterWishlist)}]");
 
         // Save
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(req);
     }

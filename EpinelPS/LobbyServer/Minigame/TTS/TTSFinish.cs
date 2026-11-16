@@ -57,7 +57,7 @@ public class TTSFinish : LobbyMessage
                 UserId = (long)user.ID,
                 UpdateTime = DateTime.Now.Ticks
             });
-            RankData rank = JsonDb.GetRank();
+            RankData rank = new();
 
             rank.TtsRankDatas.InsertOrUpdate((long)user.ID, MiniGameTtsRankingType.Server, ttsData.TotalScore);
             rank.TtsRankDatas.InsertOrUpdate((long)user.ID, MiniGameTtsRankingType.Friend, ttsData.TotalScore);
@@ -93,7 +93,7 @@ public class TTSFinish : LobbyMessage
             UpMission(ref ttsData, req);
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 

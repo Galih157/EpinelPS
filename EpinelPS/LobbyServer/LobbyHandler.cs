@@ -105,7 +105,7 @@ public static class LobbyHandler
 
         GameClientInfo info = new() { ClientPublicKey = [.. publicKey] };
 
-        SodiumKeyExchangeSharedSecretBox box = SodiumKeyExchange.CalculateServerSharedSecret(JsonDb.ServerPublicKey, JsonDb.ServerPrivateKey, [.. publicKey]);
+        SodiumKeyExchangeSharedSecretBox box = SodiumKeyExchange.CalculateServerSharedSecret(ServerConfigStore.ServerPublicKey, ServerConfigStore.ServerPrivateKey, [.. publicKey]);
 
         info.Keys = box;
         info.ClientAuthToken = token;
@@ -191,7 +191,7 @@ public static class LobbyHandler
     {
         using var ctx2 = GameContext.CreateNew();
         var userDB = UserDbHelper.GetOrCreateGameUser(ctx2, id);
-        var user = JsonDb.Instance.Users.Where(x=>x.ID == id).FirstOrDefault();
+        var user = UserSessionStore.GetUser(id);
         NetWholeUserData ret = new()
         {
             Lv = user.userPointData.UserLevel,

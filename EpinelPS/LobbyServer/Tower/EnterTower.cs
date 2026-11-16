@@ -15,7 +15,7 @@ public class EnterTower : LobbyMessage
         
 
         user.AddTrigger(Trigger.TowerAllStart, 1);
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         
         await WriteDataAsync(response);
     }

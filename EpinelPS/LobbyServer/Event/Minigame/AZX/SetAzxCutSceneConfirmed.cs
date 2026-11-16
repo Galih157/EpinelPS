@@ -18,7 +18,7 @@ public class SetAzxCutSceneConfirmed : LobbyMessage
         if (req.AzxId > 0 && req.ConfirmedCutSceneIdList.Count > 0)
             AzxHelper.SetCutSceneConfirmed(user, req.AzxId, [.. req.ConfirmedCutSceneIdList]);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

@@ -17,7 +17,7 @@ public class ClearTower : LobbyMessage
 
         if (req.BattleResult == 1) response.Reward = TowerHelper.CompleteTower(user, req.TowerId);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

@@ -26,7 +26,7 @@ public class BuffUpgrade : LobbyMessage
         }
 
         // TODO
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

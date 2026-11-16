@@ -42,7 +42,7 @@ public class ClearFavoriteItemQuestStage : LobbyMessage
             user.FieldInfoNew[stageMapId].CompletedStages.Add(req.StageId);
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

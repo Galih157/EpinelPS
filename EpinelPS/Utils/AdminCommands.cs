@@ -81,7 +81,7 @@ public class AdminCommands
 
     public static RunCmdResponse CompleteStage(ulong userId, string input2)
     {
-        User? user = JsonDb.Instance.Users.FirstOrDefault(x => x.ID == userId);
+        User? user = UserSessionStore.GetUser(userId);
         if (user == null) return new RunCmdResponse() { error = "invalid user ID" };
 
         try
@@ -258,7 +258,7 @@ public class AdminCommands
                 Logging.WriteLine($"[Admin] CompleteStage recorded {completedQuestTriggers} MainQuestClear and {completedChapterTriggers} ChapterClear triggers for user {user.ID} up to stage {lastClearedStageId}", LogType.Info);
 
                 // Save changes to user data
-                JsonDb.Save();
+                UserSessionStore.SaveAll();
 
             }
             else
@@ -276,7 +276,7 @@ public class AdminCommands
 
     public static RunCmdResponse CompleteAllEventStages(ulong userId)
     {
-        User? user = JsonDb.Instance.Users.FirstOrDefault(x => x.ID == userId);
+        User? user = UserSessionStore.GetUser(userId);
         if (user == null) return new RunCmdResponse() { error = "invalId user ID" };
 
         int completedCount = 0;
@@ -350,7 +350,7 @@ public class AdminCommands
         }
 
         Console.WriteLine($"Completed {completedCount} event stages for user {userId}");
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         return RunCmdResponse.OK;
     }
 
@@ -373,7 +373,7 @@ public class AdminCommands
     /// </summary>
     public static RunCmdResponse UnlockAllSubquestMessages(ulong userId)
     {
-        User? user = JsonDb.Instance.Users.FirstOrDefault(x => x.ID == userId);
+        User? user = UserSessionStore.GetUser(userId);
         if (user == null) return new RunCmdResponse() { error = "invalId user ID" };
 
         int enrolledCount = 0;
@@ -402,7 +402,7 @@ public class AdminCommands
         }
 
         Logging.WriteLine($"[Admin] UnlockAllSubquestMessages user={user.ID}, Enrolled={enrolledCount}, Created={createdCount}", LogType.Warning);
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         return RunCmdResponse.OK;
     }
 
@@ -441,7 +441,7 @@ public class AdminCommands
         // itself is gated by an already-completed campaign/event trigger.
         MessengerMessageCreator.CreateAllEligibleOpeners(user);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         return RunCmdResponse.OK;
     }
@@ -452,7 +452,7 @@ public class AdminCommands
         {
             user.AddUnique(user.CostumeList, kv.Key);
         }
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         return RunCmdResponse.OK;
     }
 
@@ -505,7 +505,7 @@ public class AdminCommands
             }
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         return RunCmdResponse.OK;
     }
 
@@ -526,7 +526,7 @@ public class AdminCommands
             bondInfo.Lv = level;
             bondInfo.Exp = 0;
         }
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         return RunCmdResponse.OK;
     }
 
@@ -553,7 +553,7 @@ public class AdminCommands
             }
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         return RunCmdResponse.OK;
     }
 
@@ -574,7 +574,7 @@ public class AdminCommands
                         Exp = 0
                     });
                 }
-                JsonDb.Save();
+                UserSessionStore.SaveAll();
             }
         }
 
@@ -600,7 +600,7 @@ public class AdminCommands
                     item.Count += amount2;
                 }
             }
-            JsonDb.Save();
+            UserSessionStore.SaveAll();
             foreach (ItemPieceRecord tableItem in GameData.Instance.PieceItems.Values)
             {
                 DbItemData? item = user.Items.FirstOrDefault(i => i.ItemType == tableItem.Id);
@@ -644,12 +644,12 @@ public class AdminCommands
                             Corp = corp
                         });
                     }
-                    JsonDb.Save();
+                    UserSessionStore.SaveAll();
                 }
             }
         }
         Console.WriteLine($"Added {amount1} of all FavoriteItem, {amount2} of all consumables, and {amount3} of all equipment to user " + user.ID);
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         return RunCmdResponse.OK;
     }
 
@@ -675,7 +675,7 @@ public class AdminCommands
             }
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         return RunCmdResponse.OK;
     }
 
@@ -752,7 +752,7 @@ public class AdminCommands
         }
 
         Console.WriteLine($"Core level of all characters have been set to {inputGrade}");
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         return RunCmdResponse.OK;
     }
@@ -766,7 +766,7 @@ public class AdminCommands
             character.Level = level;
         }
         Console.WriteLine("Set all characters' level to " + level);
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         return RunCmdResponse.OK;
     }
 
@@ -780,7 +780,7 @@ public class AdminCommands
             character.Skill2Lvl = skillLevel;
         }
         Console.WriteLine("Set all characters' skill levels to " + skillLevel);
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         return RunCmdResponse.OK;
     }
 
@@ -812,7 +812,7 @@ public class AdminCommands
             MessengerMessageCreator.CreateAllEligibleOpeners(user);
 
             Console.WriteLine($"Added character {characterId} to user");
-            JsonDb.Save();
+            UserSessionStore.SaveAll();
             return RunCmdResponse.OK;
         }
         else
@@ -846,7 +846,7 @@ public class AdminCommands
             }
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         return RunCmdResponse.OK;
     }
 
@@ -884,7 +884,7 @@ public class AdminCommands
             }
             // 保存到用户邮件
             user.MailDatas.TryAdd(mailData.Msn, mailData);
-            JsonDb.Save();
+            UserSessionStore.SaveAll();
 
             return RunCmdResponse.OK;
         }
@@ -896,7 +896,7 @@ public class AdminCommands
     
     public static RunCmdResponse SkipTowerFloor(ulong userId, string args)
     {
-        var user = JsonDb.Instance.Users.FirstOrDefault(x => x.ID == userId);
+        var user = UserSessionStore.GetUser(userId);
 
         try
         {
@@ -963,7 +963,7 @@ public class AdminCommands
                 });
 
                 Console.WriteLine("Tower Clear Reward: " + JsonSerializer.Serialize(reward));
-                JsonDb.Save();
+                UserSessionStore.SaveAll();
             }
             else
                 return new RunCmdResponse() { error = "Tower and floor number must be valid integers" };

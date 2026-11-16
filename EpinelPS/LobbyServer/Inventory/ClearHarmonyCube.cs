@@ -68,7 +68,7 @@ public class ClearHarmonyCube : LobbyMessage
             }
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

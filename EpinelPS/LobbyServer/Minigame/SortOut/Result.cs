@@ -47,7 +47,7 @@ public class Result : LobbyMessage
         user.AddTrigger(Trigger.EventSortOutClear, 1, 0);
 
         // TODO
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }  
 

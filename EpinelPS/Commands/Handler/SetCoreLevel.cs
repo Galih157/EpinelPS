@@ -26,7 +26,7 @@ public class SetCoreLevelHandler(IExecutionContext context) : BaseHandler<SetCor
             return new HandleResult(false, "No user selected");
 
         var rsp = AdminCommands.SetCoreLevel(context.SelectedUser, parameters.Level);
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         return rsp.ok
             ? new HandleResult(true, $"Core level set to {parameters.Level} successfully")
             : new HandleResult(false, rsp.error);

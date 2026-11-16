@@ -13,7 +13,7 @@ public class InfinitePopupCheck : LobbyMessage
         ResInfinitePopupCheck response = new();
 
         user.ResetableData.SimRoomData.CurrentSeasonData.WasInfinitePopupChecked = true;
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

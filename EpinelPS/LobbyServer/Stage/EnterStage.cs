@@ -28,7 +28,7 @@ public class EnterStage : LobbyMessage
 
         user.AddTrigger(Trigger.CampaignStart, 1, req.StageId);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

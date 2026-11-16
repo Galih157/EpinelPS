@@ -37,7 +37,7 @@ public class ObtainTriggerRewardForJukebox : LobbyMessage
 
         response.Reward = NetUtils.MergeRewards(rewards, user);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

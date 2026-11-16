@@ -19,7 +19,7 @@ public class ScenarioGet : LobbyMessage
         }
                
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         // TODO
         await WriteDataAsync(response);
     }

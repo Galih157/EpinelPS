@@ -16,7 +16,7 @@ public class SetWallpaper : LobbyMessage
         user.WallpaperPlaylistList = [.. req.WallpaperPlaylistList];
         user.WallpaperJukeboxList = [.. req.WallpaperJukeboxList];
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

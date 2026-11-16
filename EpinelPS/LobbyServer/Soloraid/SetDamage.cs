@@ -23,7 +23,7 @@ public class SetDamage : LobbyMessage
             Logging.WriteLine($"SetDamage Error: {ex.Message}", LogType.Error);
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

@@ -31,7 +31,7 @@ public class ReqObtainAchievementMissionReward : LobbyMessage
 
         await WriteDataAsync(response);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
     }
 
 }

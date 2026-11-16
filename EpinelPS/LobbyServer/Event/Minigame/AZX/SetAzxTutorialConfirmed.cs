@@ -14,7 +14,7 @@ public class SetAzxTutorialConfirmed : LobbyMessage
 
         AzxHelper.SetTutorialConfirmed(user, 1);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

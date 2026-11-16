@@ -60,7 +60,7 @@ public class ProceedMsg : LobbyMessage
             response.Message = user.CreateMessage(convId, req.MessageId, state);
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

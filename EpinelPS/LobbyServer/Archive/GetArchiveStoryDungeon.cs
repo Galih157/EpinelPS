@@ -22,7 +22,7 @@ public class GetArchiveStoryDungeon : LobbyMessage
             };
             // Create a new default entry for the missing EventId
             user.EventInfo[evid] = eventData;
-            JsonDb.Save();
+            UserSessionStore.SaveAll();
         }
 
         // Prepare the response

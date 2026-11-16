@@ -160,7 +160,7 @@ internal static class SoloRaidMuseumHelper
         if (mode == SoloRaidMuseumStageMode.NoLimit && !stage.IsNoLimitUnlocked)
             mode = SoloRaidMuseumStageMode.Challenge;
         stage.StageMode = mode;
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         return ToMode(stage);
     }
 
@@ -185,7 +185,7 @@ internal static class SoloRaidMuseumHelper
         mode.TotalStep = mode.CurrentLogs.Sum(x => x.Step);
         mode.IsInProgress = true;
         mode.OpenTeams = requestedTeams;
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         return mode;
     }
 
@@ -201,7 +201,7 @@ internal static class SoloRaidMuseumHelper
         var mode = noLimit ? stage.NoLimit : stage.Challenge;
         Logging.WriteLine($"[SoloRaidMuseum] close stage={stageId}, noLimit={noLimit}, joinCount={mode.StageJoinCount}, currentLogs={mode.CurrentLogs.Count}, totalDamage={mode.TotalDamage}", LogType.Info);
         mode.IsInProgress = false;
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
     }
 
     public static (SoloRaidMuseumStageData stage, SoloRaidMuseumModeData mode) SetDamage(
@@ -270,7 +270,7 @@ internal static class SoloRaidMuseumHelper
             if (!noLimit)
                 stage.IsNoLimitUnlocked = HasClearedChallenge(stage.StageId, mode.BestDamage);
         }
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         return (stage, mode);
     }
 

@@ -27,7 +27,7 @@ public class SelectSelectionEvent : LobbyMessage
         }
         SimRoomHelper.UpdateUserSimRoomEvent(user, index: simRoomEventIndex, events: events, selectionNumber: req.SelectionNumber);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

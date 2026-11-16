@@ -95,7 +95,7 @@ public static class MessengerMessageCreator
 
         if (createdCount > 0)
         {
-            JsonDb.Save();
+            UserSessionStore.SaveAll();
         }
 
         Logging.WriteLine($"[Messenger] Eligible opener reconciliation: user={user.ID}, Created={createdCount}", LogType.Info, logToConsole);

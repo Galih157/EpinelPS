@@ -19,7 +19,7 @@ public class AddSongJukeboxPlaylist : LobbyMessage
                 JukeboxTableId = req.JukeboxTableId,
                 Order = playlist.Songs.Count == 0 ? 1 : playlist.Songs.Max(s => s.Order) + 1
             });
-            JsonDb.Save();
+            UserSessionStore.SaveAll();
             response.Playlist = playlist;
         }
 

@@ -26,7 +26,7 @@ public class CompleteMission : LobbyMessage
         user.SortOutData.MissionRewarded.AddRangeUnique(req.MissionIds);
         response.Reward = ret;
         // TODO
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

@@ -17,7 +17,7 @@ public class TutorialFinish : LobbyMessage
             ttsData.IsFinishTutorial = true;
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

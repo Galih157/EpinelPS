@@ -445,7 +445,7 @@ public class NetUtils
             else
                 RewardUtils.AddSingleObject(user, ref ret, winningRecord.RewardId, winningRecord.RewardType, winningRecord.RewardValueMin);
         }
-        JsonDb.Save();
+        UserSessionStore.SaveUser(user);
 
         return ret;
     }
@@ -475,7 +475,7 @@ public class NetUtils
                             selectedBox.SelectType, selectedBox.SelectValue * count);
                     }
 
-                    JsonDb.Save();
+                    UserSessionStore.SaveUser(user);
                     return reward;
                 }
 
@@ -484,7 +484,7 @@ public class NetUtils
                     var selectedCharacter = GameData.Instance.SelectRowItem.GetValueOrDefault(selectedBoxContent.FirstOrDefault().Id);
                     NetRewardData reward = new();
                     RewardUtils.AddSingleObject(user, ref reward, selectedCharacter.SelectId, selectedCharacter.SelectType, selectedBoxContent.FirstOrDefault().Count);
-                    JsonDb.Save();
+                    UserSessionStore.SaveUser(user);
                     return reward;
                 }
         }
@@ -505,7 +505,7 @@ public class NetUtils
             RewardUtils.AddSingleObject(user, ref rewardData, reward.RewardId,
                 reward.RewardType, reward.RewardValue * count);
         }
-        JsonDb.Save();
+        UserSessionStore.SaveUser(user);
         return rewardData;
     }
 }

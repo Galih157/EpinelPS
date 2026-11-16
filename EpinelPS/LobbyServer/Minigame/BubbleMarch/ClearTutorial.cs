@@ -21,7 +21,7 @@ public class ClearTutorial : LobbyMessage
             marchData.ClearedTutorialIdList.AddRangeUnique(req.TutorialIds);
         }
         // TODO
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

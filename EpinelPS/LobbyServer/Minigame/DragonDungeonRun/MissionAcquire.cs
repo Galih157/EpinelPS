@@ -26,7 +26,7 @@ public class MissionAcquire : LobbyMessage
         ret = RewardUtils.RegisterRewardsForUserDou(user, rewardlist);
 
         response.Reward = ret;
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         // TODO
         await WriteDataAsync(response);
     }

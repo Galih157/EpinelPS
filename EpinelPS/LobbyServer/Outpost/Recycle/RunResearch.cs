@@ -33,7 +33,7 @@ public class RunResearch : LobbyMessage
             Lv = progress.Level,
         };
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

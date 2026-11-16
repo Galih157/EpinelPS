@@ -29,7 +29,7 @@ public class GetChallengeObtainPointReward : LobbyMessage
 
         await WriteDataAsync(new ResObtainArcadePlaySodaPointReward() { LastRewardStep = arcadePlaySodaInfo.LastRewardStep, Reward = NetUtils.MergeRewards(rewards, user) });
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
     }
 
     public static int[] GetPointValues(int challengeStageId)

@@ -107,7 +107,7 @@ public class ResetOption : LobbyMessage
             IsOption3DisposableLock = resetOption.IsOption3DisposableLock
         };
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

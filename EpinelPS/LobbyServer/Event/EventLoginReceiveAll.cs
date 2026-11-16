@@ -39,7 +39,7 @@ public class EventLoginReceiveAll : LobbyMessage
         });
 
         response.Reward = rewardData;
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

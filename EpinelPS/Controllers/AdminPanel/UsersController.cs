@@ -105,7 +105,7 @@ public class UsersController(ILogger<UsersController> logger, GameContext dbCont
 
         SdkUser? sdkUser = _db.SdkUsers.Find(id);
         GameUser? gameUser = _db.Users.Find(id);
-        User? user = JsonDb.GetUser(id);
+        User? user = UserSessionStore.GetUser(id);
         if (sdkUser == null || gameUser == null || user == null)
             return NotFound();
 
@@ -130,7 +130,7 @@ public class UsersController(ILogger<UsersController> logger, GameContext dbCont
 
         SdkUser? sdkUser = _db.SdkUsers.Find(id);
         GameUser? gameUser = _db.Users.Find(id);
-        User? user = JsonDb.GetUser(id);
+        User? user = UserSessionStore.GetUser(id);
         if (sdkUser == null || gameUser == null || user == null)
             return NotFound();
 
@@ -142,8 +142,7 @@ public class UsersController(ILogger<UsersController> logger, GameContext dbCont
         _db.SdkUsers.Remove(sdkUser);
         _db.SaveChanges();
 
-        JsonDb.Instance.Users.Remove(user);
-        JsonDb.Save();
+        UserSessionStore.RemoveUser(id);
 
         return RedirectToAction(nameof(Index));
     }
@@ -154,7 +153,7 @@ public class UsersController(ILogger<UsersController> logger, GameContext dbCont
     {
         if (!AdminController.CheckAuth(HttpContext)) return Redirect("/admin/");
 
-        var user = JsonDb.GetUser(id);
+        var user = UserSessionStore.GetUser(id);
         if (user == null)
         {
             return NotFound();
@@ -241,7 +240,7 @@ public class UsersController(ILogger<UsersController> logger, GameContext dbCont
     [FromForm] Dictionary<long, GearUpdateModel> gearUpdates)
     {
         if (!AdminController.CheckAuth(HttpContext)) return Redirect("/admin/");
-        var user = JsonDb.GetUser(id);
+        var user = UserSessionStore.GetUser(id);
         if (user == null) return NotFound();
         var sdkUser = _db.SdkUsers.Find(id);
         if (sdkUser == null) return NotFound();
@@ -302,7 +301,7 @@ public class UsersController(ILogger<UsersController> logger, GameContext dbCont
 
         if (!ModelState.IsValid) throw new Exception("model state invalid");
 
-        User? user = JsonDb.GetUser(id);
+        User? user = UserSessionStore.GetUser(id);
         if (user == null)
         {
             return NotFound();
@@ -340,7 +339,7 @@ public class UsersController(ILogger<UsersController> logger, GameContext dbCont
     {
         if (!AdminController.CheckAuth(HttpContext)) return Redirect("/admin/");
 
-        User? user = JsonDb.GetUser(id);
+        User? user = UserSessionStore.GetUser(id);
         if (user == null)
         {
             return NotFound();
@@ -361,14 +360,14 @@ public class UsersController(ILogger<UsersController> logger, GameContext dbCont
     {
         if (!AdminController.CheckAuth(HttpContext)) return Redirect("/admin/");
 
-        User? user = JsonDb.GetUser(id);
+        User? user = UserSessionStore.GetUser(id);
         if (user == null)
         {
             return NotFound();
         }
 
         user.AddCurrency(model.ToModify, model.Amount);
-        JsonDb.Save();
+        UserSessionStore.SaveUser(user);
 
         return View(
             new ModUserCurrencyModel()
@@ -384,7 +383,7 @@ public class UsersController(ILogger<UsersController> logger, GameContext dbCont
     {
         if (!AdminController.CheckAuth(HttpContext)) return Redirect("/admin/");
 
-        User? user = JsonDb.GetUser(id);
+        User? user = UserSessionStore.GetUser(id);
         if (user == null) return NotFound();
 
         return View(_messengerAdmin.BuildModel(user));
@@ -396,12 +395,12 @@ public class UsersController(ILogger<UsersController> logger, GameContext dbCont
     public IActionResult CreateMessengerMessage(ulong id, [FromForm] CreateMessengerMessageModel model)
     {
         if (!AdminController.CheckAuth(HttpContext)) return Redirect("/admin/");
-        User? user = JsonDb.GetUser(id);
+        User? user = UserSessionStore.GetUser(id);
         if (user == null) return NotFound();
 
         if (_messengerAdmin.TryCreate(user, model, out string error))
         {
-            JsonDb.Save();
+            UserSessionStore.SaveUser(user);
             TempData["MessengerSuccess"] = "Message created. No trigger was added.";
         }
         else
@@ -418,12 +417,12 @@ public class UsersController(ILogger<UsersController> logger, GameContext dbCont
     public IActionResult UpdateMessengerMessage(ulong id, [FromForm] UpdateMessengerMessageModel model)
     {
         if (!AdminController.CheckAuth(HttpContext)) return Redirect("/admin/");
-        User? user = JsonDb.GetUser(id);
+        User? user = UserSessionStore.GetUser(id);
         if (user == null) return NotFound();
 
         if (_messengerAdmin.TryUpdateState(user, model, out string error))
         {
-            JsonDb.Save();
+            UserSessionStore.SaveUser(user);
             TempData["MessengerSuccess"] = "Message state updated. No trigger was changed.";
         }
         else
@@ -440,12 +439,12 @@ public class UsersController(ILogger<UsersController> logger, GameContext dbCont
     public IActionResult DeleteMessengerMessage(ulong id, [FromForm] long seq)
     {
         if (!AdminController.CheckAuth(HttpContext)) return Redirect("/admin/");
-        User? user = JsonDb.GetUser(id);
+        User? user = UserSessionStore.GetUser(id);
         if (user == null) return NotFound();
 
         if (_messengerAdmin.TryDelete(user, seq, out string error))
         {
-            JsonDb.Save();
+            UserSessionStore.SaveUser(user);
             TempData["MessengerSuccess"] = "Erroneous opener removed. A restore snapshot was saved.";
         }
         else
@@ -462,12 +461,12 @@ public class UsersController(ILogger<UsersController> logger, GameContext dbCont
     public IActionResult RestoreMessengerMessage(ulong id, [FromForm] string auditId)
     {
         if (!AdminController.CheckAuth(HttpContext)) return Redirect("/admin/");
-        User? user = JsonDb.GetUser(id);
+        User? user = UserSessionStore.GetUser(id);
         if (user == null) return NotFound();
 
         if (_messengerAdmin.TryRestore(user, auditId, out string error))
         {
-            JsonDb.Save();
+            UserSessionStore.SaveUser(user);
             TempData["MessengerSuccess"] = "Deleted message restored.";
         }
         else

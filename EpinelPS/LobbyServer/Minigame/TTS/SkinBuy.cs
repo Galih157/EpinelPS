@@ -32,7 +32,7 @@ public class SkinBuy : LobbyMessage
         }
         
         // TODO
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

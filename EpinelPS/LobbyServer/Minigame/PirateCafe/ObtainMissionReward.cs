@@ -27,7 +27,7 @@ public class ObtainMissionReward : LobbyMessage
         response.Reward = ret;
         response.Data = MiniGameHelper.ToProto<NetArcadePirateCafeData, ArcadePirateCafeData>(user.PirateCafeData);
         // TODO
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

@@ -27,7 +27,7 @@ public class CompleteScenario : LobbyMessage
         {
             evt.CompletedScenarios.Add(scenid);
         }
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         // Prepare and send the response
         ResCompleteArchiveScenario response = new();
         await WriteDataAsync(response);

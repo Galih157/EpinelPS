@@ -134,7 +134,7 @@ public class GetDispatchList : LobbyMessage
 
         response.DispatchResetCount = user.DispatchResetCount;
         //response.SelectableDispatchList.AddRange(dontdispatcht);
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         // TODO
         await WriteDataAsync(response);
     }

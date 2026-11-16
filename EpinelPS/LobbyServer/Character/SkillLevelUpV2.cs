@@ -16,7 +16,7 @@ public class SkillLevelUpV2 : LobbyMessage
         response.Items.AddRange(result.Items);
         response.Currencies.AddRange(result.Currencies);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

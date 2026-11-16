@@ -17,7 +17,7 @@ public class TutorialSet : LobbyMessage
         }
 
         // TODO
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

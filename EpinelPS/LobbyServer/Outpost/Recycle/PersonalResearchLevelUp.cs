@@ -41,7 +41,7 @@ public class PersonalResearchLevelUp : LobbyMessage
             Lv = personalResearchProgress.Level
         };
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

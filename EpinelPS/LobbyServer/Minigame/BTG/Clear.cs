@@ -46,7 +46,7 @@ public class Clear : LobbyMessage
         response.BanResult = MiniGameBanResult.Success;
         
         // TODO
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 

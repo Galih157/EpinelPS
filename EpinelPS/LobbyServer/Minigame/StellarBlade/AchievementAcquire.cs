@@ -43,7 +43,7 @@ public class AchievementAcquire : LobbyMessage
             response.UpdatedAchievementMissionDataList.AddRange(misslist);
         }      
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         // TODO
         await WriteDataAsync(response);
     }

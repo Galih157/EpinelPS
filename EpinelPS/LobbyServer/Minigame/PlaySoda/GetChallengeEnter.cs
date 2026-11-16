@@ -18,6 +18,6 @@ public class GetChallengeEnter : LobbyMessage
 
         await WriteDataAsync(response);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
     }
 }

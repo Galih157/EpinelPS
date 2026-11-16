@@ -26,7 +26,7 @@ public class LevelUpResearch : LobbyMessage
             AddProgressToResearch(response, user, progress, req);
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

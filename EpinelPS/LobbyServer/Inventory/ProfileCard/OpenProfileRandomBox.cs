@@ -53,7 +53,7 @@ public class OpenProfileRandomBox : LobbyMessage
             }
         });
         response.ProfileCardTicketMaterialSync.Add(NetUtils.UserItemDataToNet(box));
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

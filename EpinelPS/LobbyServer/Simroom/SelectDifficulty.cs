@@ -30,13 +30,13 @@ public class SelectDifficulty : LobbyMessage
             currentSeasonData.CurrentOptionList = [.. req.OverclockOptionList];
         }
         user.ResetableData.SimRoomData.CurrentSeasonData = currentSeasonData;
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         List<NetSimRoomEvent> events = SimRoomHelper.GetSimRoomEvents(user, req.Difficulty, req.StartingChapter,
          [.. req.OverclockOptionList], req.OverclockSeason, req.OverclockSubSeason);
 
         user.ResetableData.SimRoomData.Events = [.. events.Select(SimRoomHelper.NetToM)];
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         response.Events.AddRange(events);
 

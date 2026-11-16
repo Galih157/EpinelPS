@@ -122,7 +122,7 @@ public class StageComplete : LobbyMessage
 
         response.TotalPoint = score;
         // TODO
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 
@@ -217,7 +217,7 @@ public class StageComplete : LobbyMessage
                     break;
             }
         }
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
     }
 
     public static void AddCharacterCheck(DragonDungeonRunData data, MiniGameSystemType arcade)
@@ -274,6 +274,6 @@ public class StageComplete : LobbyMessage
         }
 
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
     }
 }

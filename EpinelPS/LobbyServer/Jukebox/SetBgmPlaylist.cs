@@ -17,7 +17,7 @@ public class SetJukeboxBgmPlaylist : LobbyMessage
             setting.Type = NetJukeboxBgmType.JukeboxPlaylist;
             setting.TableId = (int)req.JukeboxPlaylistUid;
             setting.IsShuffle = req.IsShuffle;
-            JsonDb.Save();
+            UserSessionStore.SaveAll();
         }
 
         await WriteDataAsync(new ResSetJukeboxBgmPlaylist());

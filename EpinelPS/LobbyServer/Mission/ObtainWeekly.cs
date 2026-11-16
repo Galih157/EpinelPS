@@ -46,7 +46,7 @@ public class ObtainWeekly : LobbyMessage
         response.EventBonusReward = new() { PassPoint = new() };
         response.Reward.PassPoint = new();
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

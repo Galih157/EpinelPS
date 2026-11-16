@@ -13,7 +13,7 @@ public class SetJukeboxBgmFavorite : LobbyMessage
         var setting = req.Location == NetJukeboxLocation.Lobby ? user.LobbyMusic : user.CommanderMusic;
         setting.Type = NetJukeboxBgmType.JukeboxFavorite;
         setting.IsShuffle = req.IsShuffle;
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(new ResSetJukeboxBgmFavorite());
     }

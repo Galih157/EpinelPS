@@ -16,7 +16,7 @@ public class SimpleModeSkipBuffSelection : LobbyMessage
 
         user.ResetableData.SimRoomData.Entered = false;
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

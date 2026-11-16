@@ -97,7 +97,7 @@ public class LobbyController(IUserService UserService, GameContext db) : Control
 
             if (needsSave)
             {
-                JsonDb.Save();
+                UserSessionStore.SaveAll();
             }
 
             response.Outposts.AddRange(user.OutpostBuildings);
@@ -121,7 +121,7 @@ public class LobbyController(IUserService UserService, GameContext db) : Control
 
             response.Outposts.AddRange(defaultBuildings);
             user.OutpostBuildings = defaultBuildings;
-            JsonDb.Save();
+            UserSessionStore.SaveAll();
         }
 
         response.LastClearedNormalMainStageId = userDB.LastNormalStageCleared;

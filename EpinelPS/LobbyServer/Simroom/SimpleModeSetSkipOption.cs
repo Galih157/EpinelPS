@@ -16,7 +16,7 @@ public class SimpleModeSetSkipOption : LobbyMessage
 
         user.ResetableData.SimRoomData.IsSimpleModeSkipEnabled = req.Enabled;
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

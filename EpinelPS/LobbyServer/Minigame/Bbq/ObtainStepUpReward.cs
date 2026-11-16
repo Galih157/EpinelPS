@@ -23,7 +23,7 @@ public class ObtainStepUpReward : LobbyMessage
         response.Reward = ret;
         user.AddTrigger(Trigger.EventBBQTycoonDailyRewardCheck, 1, req.StepUpRewardId);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         // TODO
         await WriteDataAsync(response);
     }

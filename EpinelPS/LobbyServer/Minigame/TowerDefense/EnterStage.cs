@@ -21,7 +21,7 @@ public class EnterStage : LobbyMessage
 
         user.AddTrigger(Trigger.EventTowerDefensePlayCheck, 1, req.StageId);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         // TODO
         await WriteDataAsync(response);
     }

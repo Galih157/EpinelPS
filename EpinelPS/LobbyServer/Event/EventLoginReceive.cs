@@ -31,7 +31,7 @@ public class EventLoginReceive : LobbyMessage
             // loginEventData.Days.Add(req.Day);
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

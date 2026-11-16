@@ -71,7 +71,7 @@ public class IncreaseEquipmentExp : LobbyMessage
         // Add trigger for equipment level count - 升级装备次数
         user.AddTrigger(Trigger.EquipItemLevelCount, 1);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

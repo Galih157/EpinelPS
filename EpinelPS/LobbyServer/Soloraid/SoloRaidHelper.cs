@@ -107,7 +107,7 @@ public class SoloRaidHelper
             }
         }
         user.SoloRaidData[raidId] = raid;
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
     }
 
     /// <summary>
@@ -333,7 +333,7 @@ public class SoloRaidHelper
         }
         response.RaidOpenCount = raidData.RaidOpenCount;
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
     }
 
 

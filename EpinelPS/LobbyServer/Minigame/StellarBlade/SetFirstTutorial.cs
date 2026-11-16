@@ -17,7 +17,7 @@ public class SetFirstTutorial : LobbyMessage
             stellar.TutorialList.AddRangeUnique(req.TutorialListIds.ToList());
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         // TODO
         await WriteDataAsync(response);
     }

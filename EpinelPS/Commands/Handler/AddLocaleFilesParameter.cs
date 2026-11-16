@@ -22,7 +22,7 @@ public class AddLocaleFilesHandler(IExecutionContext context) : BaseHandler<AddL
     protected async override Task<HandleResult> ExecuteAsync(AddLocaleFilesParameter parameters)
     {
         var rsp = AdminCommands.AddLocaleFiles(parameters.LocaleDir);
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         return rsp.ok
             ? new HandleResult(true, $"Locale Files added successfully")
             : new HandleResult(false, rsp.error);

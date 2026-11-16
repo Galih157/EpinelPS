@@ -30,7 +30,7 @@ public class ObtainOutpostReward : LobbyMessage
 
         user.AddTrigger(Trigger.OutpostBattleReward, 1);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

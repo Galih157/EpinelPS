@@ -40,7 +40,7 @@ public class BuyMultipleProduct : LobbyMessage
             GrantProduct(user, ref response, purchase.Product, purchase.Quantity);
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 

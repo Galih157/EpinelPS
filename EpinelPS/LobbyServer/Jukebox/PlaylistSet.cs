@@ -17,7 +17,7 @@ public class SetJukeboxPlaylist : LobbyMessage
         {
             playlist.Songs.Clear();
             playlist.Songs.AddRange(req.Songs);
-            JsonDb.Save();
+            UserSessionStore.SaveAll();
             response.Playlist = playlist;
 
             // if this playlist is set as BGM somewhere, its contents changed

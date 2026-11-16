@@ -43,7 +43,7 @@ public class SynchroDeviceOneClick : LobbyMessage
                 user.SubtractCurrency(CurrencyType.CharacterExp2, totalExp2);
                 user.SynchroDeviceLevel = lv;
                 user.SynchroDeviceUpgraded = true;
-                JsonDb.Save();
+                UserSessionStore.SaveAll();
             }
         }
 

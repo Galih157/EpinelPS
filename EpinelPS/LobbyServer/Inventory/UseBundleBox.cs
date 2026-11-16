@@ -27,7 +27,7 @@ public class UseBundleBox : LobbyMessage
         response.Reward = NetUtils.UseBundleBox(user, bundleBox.ItemType, req.Count);
         response.Reward.UserItems.Add(NetUtils.UserItemDataToNet(bundleBox));
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

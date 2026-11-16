@@ -23,7 +23,7 @@ public class GetPerfectReward : LobbyMessage
             response.Reward = RewardUtils.RegisterRewardsForUser(user, sectorInfo.ExplorationReward);
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

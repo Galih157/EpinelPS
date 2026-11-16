@@ -56,7 +56,7 @@ public class QuickUseItem : LobbyMessage
         rewards.ForEach(x => reward.MergeFrom(x));
         response.Reward = reward;
         response.Reward.UserItems.Add(rewardUserItems);
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

@@ -43,7 +43,7 @@ public class Lobby : LobbyMessage
         response.NewScenarioAvailable = user.DDRDatas.NewScenarioAvailable;
 
         // TODO
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 

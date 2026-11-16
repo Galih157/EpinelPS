@@ -162,7 +162,7 @@ public static class SimRoomHelper
         user.AddTrigger(Trigger.SimulationRoomClearCount1Only, value: 1);
         user.AddTrigger(Trigger.SimulationRoomClearWithoutCondition, value: 1);
         user.ResetableData.SimRoomData.Events = events;
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         return netSimRooms;
     }
 

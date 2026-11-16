@@ -18,7 +18,7 @@ public class EnterStage : LobbyMessage
         user.AddTrigger(Trigger.EventMiniGameNKSPlayCheck, 1, 0);
 
         // TODO
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

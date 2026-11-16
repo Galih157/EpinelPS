@@ -46,7 +46,7 @@ public static class AzxHelper
                 new AchievementMissionData() { MissionId = x, IsReceived = true }));
 
             user.MiniGameAzxInfo[azxId] = azxInfo;
-            JsonDb.Save();
+            UserSessionStore.SaveAll();
         }
         catch (Exception ex)
         {
@@ -94,7 +94,7 @@ public static class AzxHelper
             User = LobbyHandler.CreateWholeUserDataFromDbUser(user.ID)
         });
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
     }
 
     public static void FinishAzx(User user, ReqFinishMiniGameAzx req, ref ResFinishMiniGameAzx response)
@@ -199,7 +199,7 @@ public static class AzxHelper
             response.Reward = reward;
             // Save changes
             user.MiniGameAzxInfo[req.AzxId] = azxInfo;
-            JsonDb.Save();
+            UserSessionStore.SaveAll();
         }
         catch (Exception ex)
         {

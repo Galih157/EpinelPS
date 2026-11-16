@@ -13,7 +13,7 @@ public class EnterFavoriteItemQuestStage : LobbyMessage
 
         user.AddTrigger(Trigger.CampaignStart, 1, req.StageId);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         ResEnterFavoriteItemQuestStage response = new();
         await WriteDataAsync(response);

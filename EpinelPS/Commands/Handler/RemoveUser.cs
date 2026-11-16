@@ -37,8 +37,7 @@ public class RemoveUserHandler(IExecutionContext context) : BaseHandler<RemoveUs
             await db.SaveChangesAsync();
         }
 
-        JsonDb.Instance.Users.Remove(context.SelectedUser);
-        JsonDb.Save();
+        UserSessionStore.RemoveUser(context.SelectedUser.ID);
         context.SelectedUser = null;
         return new HandleResult(true, $"User {displayName} removed successfully");
     }

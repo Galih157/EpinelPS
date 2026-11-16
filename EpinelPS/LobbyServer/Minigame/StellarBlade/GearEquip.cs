@@ -30,7 +30,7 @@ public class GearEquip : LobbyMessage
 
         }       
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         // TODO
         await WriteDataAsync(response);
     }

@@ -143,7 +143,7 @@ public class ExecuteEventGacha : LobbyMessage
 
         user.AddGachaPullCount(bannerID, numberOfPulls);
         
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

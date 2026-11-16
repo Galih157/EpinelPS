@@ -23,7 +23,7 @@ public class Upgrade : LobbyMessage
 
         }
         // TODO
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

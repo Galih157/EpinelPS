@@ -27,7 +27,7 @@ public class ObtainEpReward : LobbyMessage
                     RewardRecord reward = GameData.Instance.GetRewardTableEntry(levelUpRecord.Value.RewardId) ?? throw new Exception("failed to get reward");
                     response.Reward = RewardUtils.RegisterRewardsForUser(user, reward);
 
-                    JsonDb.Save();
+                    UserSessionStore.SaveAll();
                 }
                 break;
             }

@@ -15,7 +15,7 @@ public class RecordCutscene : LobbyMessage
         user.BBQInfoData.RecordedCutSceneList.AddUnique(req.CutSceneTid);
         response.Data = MiniGameHelper.BBQToNet(user.BBQInfoData);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         // TODO
         await WriteDataAsync(response);
     }

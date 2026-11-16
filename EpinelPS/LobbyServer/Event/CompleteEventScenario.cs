@@ -24,7 +24,7 @@ public class CompleteEventScenario : LobbyMessage
             user.EventInfo.Add(req.EventId, evt);
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         ResSetEventScenarioComplete response = new();
 
         // TODO reward

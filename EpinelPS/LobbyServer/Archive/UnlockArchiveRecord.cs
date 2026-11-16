@@ -33,7 +33,7 @@ public class UnlockArchiveRecord : LobbyMessage
             }
 
             user.UnlockedArchiveRecordIds.Add(record.Id);
-            JsonDb.Save();
+            UserSessionStore.SaveAll();
         }
 
         await WriteDataAsync(response);

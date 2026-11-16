@@ -25,7 +25,7 @@ public class Clear : LobbyMessage
         user.DessertRushData.TotalAccumulatedScore += newscore;
         response.Data =MiniGameHelper.ToProto<NetArcadeDessertRushData, ArcadeDessertRushData>( user.DessertRushData);
         // TODO
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

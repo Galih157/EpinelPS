@@ -21,7 +21,7 @@ public class SetDamagePractice : LobbyMessage
             Logging.WriteLine($"SetDamagePractice Error: {ex.Message}", LogType.Error);
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

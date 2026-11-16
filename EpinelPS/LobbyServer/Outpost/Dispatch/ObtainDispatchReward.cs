@@ -37,7 +37,7 @@ public class ObtainDispatchReward : LobbyMessage
         response.DispatchList.AddRange(dispatchDatas);
         response.SelectableDispatchList.AddRange(dispatchtable);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 

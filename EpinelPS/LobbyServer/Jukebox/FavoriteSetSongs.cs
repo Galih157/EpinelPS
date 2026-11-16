@@ -13,7 +13,7 @@ public class SetJukeboxFavoriteSongs : LobbyMessage
 
         user.FavoriteSongs.Songs.Clear();
         user.FavoriteSongs.Songs.AddRange(req.Songs);
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         ResSetJukeboxFavoriteSongs response = new() { FavoriteSongs = user.FavoriteSongs };
 

@@ -19,7 +19,7 @@ public static class EventShopHelper
 
         if (!isSuccess) return;
         AddEventShopBuyCount(user, ref MultipleResponse, req.EventId, req.ShopProductTid, req.Quantity, req.Order);
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         // Update currency data
         if (MultipleResponse.Currencies.Count > 0)
@@ -48,7 +48,7 @@ public static class EventShopHelper
         // user.AddTrigger(Trigger.MainShopBuy, req.Quantity);
 
         // Save changes to the database
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
     }
 
     public static void BuyShopMultipleProduct(User user, ref ResEventShopMultipleBuyProduct response, ReqEventShopMultipleBuyProduct req)
@@ -60,7 +60,7 @@ public static class EventShopHelper
         {
             AddEventShopBuyCount(user, ref response, req.EventId, item.ShopProductTid, item.Quantity, item.Order);
         }
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
     }
 
     private static void AddEventShopBuyCount(User user, ref ResEventShopMultipleBuyProduct response, int eventId, int productTid, int quantity, int order)
@@ -140,7 +140,7 @@ public static class EventShopHelper
             }
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         return true;
     }

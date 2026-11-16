@@ -20,7 +20,7 @@ public class CompleteEventPassMission : LobbyMessage
         PassHelper.CompletePassMissions(user, ref reward, req.PassId, [.. req.PassMissionList]);
         response.Reward = reward;
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

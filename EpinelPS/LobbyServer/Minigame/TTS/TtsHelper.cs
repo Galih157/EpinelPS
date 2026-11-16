@@ -1,6 +1,7 @@
 ﻿using EpinelPS.Database;
 using EpinelPS.Utils;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.EntityFrameworkCore;
 using System.Reflection.PortableExecutable;
 
 
@@ -19,23 +20,29 @@ public static class TtsHelper
         return Duration.FromTimeSpan(left.ToTimeSpan() - right.ToTimeSpan());
     }
 
+    private static SongRankData ToSongRankData(TtsSongScoreEntity e) => new()
+    {
+        UserId = e.UserId,
+        SongId = e.SongId,
+        RankType = (MiniGameTtsRankingType)e.RankType,
+        Difficulty = (MiniGameTtsDifficulty)e.Difficulty,
+        Score = e.Score,
+        UpdateTime = e.UpdateTime,
+        IsDeleted = e.IsDeleted
+    };
+
     // 插入或更新（UPSERT）
     public static void InsertOrUpdate(SongRankData entity)
     {
-        RankData rank = JsonDb.GetRank();
+        using var db = GameContext.CreateNew();
+        int rankType = (int)entity.RankType;
+        int difficulty = (int)entity.Difficulty;
 
-        if (!rank.SongRankDatas.TryGetValue(entity.SongId, out var list))
-        {
-            // 如果该 SongId 不存在，创建新列表
-            list = [];
-            rank.SongRankDatas[entity.SongId] = list;
-        }
-
-        // 查找是否已存在相同 UserId + RankType + Difficulty 的记录
-        var existing = list.FirstOrDefault(x =>
+        var existing = db.Set<TtsSongScoreEntity>().FirstOrDefault(x =>
             x.UserId == entity.UserId &&
-            x.RankType == entity.RankType &&
-            x.Difficulty == entity.Difficulty);
+            x.SongId == entity.SongId &&
+            x.RankType == rankType &&
+            x.Difficulty == difficulty);
 
         if (existing != null)
         {
@@ -47,26 +54,37 @@ public static class TtsHelper
         else
         {
             // 不存在则添加
-            list.Add(entity);
+            db.Set<TtsSongScoreEntity>().Add(new TtsSongScoreEntity
+            {
+                UserId = entity.UserId,
+                SongId = entity.SongId,
+                RankType = rankType,
+                Difficulty = difficulty,
+                Score = entity.Score,
+                UpdateTime = entity.UpdateTime,
+                IsDeleted = entity.IsDeleted
+            });
         }
 
-        JsonDb.Save();
+        db.SaveChanges();
     }
 
     // 查询单条记录
     public static SongRankData? Get(SqlSongRankKey key)
     {
-        RankData rank = JsonDb.GetRank();
+        using var db = GameContext.CreateNew();
+        int rankType = (int)key.RankType;
+        int difficulty = (int)key.Difficulty;
 
-        if (!rank.SongRankDatas.TryGetValue(key.SongId, out var list))
-        {
-            return null;
-        }
+        var entity = db.Set<TtsSongScoreEntity>()
+            .AsNoTracking()
+            .FirstOrDefault(x =>
+                x.UserId == key.UserId &&
+                x.SongId == key.SongId &&
+                x.RankType == rankType &&
+                x.Difficulty == difficulty);
 
-        return list.FirstOrDefault(x =>
-            x.UserId == key.UserId &&
-            x.RankType == key.RankType &&
-            x.Difficulty == key.Difficulty);
+        return entity != null ? ToSongRankData(entity) : null;
     }
 
     // 获取排行榜（带动态排名）
@@ -84,25 +102,26 @@ public static class TtsHelper
     MiniGameTtsDifficulty difficulty,
     int limit = 100)
     {
-        RankData rank = JsonDb.GetRank();
+        using var db = GameContext.CreateNew();
+        int rt = (int)rankType;
+        int diff = (int)difficulty;
 
-        if (!rank.SongRankDatas.TryGetValue(songId, out var list) || list.Count == 0)
-            return [];
-
-        var filtered = list
-            .Where(x => x.RankType == rankType &&
-                        x.Difficulty == difficulty &&
+        IQueryable<TtsSongScoreEntity> query = db.Set<TtsSongScoreEntity>()
+            .AsNoTracking()
+            .Where(x => x.SongId == songId &&
+                        x.RankType == rt &&
+                        x.Difficulty == diff &&
                         x.IsDeleted == 0)
-            .OrderByDescending(x => x.Score)
-            .ToList();
+            .OrderByDescending(x => x.Score);
 
-        if (limit > 0 && filtered.Count > limit)
-            filtered = filtered.Take(limit).ToList();
+        if (limit > 0)
+            query = query.Take(limit);
 
-        var result = new List<(SongRankData Entity, int Rank)>();
+        var filtered = query.ToList();
+        var result = new List<(SongRankData Entity, int Rank)>(filtered.Count);
         for (int i = 0; i < filtered.Count; i++)
         {
-            result.Add((filtered[i], i + 1));
+            result.Add((ToSongRankData(filtered[i]), i + 1));
         }
 
         return result;
@@ -111,49 +130,46 @@ public static class TtsHelper
     // 获取某个歌曲下所有未删除的排名数据
     public static List<SongRankData> GetBySongId(int songId)
     {
-        RankData rank = JsonDb.GetRank();
-
-        if (rank.SongRankDatas.TryGetValue(songId, out var songRanks))
-        {
-            return songRanks.Where(x => x.IsDeleted == 0).ToList();
-        }
-
-        return [];
+        using var db = GameContext.CreateNew();
+        return db.Set<TtsSongScoreEntity>()
+            .AsNoTracking()
+            .Where(x => x.SongId == songId && x.IsDeleted == 0)
+            .ToList()
+            .Select(ToSongRankData)
+            .ToList();
     }
 
     // 查询所有未删除的数据
     public static List<SongRankData> GetAll()
     {
-        RankData rank = JsonDb.GetRank();
-        List<SongRankData> list = [];
-
-        foreach (var kvp in rank.SongRankDatas)
-        {
-            list.AddRange(kvp.Value.Where(x => x.IsDeleted == 0));
-        }
-
-        return list;
+        using var db = GameContext.CreateNew();
+        return db.Set<TtsSongScoreEntity>()
+            .AsNoTracking()
+            .Where(x => x.IsDeleted == 0)
+            .ToList()
+            .Select(ToSongRankData)
+            .ToList();
     }
 
     // 获取某个歌曲、某个排名类型、某个难度的排行榜（所有用户的分数排名）
     public static List<SongRankData> GetLeaderboard(int songId, MiniGameTtsRankingType rankType, MiniGameTtsDifficulty difficulty, int limit = 100)
     {
-        RankData rank = JsonDb.GetRank();
+        using var db = GameContext.CreateNew();
+        int rt = (int)rankType;
+        int diff = (int)difficulty;
 
-        if (!rank.SongRankDatas.TryGetValue(songId, out var songRanks) || songRanks.Count == 0)
-            return [];
-
-        var result = songRanks
-            .Where(x => x.RankType == rankType &&
-                        x.Difficulty == difficulty &&
+        IQueryable<TtsSongScoreEntity> query = db.Set<TtsSongScoreEntity>()
+            .AsNoTracking()
+            .Where(x => x.SongId == songId &&
+                        x.RankType == rt &&
+                        x.Difficulty == diff &&
                         x.IsDeleted == 0)
-            .OrderByDescending(x => x.Score)
-            .ToList();
+            .OrderByDescending(x => x.Score);
 
-        if (limit > 0 && result.Count > limit)
-            result = result.Take(limit).ToList();
+        if (limit > 0)
+            query = query.Take(limit);
 
-        return result;
+        return query.ToList().Select(ToSongRankData).ToList();
     }
 
 
@@ -164,16 +180,20 @@ public static class TtsHelper
     /// </summary>
     public static List<(SongRankData Entity, int Rank)> GetUserSongRankingsWithRank(long userId, int songId, MiniGameTtsRankingType rankType)
     {
-        RankData rank = JsonDb.GetRank();
+        using var db = GameContext.CreateNew();
+        int rt = (int)rankType;
 
-        if (!rank.SongRankDatas.TryGetValue(songId, out var songRanks) || songRanks.Count == 0)
+        var songRanks = db.Set<TtsSongScoreEntity>()
+            .AsNoTracking()
+            .Where(x => x.SongId == songId && x.RankType == rt && x.IsDeleted == 0)
+            .ToList();
+
+        if (songRanks.Count == 0)
             return [];
 
         // 获取该用户在该歌曲、该排名类型下的所有难度记录
         var userRecords = songRanks
-            .Where(x => x.UserId == userId &&
-                        x.RankType == rankType &&
-                        x.IsDeleted == 0)
+            .Where(x => x.UserId == userId)
             .ToList();
 
         if (userRecords.Count == 0)
@@ -185,14 +205,12 @@ public static class TtsHelper
         {
             // 计算该用户在该难度下的排名
             var sorted = songRanks
-                .Where(x => x.RankType == rankType &&
-                            x.Difficulty == userRecord.Difficulty &&
-                            x.IsDeleted == 0)
+                .Where(x => x.Difficulty == userRecord.Difficulty)
                 .OrderByDescending(x => x.Score)
                 .ToList();
 
             int rankPosition = sorted.IndexOf(userRecord) + 1;
-            result.Add((userRecord, rankPosition));
+            result.Add((ToSongRankData(userRecord), rankPosition));
         }
 
         // 按难度排序返回
@@ -208,65 +226,60 @@ public static class TtsHelper
         MiniGameTtsRankingType rankType,
         MiniGameTtsDifficulty difficulty)
     {
-        RankData rank = JsonDb.GetRank();
-
-        if (!rank.SongRankDatas.TryGetValue(songId, out var songRanks) || songRanks.Count == 0)
-            return null;
-
-        // 获取该用户在指定歌曲、排名类型、难度下的记录
-        var userRecord = songRanks.FirstOrDefault(x =>
-            x.UserId == userId &&
-            x.RankType == rankType &&
-            x.Difficulty == difficulty &&
-            x.IsDeleted == 0);
-
-        if (userRecord == null)
-            return null;
+        using var db = GameContext.CreateNew();
+        int rt = (int)rankType;
+        int diff = (int)difficulty;
 
         // 计算排名
-        var sorted = songRanks
-            .Where(x => x.RankType == rankType &&
-                        x.Difficulty == difficulty &&
+        var sorted = db.Set<TtsSongScoreEntity>()
+            .AsNoTracking()
+            .Where(x => x.SongId == songId &&
+                        x.RankType == rt &&
+                        x.Difficulty == diff &&
                         x.IsDeleted == 0)
             .OrderByDescending(x => x.Score)
             .ToList();
 
+        // 获取该用户在指定歌曲、排名类型、难度下的记录
+        var userRecord = sorted.FirstOrDefault(x => x.UserId == userId);
+        if (userRecord == null)
+            return null;
+
         int rankPosition = sorted.IndexOf(userRecord) + 1;
 
-        return (userRecord, rankPosition);
+        return (ToSongRankData(userRecord), rankPosition);
     }
 
     // 软删除
     public static void SoftDelete(SqlSongRankKey key)
     {
-        RankData rank = JsonDb.GetRank();
+        using var db = GameContext.CreateNew();
+        int rt = (int)key.RankType;
+        int diff = (int)key.Difficulty;
 
-        if (!rank.SongRankDatas.TryGetValue(key.SongId, out var songRanks) || songRanks.Count == 0)
-            return;
-
-        var record = songRanks.FirstOrDefault(x =>
+        var record = db.Set<TtsSongScoreEntity>().FirstOrDefault(x =>
             x.UserId == key.UserId &&
-            x.RankType == key.RankType &&
-            x.Difficulty == key.Difficulty);
+            x.SongId == key.SongId &&
+            x.RankType == rt &&
+            x.Difficulty == diff);
 
         if (record != null)
         {
             record.IsDeleted = 1;
             record.UpdateTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            JsonDb.Save();
+            db.SaveChanges();
         }
     }
 
     // 软删除（批量删除某个歌曲、排名类型、难度下的所有记录）
     public static void SoftDelete(int songId, MiniGameTtsRankingType rankType, MiniGameTtsDifficulty difficulty)
     {
-        RankData rank = JsonDb.GetRank();
+        using var db = GameContext.CreateNew();
+        int rt = (int)rankType;
+        int diff = (int)difficulty;
 
-        if (!rank.SongRankDatas.TryGetValue(songId, out var songRanks) || songRanks.Count == 0)
-            return;
-
-        var records = songRanks
-            .Where(x => x.RankType == rankType && x.Difficulty == difficulty)
+        var records = db.Set<TtsSongScoreEntity>()
+            .Where(x => x.SongId == songId && x.RankType == rt && x.Difficulty == diff)
             .ToList();
 
         if (records.Count == 0)
@@ -280,51 +293,30 @@ public static class TtsHelper
             record.UpdateTime = now;
         }
 
-        JsonDb.Save();
+        db.SaveChanges();
     }
 
     // 软删除指定用户的特定记录
-    public static void SoftDeleteUserRecord(SqlSongRankKey key)
-    {
-        RankData rank = JsonDb.GetRank();
+    public static void SoftDeleteUserRecord(SqlSongRankKey key) => SoftDelete(key);
 
-        if (!rank.SongRankDatas.TryGetValue(key.SongId, out var songRanks) || songRanks.Count == 0)
-            return;
-
-        var record = songRanks.FirstOrDefault(x =>
-            x.UserId == key.UserId &&
-            x.RankType == key.RankType &&
-            x.Difficulty == key.Difficulty);
-
-        if (record != null)
-        {
-            record.IsDeleted = 1;
-            record.UpdateTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            JsonDb.Save();
-        }
-    }
     // 硬删除（物理删除）
     public static void HardDelete(SqlSongRankKey key)
     {
-        RankData rank = JsonDb.GetRank();
+        using var db = GameContext.CreateNew();
+        int rt = (int)key.RankType;
+        int diff = (int)key.Difficulty;
 
-        if (!rank.SongRankDatas.TryGetValue(key.SongId, out var songRanks) || songRanks.Count == 0)
-            return;
+        var records = db.Set<TtsSongScoreEntity>()
+            .Where(x => x.UserId == key.UserId &&
+                        x.SongId == key.SongId &&
+                        x.RankType == rt &&
+                        x.Difficulty == diff)
+            .ToList();
 
-        int removed = songRanks.RemoveAll(x =>
-            x.UserId == key.UserId &&
-            x.RankType == key.RankType &&
-            x.Difficulty == key.Difficulty);
-
-        if (removed > 0)
+        if (records.Count > 0)
         {
-            // 如果该 SongId 下没有记录了，可以选择删除整个 Key（可选）
-            // if (songRanks.Count == 0)
-            // {
-            //     rank.SongRankDatas.Remove(key.SongId);
-            // }
-
-            JsonDb.Save();
+            db.Set<TtsSongScoreEntity>().RemoveRange(records);
+            db.SaveChanges();
         }
     }
 
@@ -337,15 +329,20 @@ public static class TtsHelper
         int songId,
         MiniGameTtsRankingType rankType)
     {
-        RankData rank = JsonDb.GetRank();
+        using var db = GameContext.CreateNew();
+        int rt = (int)rankType;
         var result = new List<(SongRankData Entity, int Rank)>();
 
-        if (!rank.SongRankDatas.TryGetValue(songId, out var songRanks) || songRanks.Count == 0)
+        var songRanks = db.Set<TtsSongScoreEntity>()
+            .AsNoTracking()
+            .Where(x => x.SongId == songId && x.RankType == rt && x.IsDeleted == 0)
+            .ToList();
+
+        if (songRanks.Count == 0)
             return result;
 
         // 获取该歌曲、该排名类型下的所有难度
         var difficulties = songRanks
-            .Where(x => x.RankType == rankType && x.IsDeleted == 0)
             .Select(x => x.Difficulty)
             .Distinct()
             .OrderBy(x => x)
@@ -355,15 +352,13 @@ public static class TtsHelper
         {
             // 获取该难度下的所有记录，按分数降序排列
             var sorted = songRanks
-                .Where(x => x.RankType == rankType &&
-                            x.Difficulty == difficulty &&
-                            x.IsDeleted == 0)
+                .Where(x => x.Difficulty == difficulty)
                 .OrderByDescending(x => x.Score)
                 .ToList();
 
             for (int i = 0; i < sorted.Count; i++)
             {
-                result.Add((sorted[i], i + 1));
+                result.Add((ToSongRankData(sorted[i]), i + 1));
             }
         }
 
@@ -377,33 +372,37 @@ public static class TtsHelper
     public static Dictionary<MiniGameTtsDifficulty, List<(SongRankData Entity, int Rank)>>
         GetBySongIdAndRankTypeGrouped(int songId, MiniGameTtsRankingType rankType)
     {
-        RankData rank = JsonDb.GetRank();
+        using var db = GameContext.CreateNew();
+        int rt = (int)rankType;
         var result = new Dictionary<MiniGameTtsDifficulty, List<(SongRankData Entity, int Rank)>>();
 
-        if (!rank.SongRankDatas.TryGetValue(songId, out var songRanks) || songRanks.Count == 0)
+        var songRanks = db.Set<TtsSongScoreEntity>()
+            .AsNoTracking()
+            .Where(x => x.SongId == songId && x.RankType == rt && x.IsDeleted == 0)
+            .ToList();
+
+        if (songRanks.Count == 0)
             return result;
 
         // 获取该歌曲、该排名类型下的所有难度
         var difficulties = songRanks
-            .Where(x => x.RankType == rankType && x.IsDeleted == 0)
-            .Select(x => x.Difficulty)
+            .Select(x => (MiniGameTtsDifficulty)x.Difficulty)
             .Distinct()
             .ToList();
 
         foreach (var difficulty in difficulties)
         {
+            int diff = (int)difficulty;
             // 获取该难度下的所有记录，按分数降序排列
             var sorted = songRanks
-                .Where(x => x.RankType == rankType &&
-                            x.Difficulty == difficulty &&
-                            x.IsDeleted == 0)
+                .Where(x => x.Difficulty == diff)
                 .OrderByDescending(x => x.Score)
                 .ToList();
 
-            var list = new List<(SongRankData Entity, int Rank)>();
+            var list = new List<(SongRankData Entity, int Rank)>(sorted.Count);
             for (int i = 0; i < sorted.Count; i++)
             {
-                list.Add((sorted[i], i + 1));
+                list.Add((ToSongRankData(sorted[i]), i + 1));
             }
 
             result[difficulty] = list;

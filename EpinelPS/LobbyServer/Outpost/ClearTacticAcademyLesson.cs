@@ -30,7 +30,7 @@ public class ClearTacticAcademyLesson : LobbyMessage
             {
                 response.Currencies.Add(new NetUserCurrencyData() { Type = (int)currency.Key, Value = currency.Value });
             }
-            JsonDb.Save();
+            UserSessionStore.SaveAll();
         }
         else
         {

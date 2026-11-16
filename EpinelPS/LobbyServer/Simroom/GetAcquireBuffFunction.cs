@@ -36,7 +36,7 @@ public class GetAcquireBuffFunction : LobbyMessage
             await WriteDataAsync(response);
         }
         SimRoomHelper.UpdateUserSimRoomEvent(user, index: simRoomEventIndex, events: events, selectionNumber: req.SelectionNumber, isDone: true);
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

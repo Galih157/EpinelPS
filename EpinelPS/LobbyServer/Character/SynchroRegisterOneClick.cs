@@ -26,7 +26,7 @@ public class SynchroRegisterOneClick : LobbyMessage
             }
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         foreach (SynchroSlot slot in user.SynchroSlots)
         {

@@ -38,7 +38,7 @@ public class ObtainAchievement : LobbyMessage
 
         response.Reward = NetUtils.MergeRewards(rewards, user);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

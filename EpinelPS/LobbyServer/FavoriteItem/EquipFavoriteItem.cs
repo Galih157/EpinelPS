@@ -34,7 +34,7 @@ public class EquipFavoriteItem : LobbyMessage
             response.FavoriteItems.Add(item);
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

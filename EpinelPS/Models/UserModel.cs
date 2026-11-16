@@ -47,9 +47,9 @@ public class User
     [JsonIgnore] public List<string> CompletedScenarios { get; set; } = [];
     public Dictionary<string, FieldInfo> FieldInfo { get; set; } = []; // here for backwards compatibility
 
-    public Dictionary<string, FieldInfoNew> FieldInfoNew { get; set; } = [];
+    [JsonIgnore] public Dictionary<string, FieldInfoNew> FieldInfoNew { get; set; } = [];
     [JsonIgnore] public Dictionary<int, List<int>> ViewedNoticePopupTableIds { get; set; } = [];
-    public Dictionary<string, string> MapJson { get; set; } = [];
+    [JsonIgnore] public Dictionary<string, string> MapJson { get; set; } = [];
     [JsonIgnore] public Dictionary<CurrencyType, long> Currency { get; set; } = new() {
             { CurrencyType.ContentStamina, 2 }
         };
@@ -74,29 +74,29 @@ public class User
     [JsonIgnore] public NetWallpaperJukeboxFavorite[] WallpaperFavoriteList { get; set; } = [];
     [JsonIgnore] public NetWallpaperPlaylist[] WallpaperPlaylistList { get; set; } = [];
     [JsonIgnore] public NetWallpaperJukebox[] WallpaperJukeboxList { get; set; } = [];
-    public List<int> LobbyDecoBackgroundList { get; set; } = [];
-    public List<int> LiveWallpaperList { get; set; } = [];
+    [JsonIgnore] public List<int> LobbyDecoBackgroundList { get; set; } = [];
+    [JsonIgnore] public List<int> LiveWallpaperList { get; set; } = [];
 
     //角色时装
     [JsonIgnore] public List<int> CostumeList { get; set; } = [];
 
-    public List<int> JukeboxThemeList { get; set; } = [];
+    [JsonIgnore] public List<int> JukeboxThemeList { get; set; } = [];
 
     //个人面板
-    public List<int> StickerList { get; set; } = [];
-    public List<int> BackgroundList { get; set; } = [];
-    public List<int> IconList { get; set; } = [];
+    [JsonIgnore] public List<int> StickerList { get; set; } = [];
+    [JsonIgnore] public List<int> BackgroundList { get; set; } = [];
+    [JsonIgnore] public List<int> IconList { get; set; } = [];
     [JsonIgnore] public List<int> FrameList { get; set; } = [];
     [JsonIgnore] public List<int> TitleList { get; set; } = [];
-    public Dictionary<long, NetUserMailData> MailDatas { get; set; } = [];       
+    [JsonIgnore] public Dictionary<long, NetUserMailData> MailDatas { get; set; } = [];       
 
     [JsonIgnore] public Dictionary<int, NetUserTeamData> UserTeams { get; set; } = [];
     [JsonIgnore] public Dictionary<int, bool> MainQuestData { get; set; } = [];
-    public Dictionary<int, bool> SubQuestData { get; set; } = [];
+    [JsonIgnore] public Dictionary<int, bool> SubQuestData { get; set; } = [];
     [JsonIgnore] public int InfraCoreExp { get; set; } = 0;
     [JsonIgnore] public int InfraCoreLvl { get; set; } = 1;
     [JsonIgnore] public Dictionary<int, bool> InfraCoreRewardReceived { get; set; } = [];
-    public UserPointData userPointData { get; set; } = new();
+    [JsonIgnore] public UserPointData userPointData { get; set; } = new();
     public DateTime LastLogin { get; set; } = DateTime.UtcNow;
     public DateTime BattleTime { get; set; } = DateTime.UtcNow;
 
@@ -108,13 +108,13 @@ public class User
     [JsonIgnore] public Dictionary<int, int> GachaBannerMaxPulls { get; set; } = new();
     [JsonIgnore] public Dictionary<int,int> GachaPityBannerExecuteCount { get; set; } = new();
 
-    public List<int> CompletedTacticAcademyLessons { get; set; } = [];
+    [JsonIgnore] public List<int> CompletedTacticAcademyLessons { get; set; } = [];
     [JsonIgnore] public List<int> CompletedSideStoryStages { get; set; } = [];
     [JsonIgnore] public List<int> ViewedSideStoryStages { get; set; } = [];
-    public List<int> ClearedOutpostScenarioIds { get; set; } = [];
+    [JsonIgnore] public List<int> ClearedOutpostScenarioIds { get; set; } = [];
 
     [JsonIgnore] public List<int> Memorial { get; set; } = [];
-    public List<int> JukeboxBgm { get; set; } = [];
+    [JsonIgnore] public List<int> JukeboxBgm { get; set; } = [];
     [JsonIgnore] public List<int> ClaimedJukeboxRewardTriggers { get; set; } = [];
     [JsonIgnore] public List<NetUserFavoriteItemData> FavoriteItems { get; set; } = [];
 
@@ -126,7 +126,7 @@ public class User
     [JsonIgnore] public OutpostBuffs OutpostBuffs { get; set; } = new();
     [JsonIgnore] public Dictionary<int, UnlockData> ContentsOpenUnlocked { get; set; } = [];
 
-    public List<NetStageClearInfo> StageClearHistorys { get; set; } = [];
+    [JsonIgnore] public List<NetStageClearInfo> StageClearHistorys { get; set; } = [];
 
     [JsonIgnore] public List<BadgeModel> Badges { get; set; } = [];
 
@@ -138,7 +138,7 @@ public class User
     [JsonIgnore] public List<int> CompletedAchievements { get; set; } = [];
     [JsonIgnore] public List<NetMessage> MessengerData { get; set; } = [];
     // Manual admin repairs only.  Keeping the original message makes a repair reversible.
-    public List<MessengerRepairAuditEntry> MessengerRepairHistory { get; set; } = [];
+    [JsonIgnore] public List<MessengerRepairAuditEntry> MessengerRepairHistory { get; set; } = [];
     public ulong LastMessageId { get; set; } = 1;
     [JsonIgnore] public List<NetPickedMessage> PickedMessages { get; set; } = [];
     public long LastBadgeSeq { get; set; } = 1;
@@ -155,12 +155,12 @@ public class User
     [JsonIgnore] public List<int> UnlockedArchiveEventQuestIds { get; set; } = [];
 
     [JsonIgnore] public Dictionary<int, NormalShopState> NormalShopStates { get; set; } = []; // key: shop category    
-    public List<NetPlaySodaEachGameInfo> ArcadePlaySodaInfoList { get; set; } = [];
-    public NetArcadeMvgData ArcadeInTheMirrorData { get; set; } = new();
+    [JsonIgnore] public List<NetPlaySodaEachGameInfo> ArcadePlaySodaInfoList { get; set; } = [];
+    [JsonIgnore] public NetArcadeMvgData ArcadeInTheMirrorData { get; set; } = new();
 
     [JsonIgnore] public Dictionary<int, PassData> UserPassInfo = []; // user pass data, key is PassId
 
-    public List<int> LobbyPrivateBannerIds = [];
+    [JsonIgnore] public List<int> LobbyPrivateBannerIds = [];
 
     [JsonIgnore] public Dictionary<int, GachaPaybackData> GachaPaybackData {get;set;} = new();
     [JsonIgnore] public List<int> GachaDailyFreePulls { get; set; } = new();
@@ -169,8 +169,8 @@ public class User
     public bool DailyDiscountUsed { get; set; } = false;
 
     // solo raid data
-    public Dictionary<int, SoloRaidInfo> SoloRaidData = []; // key: raidId
-    public Dictionary<int, SoloRaidMuseumStageData> SoloRaidMuseumData { get; set; } = []; // key: stageId
+    [JsonIgnore] public Dictionary<int, SoloRaidInfo> SoloRaidData = []; // key: raidId
+    [JsonIgnore] public Dictionary<int, SoloRaidMuseumStageData> SoloRaidMuseumData { get; set; } = []; // key: stageId
 
 
     //OutpostConditionTable
@@ -185,7 +185,7 @@ public class User
     [JsonIgnore] public List<NetSelectableDispatchData> SelectableDispatchData { get; set; } = [];
     [JsonIgnore] public DispatchData UserDispatchData { get; set; } = new();
 
-    public GuildData Guild { get; set; } = new();
+    [JsonIgnore] public GuildData Guild { get; set; } = new();
 
     //解放
     [JsonIgnore] public Dictionary<int, NetLiberateData> LiberateDatas { get; set; } = [];
@@ -193,31 +193,31 @@ public class User
     public int CurCharacterIdId { get; set; } = 0;
 
     // Minigame data
-    public Dictionary<int,MiniGameScenarios> MiniGameScenarios { get;set;  } = new();
-    public Dictionary<int, MiniGameAzxData> MiniGameAzxInfo { get; set; } = [];
-    public Dictionary<int, MiniGameStoryChoice> MiniGameStoryChoice { get; set; } = [];
-    public ArcadeBBQData BBQInfoData { get; set; } = new();
-    public List<NetPlaySodaEachGameInfo> PlaySodaInfoData { get; set; } = [];
+    [JsonIgnore] public Dictionary<int,MiniGameScenarios> MiniGameScenarios { get;set;  } = new();
+    [JsonIgnore] public Dictionary<int, MiniGameAzxData> MiniGameAzxInfo { get; set; } = [];
+    [JsonIgnore] public Dictionary<int, MiniGameStoryChoice> MiniGameStoryChoice { get; set; } = [];
+    [JsonIgnore] public ArcadeBBQData BBQInfoData { get; set; } = new();
+    [JsonIgnore] public List<NetPlaySodaEachGameInfo> PlaySodaInfoData { get; set; } = [];
 
-    public Dictionary<int, TtsDatas> TTSGameData { get; set; } = new();
-    public Dictionary<int, StellarBladeDatas> StellarBladeDatas { get; set; } = new();
-    public Dictionary<int, TowerDefenseData> TowerDefenseDatas { get; set; } = new();
-    public ArcadeDessertRushData DessertRushData { get; set; } = new();
-    public ArcadeSortOutData SortOutData { get; set; } = new();
-    public ArcadePirateCafeData PirateCafeData { get; set; } = new();
-    public Dictionary<int, ArcadeBtgData> BtgData { get; set; } = new();
-    public DragonDungeonRunData DDRDatas { get; set; } = new();
-    public Dictionary<int, RebuildEdenData> RebuildEdenDatas { get; set; } = new();
-    public Dictionary<int, Nksv2Data> Nksv2Datas { get; set; } = new();
-    public Dictionary<int, BubbleMarchData> BubbleMarchDatas { get; set; } = new();
-    public Dictionary<int, IsLandBreakerData> IsLandBreakerDatas { get; set; } = new();
+    [JsonIgnore] public Dictionary<int, TtsDatas> TTSGameData { get; set; } = new();
+    [JsonIgnore] public Dictionary<int, StellarBladeDatas> StellarBladeDatas { get; set; } = new();
+    [JsonIgnore] public Dictionary<int, TowerDefenseData> TowerDefenseDatas { get; set; } = new();
+    [JsonIgnore] public ArcadeDessertRushData DessertRushData { get; set; } = new();
+    [JsonIgnore] public ArcadeSortOutData SortOutData { get; set; } = new();
+    [JsonIgnore] public ArcadePirateCafeData PirateCafeData { get; set; } = new();
+    [JsonIgnore] public Dictionary<int, ArcadeBtgData> BtgData { get; set; } = new();
+    [JsonIgnore] public DragonDungeonRunData DDRDatas { get; set; } = new();
+    [JsonIgnore] public Dictionary<int, RebuildEdenData> RebuildEdenDatas { get; set; } = new();
+    [JsonIgnore] public Dictionary<int, Nksv2Data> Nksv2Datas { get; set; } = new();
+    [JsonIgnore] public Dictionary<int, BubbleMarchData> BubbleMarchDatas { get; set; } = new();
+    [JsonIgnore] public Dictionary<int, IsLandBreakerData> IsLandBreakerDatas { get; set; } = new();
 
     // Jukebox
-    public List<NetJukeboxPlaylist> PlayLists { get; set; } = [];
-    public NetJukeboxFavorite FavoriteSongs { get; set; } = new();
+    [JsonIgnore] public List<NetJukeboxPlaylist> PlayLists { get; set; } = [];
+    [JsonIgnore] public NetJukeboxFavorite FavoriteSongs { get; set; } = new();
 
     // Character Wishlist
-    public List<CharacterWishlistData> CharacterWishlist { get; set; } = [];
+    [JsonIgnore] public List<CharacterWishlistData> CharacterWishlist { get; set; } = [];
 
     // Profile Cards
     [JsonIgnore] public List<int> ProfileCardsData { get; set; } = [];
@@ -613,7 +613,7 @@ public class User
 
         LastReset = DateTime.UtcNow;
         ResetableData = new();
-        JsonDb.Save();
+        UserSessionStore.SaveUser(this);
     }*/
 
     public void ResetDataIfNeeded()
@@ -687,7 +687,7 @@ public class User
 
         if (needsSave)
         {
-            JsonDb.Save();
+            UserSessionStore.SaveUser(this);
         }
     }
     public int GetDateDay()

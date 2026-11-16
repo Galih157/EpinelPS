@@ -86,14 +86,6 @@ public class AdminApiController(GameContext DbContext) : ControllerBase
 
         bool admin = !dbContext.SdkUsers.Any();
 
-        if (!JsonDb.Instance.Users.Any(u => u.ID == uid))
-        {
-            JsonDb.Instance.Users.Add(new User()
-            {
-                ID = uid
-            });
-        }
-
         dbContext.SdkUsers.Add(new SdkUser()
         {
             ID = uid,
@@ -109,8 +101,10 @@ public class AdminApiController(GameContext DbContext) : ControllerBase
             ID = uid // todo remove later
         });
 
-        JsonDb.Save();
         dbContext.SaveChanges();
+
+        var newUser = UserSessionStore.GetOrAddUser(uid);
+        UserSessionStore.SaveUser(newUser);
 
         return new RunCmdResponse() { ok = true };
     }
@@ -125,7 +119,7 @@ public class AdminApiController(GameContext DbContext) : ControllerBase
         {
             if (!ulong.TryParse(req.p1, out ulong mailUserId))
                 return new RunCmdResponse() { error = "Invalid user ID" };
-            User? mailUser = JsonDb.GetUser(mailUserId);
+            User? mailUser = UserSessionStore.GetUser(mailUserId);
             if (mailUser == null)
                 return new RunCmdResponse() { error = "User not found" };
 
@@ -151,7 +145,7 @@ public class AdminApiController(GameContext DbContext) : ControllerBase
         User? user = null;
         if (ulong.TryParse(req.p1, out ulong userId))
         {
-            user = JsonDb.GetUser(userId);
+            user = UserSessionStore.GetUser(userId);
         }
 
         var ctx = new CliContext { SelectedUser = user };
@@ -180,7 +174,7 @@ public class AdminApiController(GameContext DbContext) : ControllerBase
     public ActionResult<SoloRaidMuseumRecordModel> GetSoloRaidMuseum([FromQuery] ulong userId, [FromQuery] int stageId, [FromQuery] bool noLimit = false)
     {
         if (!AdminController.CheckAuth(HttpContext)) return Unauthorized();
-        var user = JsonDb.GetUser(userId);
+        var user = UserSessionStore.GetUser(userId);
         if (user is null) return NotFound(new { error = "user not found" });
         var stage = SoloRaidMuseumHelper.GetStage(user, stageId);
         var mode = noLimit ? stage.NoLimit : stage.Challenge;
@@ -216,7 +210,7 @@ public class AdminApiController(GameContext DbContext) : ControllerBase
     public ActionResult<RunCmdResponse> UpdateSoloRaidMuseum([FromBody] SoloRaidMuseumRecordModel request)
     {
         if (!AdminController.CheckAuth(HttpContext)) return Unauthorized();
-        var user = JsonDb.GetUser(request.UserId);
+        var user = UserSessionStore.GetUser(request.UserId);
         if (user is null) return NotFound(new { error = "user not found" });
         if (request.StageId <= 0 || request.StageJoinCount is < 0 or > 5 ||
             request.TotalDamage < 0 || request.TotalStep < 0 || request.BestDamage < 0 || request.BestStep < 0)
@@ -240,7 +234,7 @@ public class AdminApiController(GameContext DbContext) : ControllerBase
         mode.CurrentLogs = ToMuseumLogs(request.CurrentLogs, mode.CurrentLogs);
         mode.OpenTeams = mode.CurrentLogs.Select(x => x.TeamNumber).Distinct().ToList();
         var noLimitUnlocked = SoloRaidMuseumHelper.RefreshNoLimitUnlock(stage);
-        JsonDb.Save();
+        UserSessionStore.SaveUser(user);
         Logging.WriteLine($"[Admin] solo raid museum updated user={request.UserId}, stage={request.StageId}, noLimit={request.NoLimit}, logs={mode.Logs.Count}, currentLogs={mode.CurrentLogs.Count}, noLimitUnlocked={noLimitUnlocked}", LogType.Info);
         return RunCmdResponse.OK;
     }
@@ -249,7 +243,7 @@ public class AdminApiController(GameContext DbContext) : ControllerBase
     public ActionResult<RunCmdResponse> ResetSoloRaidMuseumSeason([FromBody] SoloRaidMuseumResetModel request)
     {
         if (!AdminController.CheckAuth(HttpContext)) return Unauthorized();
-        var user = JsonDb.GetUser(request.UserId);
+        var user = UserSessionStore.GetUser(request.UserId);
         if (user is null) return NotFound(new { error = "user not found" });
         if (!GameData.Instance.MuseumStageTable.ContainsKey(request.StageId))
             return BadRequest(new { error = "unknown museum stage" });
@@ -265,7 +259,7 @@ public class AdminApiController(GameContext DbContext) : ControllerBase
         stage.StageMode = SoloRaidMuseumStageMode.Challenge;
         stage.DebugDamageMultiplier = multiplier;
         stage.Teams = teams;
-        JsonDb.Save();
+        UserSessionStore.SaveUser(user);
         Logging.WriteLine($"[Admin] solo raid museum season reset user={request.UserId}, stage={request.StageId}", LogType.Info);
         return RunCmdResponse.OK;
     }

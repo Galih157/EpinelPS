@@ -172,7 +172,7 @@ public class ClearStage : LobbyMessage
             }
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         return response;
     }
 

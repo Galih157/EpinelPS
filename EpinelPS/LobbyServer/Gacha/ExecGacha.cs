@@ -392,7 +392,7 @@ public class ExecGacha : LobbyMessage
             paybackState.GachaCount += req.Count;
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

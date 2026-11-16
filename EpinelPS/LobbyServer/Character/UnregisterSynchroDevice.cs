@@ -54,7 +54,7 @@ public class UnregisterSynchroDevice : LobbyMessage
             }
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
 
         await WriteDataAsync(response);

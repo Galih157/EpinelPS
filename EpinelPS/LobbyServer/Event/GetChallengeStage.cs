@@ -37,7 +37,7 @@ public class GetChallengeStage : LobbyMessage
             StageId = eventData.LastStage
         });
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

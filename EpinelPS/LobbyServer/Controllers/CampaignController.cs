@@ -117,7 +117,7 @@ public class CampaignController(IUserService db) : Controller
         FieldInfoNew field = user.FieldInfoNew[req.MapId];
 
         field.CompletedObjects.Add(new NetFieldObject() { PositionId = req.FieldObject.PositionId, Json = req.FieldObject.Json, Type = req.FieldObject.Type });
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         return response;
     }
@@ -180,7 +180,7 @@ public class CampaignController(IUserService db) : Controller
         // HIde it from the field
         field.CompletedObjects.Add(new NetFieldObject() { PositionId = req.FieldObject.PositionId, Type = req.FieldObject.Type });
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         return response;
     }
 }

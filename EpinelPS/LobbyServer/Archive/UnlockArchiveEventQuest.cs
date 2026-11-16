@@ -33,7 +33,7 @@ public class UnlockArchiveEventQuest : LobbyMessage
             }
 
             user.UnlockedArchiveEventQuestIds.Add(record.Id);
-            JsonDb.Save();
+            UserSessionStore.SaveAll();
         }
 
         await WriteDataAsync(response);

@@ -28,6 +28,6 @@ public class GetObtainMvgQuestReward : LobbyMessage
 
         await WriteDataAsync(new ResObtainArcadeMvgQuestReward() { Reward = NetUtils.MergeRewards(rewards, user) });
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
     }
 }

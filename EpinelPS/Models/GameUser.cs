@@ -29,6 +29,11 @@ public class GameUser
     public bool DailyDiscountUsed { get; set; }
     public bool SickPullsEnabled { get; set; }
 
+    public int UserLevel { get; set; } = 1;
+    public int ExperiencePoint { get; set; }
+    public int? GuildId { get; set; }
+    public long? GuildLeaveAt { get; set; }
+
     public ICollection<TriggerModelNew> Triggers { get; set; } = new List<TriggerModelNew>();
     public ICollection<UserBan> Bans { get; set; } = new List<UserBan>();
 }

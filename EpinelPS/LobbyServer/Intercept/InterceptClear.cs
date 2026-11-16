@@ -32,7 +32,7 @@ public class ClearInterceptData : LobbyMessage
 
         user.AddTrigger(Data.Trigger.InterceptClear, 1);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

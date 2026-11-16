@@ -142,7 +142,7 @@ public class TTSEnter : LobbyMessage
 
         response.UserData = LobbyHandler.CreateWholeUserDataFromDbUser(user);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         // TODO
         await WriteDataAsync(response);

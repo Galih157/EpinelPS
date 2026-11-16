@@ -16,7 +16,7 @@ public class SetProfileTeam : LobbyMessage
             user.RepresentationTeamDataNew[i] = slot.Value;
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         ResSetProfileTeam response = new();
 
         await WriteDataAsync(response);

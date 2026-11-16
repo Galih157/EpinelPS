@@ -61,7 +61,7 @@ public class FinishFavoriteItemQuest : LobbyMessage
 
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         ResFinishFavoriteItemQuest response = new();
         await WriteDataAsync(response);

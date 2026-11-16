@@ -18,7 +18,7 @@ public class PlayTimeSave : LobbyMessage
             ttsData.TotalPlayTime = req.TotalPlayTime;
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

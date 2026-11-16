@@ -20,7 +20,7 @@ public class SetTrigger : LobbyMessage
         user.AddTrigger(Trigger.SubQuestClear, 1, req.SubquestId); // TODO move elsewhere?
 
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

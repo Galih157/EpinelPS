@@ -38,7 +38,7 @@ public class MissionAcquire : LobbyMessage
         }
 
         // TODO
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

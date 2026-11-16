@@ -32,6 +32,6 @@ public class GetChallengeFinishRunning : LobbyMessage
 
         await WriteDataAsync(new ResFinishArcadePlaySodaRunningChallenge());
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
     }
 }

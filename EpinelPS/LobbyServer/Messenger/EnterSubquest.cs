@@ -50,7 +50,7 @@ public class EnterSubquest : LobbyMessage
         else
         {
             response.Message = user.CreateMessage(conversation.Value);
-            JsonDb.Save();
+            UserSessionStore.SaveAll();
         }
 
         await WriteDataAsync(response);

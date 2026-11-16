@@ -15,7 +15,7 @@ public class BuyWallpaper : LobbyMessage
 
         response.OwnedLobbyDecoBackgroundIdList.Add(user.LobbyDecoBackgroundList);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

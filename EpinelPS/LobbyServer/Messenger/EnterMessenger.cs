@@ -52,7 +52,7 @@ public class EnterMessenger : LobbyMessage
         {
             response.Message = user.CreateMessage(conversation.Value);
             user.AddTrigger(Trigger.MessageClear, 1, req.Tid);
-            JsonDb.Save();
+            UserSessionStore.SaveAll();
         }
 
         // Entering an already-created opener is still a real conversation
@@ -63,7 +63,7 @@ public class EnterMessenger : LobbyMessage
                 trigger.Type == Trigger.MessageClear && trigger.ConditionId == req.Tid))
             {
                 user.AddTrigger(Trigger.MessageClear, 1, req.Tid);
-                JsonDb.Save();
+                UserSessionStore.SaveAll();
             }
         }
 

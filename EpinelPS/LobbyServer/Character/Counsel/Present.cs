@@ -93,7 +93,7 @@ public class Present : LobbyMessage
 
         response.Items.AddRange(NetUtils.GetUserItems(user));
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

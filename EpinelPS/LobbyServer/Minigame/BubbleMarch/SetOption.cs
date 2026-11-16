@@ -20,7 +20,7 @@ public class SetOption : LobbyMessage
             marchData.LevelHideOptionActive = req.LevelHideOptionIsActive;
         }
         // TODO
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

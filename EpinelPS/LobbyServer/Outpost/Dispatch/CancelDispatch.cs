@@ -28,7 +28,7 @@ public class CancelDispatch : LobbyMessage
 
         user.SelectableDispatchData.RemoveAll(cs => cs.SelectTid == req.Tid);
 
-        JsonDb.Save();           
+        UserSessionStore.SaveAll();           
 
         // TODO
         await WriteDataAsync(response);

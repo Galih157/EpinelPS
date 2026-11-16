@@ -17,7 +17,7 @@ public class StageEnter : LobbyMessage
             stellar.LastEnteredStageId = req.StageId;
         }
 
-        JsonDb.Save();     
+        UserSessionStore.SaveAll();     
         // TODO
         await WriteDataAsync(response);
     }

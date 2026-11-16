@@ -18,7 +18,7 @@ public class SetAzxSkillUnlocked : LobbyMessage
         if (req.SkillId > 0 && req.AzxId > 0)
             AzxHelper.SetSkillUnlocked(user, req.AzxId, req.SkillId);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

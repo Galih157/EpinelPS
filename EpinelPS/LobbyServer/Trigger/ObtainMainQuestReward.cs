@@ -35,7 +35,7 @@ public class ObtainMainQuestReward : LobbyMessage
             Console.WriteLine($"item: {item.Tid} {item.Isn} {item.Count}");
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

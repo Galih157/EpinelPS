@@ -14,7 +14,7 @@ public class SetAttractiveFavorites : LobbyMessage
         if (bond != null)
         {
             bond.IsFavorites = req.IsFavorites;
-            JsonDb.Save();
+            UserSessionStore.SaveAll();
         }
 
         await WriteDataAsync(new ResSetAttractiveFavorites());

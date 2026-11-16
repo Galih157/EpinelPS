@@ -1,5 +1,6 @@
 ﻿using EpinelPS.Database;
 using EpinelPS.LobbyServer;
+using Microsoft.EntityFrameworkCore;
 using System.Reflection.PortableExecutable;
 
 namespace EpinelPS.Models;
@@ -17,12 +18,26 @@ public class MiniGameTtsTotalRankData
 {
     public List<MiniGameTtsTotalRankRecord> TtsTotalRankRecords { get; set; } = [];
 
+    private static MiniGameTtsTotalRankRecord ToRecord(TtsTotalScoreEntity e) => new()
+    {
+        UserId = e.UserId,
+        RankType = (MiniGameTtsRankingType)e.RankType,
+        Score = e.Score,
+        UpdatedAt = e.UpdatedAt
+    };
+
     /// <summary>
     /// 根据 UserId + RankType 查找记录
     /// </summary>
     public MiniGameTtsTotalRankRecord? FindRecord(long userId, MiniGameTtsRankingType rankType)
     {
-        return TtsTotalRankRecords.FirstOrDefault(r => r.UserId == userId && r.RankType == rankType);
+        using var db = GameContext.CreateNew();
+        int rt = (int)rankType;
+        var entity = db.Set<TtsTotalScoreEntity>()
+            .AsNoTracking()
+            .FirstOrDefault(r => r.UserId == userId && r.RankType == rt);
+
+        return entity != null ? ToRecord(entity) : null;
     }
 
     /// <summary>
@@ -30,26 +45,32 @@ public class MiniGameTtsTotalRankData
     /// </summary>
     public void InsertOrUpdate(long userId, MiniGameTtsRankingType rankType, long score)
     {
-        var existing = FindRecord(userId, rankType);
+        using var db = GameContext.CreateNew();
+        int rt = (int)rankType;
+        long now = DateTime.UtcNow.Ticks;
+
+        var existing = db.Set<TtsTotalScoreEntity>()
+            .FirstOrDefault(r => r.UserId == userId && r.RankType == rt);
 
         if (existing != null)
         {
             // 更新现有记录
             existing.Score = score;
-            existing.UpdatedAt = DateTime.UtcNow.Ticks;
+            existing.UpdatedAt = now;
         }
         else
         {
             // 插入新记录
-            TtsTotalRankRecords.Add(new MiniGameTtsTotalRankRecord
-            {                
+            db.Set<TtsTotalScoreEntity>().Add(new TtsTotalScoreEntity
+            {
                 UserId = userId,
-                RankType = rankType,
+                RankType = rt,
                 Score = score,
-                UpdatedAt = DateTime.UtcNow.Ticks
+                UpdatedAt = now
             });
         }
-        JsonDb.Save();
+
+        db.SaveChanges();
     }
 
     /// <summary>
@@ -57,8 +78,11 @@ public class MiniGameTtsTotalRankData
     /// </summary>
     public (long Score, int Rank)? GetUserRank(long userId, MiniGameTtsRankingType rankType)
     {
-        var ranked = TtsTotalRankRecords
-            .Where(r => r.RankType == rankType)
+        using var db = GameContext.CreateNew();
+        int rt = (int)rankType;
+        var ranked = db.Set<TtsTotalScoreEntity>()
+            .AsNoTracking()
+            .Where(r => r.RankType == rt)
             .OrderByDescending(r => r.Score)
             .ToList();
 
@@ -75,33 +99,7 @@ public class MiniGameTtsTotalRankData
     /// <param name="rankType">类型0=Union, 1=Friend, 2=Server</param>
     /// <returns></returns>
     public List<NetMiniGameTtsTotalRankData> TotalGetLeaderboardByRankType(MiniGameTtsRankingType rankType)
-    {
-        
-        var result = new List<NetMiniGameTtsTotalRankData>();
-
-        // 获取该类型下所有记录，按分数降序排列
-        var ranked = TtsTotalRankRecords
-            .Where(x => x.RankType == rankType)
-            .OrderByDescending(x => x.Score)
-            .ToList();
-
-        if (ranked.Count == 0)
-            return result;
-
-        // 构建返回数据
-        for (int i = 0; i < ranked.Count; i++)
-        {
-            var data = new NetMiniGameTtsTotalRankData
-            {
-                User = LobbyHandler.CreateWholeUserDataFromDbUser((ulong)ranked[i].UserId),
-                Score = ranked[i].Score,
-                Position = i + 1
-            };
-            result.Add(data);
-        }
-
-        return result;
-    }
+        => GetLeaderboardForResponse(rankType);
 
     /// <summary>
     /// 获取用户在指定类型中的排名
@@ -110,11 +108,14 @@ public class MiniGameTtsTotalRankData
     /// <param name="rankType">类型0=Union, 1=Friend, 2=Server</param>
     /// <returns></returns>
     public NetMiniGameTtsTotalRankData? TotalGetUserRank(long userId, MiniGameTtsRankingType rankType)
-    {      
+    {
+        using var db = GameContext.CreateNew();
+        int rt = (int)rankType;
 
         // 获取该类型下所有记录，按分数降序排列
-        var ranked = TtsTotalRankRecords
-            .Where(x => x.RankType == rankType)
+        var ranked = db.Set<TtsTotalScoreEntity>()
+            .AsNoTracking()
+            .Where(x => x.RankType == rt)
             .OrderByDescending(x => x.Score)
             .ToList();
 
@@ -146,20 +147,24 @@ public class MiniGameTtsTotalRankData
         MiniGameTtsRankingType rankType,
         int? limit = null)
     {
-        var ranked = TtsTotalRankRecords
-            .Where(r => r.RankType == rankType)
-            .OrderByDescending(r => r.Score)
-            .ToList();
+        using var db = GameContext.CreateNew();
+        int rt = (int)rankType;
+
+        IQueryable<TtsTotalScoreEntity> query = db.Set<TtsTotalScoreEntity>()
+            .AsNoTracking()
+            .Where(r => r.RankType == rt)
+            .OrderByDescending(r => r.Score);
 
         if (limit.HasValue && limit.Value > 0)
         {
-            ranked = ranked.Take(limit.Value).ToList();
+            query = query.Take(limit.Value);
         }
 
-        var result = new List<(MiniGameTtsTotalRankRecord, int)>();
+        var ranked = query.ToList();
+        var result = new List<(MiniGameTtsTotalRankRecord, int)>(ranked.Count);
         for (int i = 0; i < ranked.Count; i++)
         {
-            result.Add((ranked[i], i + 1));
+            result.Add((ToRecord(ranked[i]), i + 1));
         }
         return result;
     }
@@ -172,17 +177,21 @@ public class MiniGameTtsTotalRankData
         MiniGameTtsRankingType rankType,
         int? limit = null)
     {
-        var ranked = TtsTotalRankRecords
-            .Where(r => r.RankType == rankType)
-            .OrderByDescending(r => r.Score)
-            .ToList();
+        using var db = GameContext.CreateNew();
+        int rt = (int)rankType;
+
+        IQueryable<TtsTotalScoreEntity> query = db.Set<TtsTotalScoreEntity>()
+            .AsNoTracking()
+            .Where(r => r.RankType == rt)
+            .OrderByDescending(r => r.Score);
 
         if (limit.HasValue && limit.Value > 0)
         {
-            ranked = ranked.Take(limit.Value).ToList();
+            query = query.Take(limit.Value);
         }
 
-        var result = new List<NetMiniGameTtsTotalRankData>();
+        var ranked = query.ToList();
+        var result = new List<NetMiniGameTtsTotalRankData>(ranked.Count);
         for (int i = 0; i < ranked.Count; i++)
         {
             var data = new NetMiniGameTtsTotalRankData
@@ -203,13 +212,7 @@ public class MiniGameTtsTotalRankData
     /// <param name="rankType">类型0=Union, 1=Friend, 2=Server</param>
     /// <returns></returns>
     public long TotalGetUserScore(long userId, MiniGameTtsRankingType rankType)
-    {        
-
-        var record = TtsTotalRankRecords
-            .FirstOrDefault(x => x.UserId == userId && x.RankType == rankType);
-
-        return record?.Score ?? 0;
-    }
+        => GetUserScore(userId, rankType);
 
 
     /// <summary>
@@ -218,11 +221,7 @@ public class MiniGameTtsTotalRankData
     /// <param name="rankType">类型0=Union, 1=Friend, 2=Server</param>
     /// <returns></returns>
     public int TotalGetTotalCount(MiniGameTtsRankingType rankType)
-    {     
-
-        return TtsTotalRankRecords
-            .Count(x => x.RankType == rankType);
-    }
+        => GetRecordCount(rankType);
 
 
     /// <summary>
@@ -232,12 +231,16 @@ public class MiniGameTtsTotalRankData
     /// <param name="rankType">类型0=Union, 1=Friend, 2=Server</param>
     public void TotalDeleteUserRank(long userId, MiniGameTtsRankingType rankType)
     {
-        int removed = TtsTotalRankRecords
-            .RemoveAll(x => x.UserId == userId && x.RankType == rankType);
+        using var db = GameContext.CreateNew();
+        int rt = (int)rankType;
+        var records = db.Set<TtsTotalScoreEntity>()
+            .Where(x => x.UserId == userId && x.RankType == rt)
+            .ToList();
 
-        if (removed > 0)
+        if (records.Count > 0)
         {
-            JsonDb.Save();
+            db.Set<TtsTotalScoreEntity>().RemoveRange(records);
+            db.SaveChanges();
         }
     }
 
@@ -248,7 +251,17 @@ public class MiniGameTtsTotalRankData
     /// </summary>
     public int DeleteAllByUser(long userId)
     {
-        return TtsTotalRankRecords.RemoveAll(r => r.UserId == userId);
+        using var db = GameContext.CreateNew();
+        var records = db.Set<TtsTotalScoreEntity>()
+            .Where(r => r.UserId == userId)
+            .ToList();
+
+        if (records.Count == 0)
+            return 0;
+
+        db.Set<TtsTotalScoreEntity>().RemoveRange(records);
+        db.SaveChanges();
+        return records.Count;
     }
 
     /// <summary>
@@ -256,7 +269,9 @@ public class MiniGameTtsTotalRankData
     /// </summary>
     public bool Exists(long userId, MiniGameTtsRankingType rankType)
     {
-        return FindRecord(userId, rankType) != null;
+        using var db = GameContext.CreateNew();
+        int rt = (int)rankType;
+        return db.Set<TtsTotalScoreEntity>().Any(r => r.UserId == userId && r.RankType == rt);
     }
 
     /// <summary>
@@ -272,6 +287,8 @@ public class MiniGameTtsTotalRankData
     /// </summary>
     public int GetRecordCount(MiniGameTtsRankingType rankType)
     {
-        return TtsTotalRankRecords.Count(r => r.RankType == rankType);
+        using var db = GameContext.CreateNew();
+        int rt = (int)rankType;
+        return db.Set<TtsTotalScoreEntity>().Count(r => r.RankType == rt);
     }
 }

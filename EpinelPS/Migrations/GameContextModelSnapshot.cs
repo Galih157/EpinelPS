@@ -17,6 +17,36 @@ namespace EpinelPS.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.9");
 
+            modelBuilder.Entity("EpinelPS.Models.ArcadeScoreEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ArcadeId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("GuildId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ModeId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("Score")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("ArcadeId", "ModeId", "Score");
+
+                    b.ToTable("ArcadeScores");
+                });
+
             modelBuilder.Entity("EpinelPS.Models.CharacterEntity", b =>
                 {
                     b.Property<string>("Id")
@@ -168,7 +198,7 @@ namespace EpinelPS.Migrations
 
                     b.HasKey("BannerId");
 
-                    b.ToTable("EventBanners");
+                    b.ToTable("EventBanners", (string)null);
                 });
 
             modelBuilder.Entity("EpinelPS.Models.GameUser", b =>
@@ -189,6 +219,15 @@ namespace EpinelPS.Migrations
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("ExperiencePoint")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("GuildId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long?>("GuildLeaveAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("LastAction")
                         .HasColumnType("TEXT");
@@ -237,6 +276,9 @@ namespace EpinelPS.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("TitleId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("UserLevel")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("ID");
@@ -338,6 +380,45 @@ namespace EpinelPS.Migrations
                     b.HasIndex("UserId", "ItemType");
 
                     b.ToTable("Items");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.MiniGameLeaderboardEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ArcadeId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("GuildId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("MinigameType")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ModeId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("Score")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("UpdatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("MinigameType", "ArcadeId", "ModeId", "Score");
+
+                    b.HasIndex("MinigameType", "GuildId", "ArcadeId", "Score");
+
+                    b.ToTable("MiniGameLeaderboards");
                 });
 
             modelBuilder.Entity("EpinelPS.Models.OutpostBuildingEntity", b =>
@@ -538,7 +619,7 @@ namespace EpinelPS.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ServerSecrets");
+                    b.ToTable("ServerSecrets", (string)null);
                 });
 
             modelBuilder.Entity("EpinelPS.Models.ServerSettings", b =>
@@ -557,7 +638,392 @@ namespace EpinelPS.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ServerSettings");
+                    b.ToTable("ServerSettings", (string)null);
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.SoloRaidEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("LastDateDay")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RaidId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RaidOpenCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TrialCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "RaidId")
+                        .IsUnique();
+
+                    b.ToTable("SoloRaids");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.SoloRaidLevelEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("Hp")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsClear")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsOpen")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RaidJoinCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RaidLevel")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SoloRaidId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("TotalDamage")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SoloRaidId", "RaidLevel", "Type", "IsOpen")
+                        .IsUnique();
+
+                    b.ToTable("SoloRaidLevels");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.SoloRaidLogCharacterEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Combat")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CostumeId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("Csn")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Lv")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Slot")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SoloRaidLogId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Tid")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SoloRaidLogId", "Slot")
+                        .IsUnique();
+
+                    b.ToTable("SoloRaidLogCharacters");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.SoloRaidLogEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("Damage")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Kill")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SoloRaidLevelId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SoloRaidLevelId", "Sequence")
+                        .IsUnique();
+
+                    b.ToTable("SoloRaidLogs");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.SoloRaidMuseumLogCharacterEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Combat")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CostumeId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("Csn")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Lv")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Slot")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SoloRaidMuseumLogId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Tid")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SoloRaidMuseumLogId", "Slot")
+                        .IsUnique();
+
+                    b.ToTable("SoloRaidMuseumLogCharacters");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.SoloRaidMuseumLogEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("Damage")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("LogSet")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SoloRaidMuseumModeId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Step")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TeamNumber")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SoloRaidMuseumModeId", "LogSet", "Sequence")
+                        .IsUnique();
+
+                    b.HasIndex("SoloRaidMuseumModeId", "LogSet", "TeamNumber")
+                        .IsUnique();
+
+                    b.ToTable("SoloRaidMuseumLogs");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.SoloRaidMuseumMissionClaimEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("MissionId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ModeType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SoloRaidMuseumStageId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SoloRaidMuseumStageId", "ModeType", "MissionId")
+                        .IsUnique();
+
+                    b.ToTable("SoloRaidMuseumMissionClaims");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.SoloRaidMuseumModeEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("BestDamage")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("BestStep")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsInProgress")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ModeType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SoloRaidMuseumStageId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("StageJoinCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("TotalDamage")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TotalStep")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SoloRaidMuseumStageId", "ModeType")
+                        .IsUnique();
+
+                    b.ToTable("SoloRaidMuseumModes");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.SoloRaidMuseumOpenTeamEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SoloRaidMuseumModeId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("TeamNumber")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SoloRaidMuseumModeId", "Sequence")
+                        .IsUnique();
+
+                    b.HasIndex("SoloRaidMuseumModeId", "TeamNumber")
+                        .IsUnique();
+
+                    b.ToTable("SoloRaidMuseumOpenTeams");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.SoloRaidMuseumStageEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<double>("DebugDamageMultiplier")
+                        .HasColumnType("REAL");
+
+                    b.Property<bool>("IsNoLimitUnlocked")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("StageId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("StageMode")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "StageId")
+                        .IsUnique();
+
+                    b.ToTable("SoloRaidMuseumStages");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.SoloRaidMuseumTeamEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SoloRaidMuseumStageId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("TeamNumber")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SoloRaidMuseumStageId", "TeamNumber")
+                        .IsUnique();
+
+                    b.ToTable("SoloRaidMuseumTeams");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.SoloRaidMuseumTeamSlotEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Slot")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SoloRaidMuseumTeamId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("Value")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ValueType")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SoloRaidMuseumTeamId", "Slot")
+                        .IsUnique();
+
+                    b.ToTable("SoloRaidMuseumTeamSlots");
                 });
 
             modelBuilder.Entity("EpinelPS.Models.SynchroSlotEntity", b =>
@@ -612,6 +1078,71 @@ namespace EpinelPS.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Triggers");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.TtsSongScoreEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Difficulty")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("IsDeleted")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RankType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Score")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SongId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("UpdateTime")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SongId", "RankType", "Difficulty", "Score");
+
+                    b.HasIndex("UserId", "SongId", "RankType", "Difficulty")
+                        .IsUnique();
+
+                    b.ToTable("TtsSongScores");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.TtsTotalScoreEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("RankType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("Score")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("UpdatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RankType", "Score");
+
+                    b.HasIndex("UserId", "RankType")
+                        .IsUnique();
+
+                    b.ToTable("TtsTotalScores");
                 });
 
             modelBuilder.Entity("EpinelPS.Models.UserArchiveUnlock", b =>
@@ -695,7 +1226,7 @@ namespace EpinelPS.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserBans");
+                    b.ToTable("UserBans", (string)null);
                 });
 
             modelBuilder.Entity("EpinelPS.Models.UserBond", b =>
@@ -768,6 +1299,29 @@ namespace EpinelPS.Migrations
                     b.ToTable("UserBondProgressItems");
                 });
 
+            modelBuilder.Entity("EpinelPS.Models.UserCharacterWishlistEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("BannerId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CharacterId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "BannerId", "CharacterId")
+                        .IsUnique();
+
+                    b.ToTable("UserCharacterWishlists");
+                });
+
             modelBuilder.Entity("EpinelPS.Models.UserClaimedJukeboxReward", b =>
                 {
                     b.Property<string>("Id")
@@ -786,6 +1340,26 @@ namespace EpinelPS.Migrations
                         .IsUnique();
 
                     b.ToTable("UserClaimedJukeboxRewards");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserClearedOutpostScenarioEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ScenarioId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "ScenarioId")
+                        .IsUnique();
+
+                    b.ToTable("UserClearedOutpostScenarios");
                 });
 
             modelBuilder.Entity("EpinelPS.Models.UserClearedTutorialEntity", b =>
@@ -1220,6 +1794,34 @@ namespace EpinelPS.Migrations
                     b.ToTable("UserFavoriteItemQuests");
                 });
 
+            modelBuilder.Entity("EpinelPS.Models.UserFieldMapEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DataJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("MapId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("UpdatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "MapId")
+                        .IsUnique();
+
+                    b.ToTable("UserFieldMaps");
+                });
+
             modelBuilder.Entity("EpinelPS.Models.UserGachaBannerPull", b =>
                 {
                     b.Property<string>("Id")
@@ -1359,6 +1961,37 @@ namespace EpinelPS.Migrations
                     b.ToTable("UserGachaSelectupChoices");
                 });
 
+            modelBuilder.Entity("EpinelPS.Models.UserJukeboxPlaylistEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsFavorite")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("PlaylistUid")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SongsJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "IsFavorite", "PlaylistUid")
+                        .IsUnique();
+
+                    b.ToTable("UserJukeboxPlaylists");
+                });
+
             modelBuilder.Entity("EpinelPS.Models.UserJukeboxSetting", b =>
                 {
                     b.Property<string>("Id")
@@ -1466,6 +2099,26 @@ namespace EpinelPS.Migrations
                         .IsUnique();
 
                     b.ToTable("UserLiberationMissions");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserLobbyPrivateBannerEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("BannerId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "BannerId")
+                        .IsUnique();
+
+                    b.ToTable("UserLobbyPrivateBanners");
                 });
 
             modelBuilder.Entity("EpinelPS.Models.UserLoginEvent", b =>
@@ -1641,6 +2294,64 @@ namespace EpinelPS.Migrations
                     b.ToTable("UserLostSectorObjects");
                 });
 
+            modelBuilder.Entity("EpinelPS.Models.UserMailEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("AppNoticeId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("HasReward")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ItemsJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("Msn")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Nickname")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Period")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Sender")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("State")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("TextJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TitleJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Msn")
+                        .IsUnique();
+
+                    b.ToTable("UserMails");
+                });
+
             modelBuilder.Entity("EpinelPS.Models.UserMainQuestEntity", b =>
                 {
                     b.Property<string>("Id")
@@ -1662,6 +2373,31 @@ namespace EpinelPS.Migrations
                         .IsUnique();
 
                     b.ToTable("UserMainQuests");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserMapStateEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("MapId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("StateJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "MapId")
+                        .IsUnique();
+
+                    b.ToTable("UserMapStates");
                 });
 
             modelBuilder.Entity("EpinelPS.Models.UserMessage", b =>
@@ -1696,6 +2432,73 @@ namespace EpinelPS.Migrations
                         .IsUnique();
 
                     b.ToTable("UserMessages");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserMessengerRepairHistoryEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("AuditId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("CreatedAtUtc")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("MessageJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Note")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "AuditId")
+                        .IsUnique();
+
+                    b.ToTable("UserMessengerRepairHistory");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserMinigameEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ArcadeId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("DataJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("MinigameType")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("UpdatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "MinigameType", "ArcadeId")
+                        .IsUnique();
+
+                    b.ToTable("UserMinigames");
                 });
 
             modelBuilder.Entity("EpinelPS.Models.UserNormalShopOrder", b =>
@@ -2084,6 +2887,79 @@ namespace EpinelPS.Migrations
                     b.ToTable("UserSideStoryStages");
                 });
 
+            modelBuilder.Entity("EpinelPS.Models.UserStageClearHistoryEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("ClearedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SlotsJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("TeamCombat")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UserJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "ClearedAt");
+
+                    b.ToTable("UserStageClearHistory");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserSubQuestEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("ReceivedReward")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SubQuestId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "SubQuestId")
+                        .IsUnique();
+
+                    b.ToTable("UserSubQuests");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserTacticAcademyLessonEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("LessonId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "LessonId")
+                        .IsUnique();
+
+                    b.ToTable("UserTacticAcademyLessons");
+                });
+
             modelBuilder.Entity("EpinelPS.Models.UserTeamGroupEntity", b =>
                 {
                     b.Property<string>("Id")
@@ -2432,6 +3308,17 @@ namespace EpinelPS.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("EpinelPS.Models.MiniGameLeaderboardEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("EpinelPS.Models.OutpostBuildingEntity", b =>
                 {
                     b.HasOne("EpinelPS.Models.OutpostEntity", "Outpost")
@@ -2474,6 +3361,138 @@ namespace EpinelPS.Migrations
                         .IsRequired();
 
                     b.Navigation("Outpost");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.SoloRaidEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.SoloRaidLevelEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.SoloRaidEntity", "SoloRaid")
+                        .WithMany("Levels")
+                        .HasForeignKey("SoloRaidId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SoloRaid");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.SoloRaidLogCharacterEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.SoloRaidLogEntity", "SoloRaidLog")
+                        .WithMany("Characters")
+                        .HasForeignKey("SoloRaidLogId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SoloRaidLog");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.SoloRaidLogEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.SoloRaidLevelEntity", "SoloRaidLevel")
+                        .WithMany("Logs")
+                        .HasForeignKey("SoloRaidLevelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SoloRaidLevel");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.SoloRaidMuseumLogCharacterEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.SoloRaidMuseumLogEntity", "Log")
+                        .WithMany("Characters")
+                        .HasForeignKey("SoloRaidMuseumLogId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Log");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.SoloRaidMuseumLogEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.SoloRaidMuseumModeEntity", "Mode")
+                        .WithMany("Logs")
+                        .HasForeignKey("SoloRaidMuseumModeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Mode");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.SoloRaidMuseumMissionClaimEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.SoloRaidMuseumStageEntity", "Stage")
+                        .WithMany("MissionClaims")
+                        .HasForeignKey("SoloRaidMuseumStageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Stage");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.SoloRaidMuseumModeEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.SoloRaidMuseumStageEntity", "Stage")
+                        .WithMany("Modes")
+                        .HasForeignKey("SoloRaidMuseumStageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Stage");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.SoloRaidMuseumOpenTeamEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.SoloRaidMuseumModeEntity", "Mode")
+                        .WithMany("OpenTeams")
+                        .HasForeignKey("SoloRaidMuseumModeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Mode");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.SoloRaidMuseumStageEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.SoloRaidMuseumTeamEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.SoloRaidMuseumStageEntity", "Stage")
+                        .WithMany("Teams")
+                        .HasForeignKey("SoloRaidMuseumStageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Stage");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.SoloRaidMuseumTeamSlotEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.SoloRaidMuseumTeamEntity", "Team")
+                        .WithMany("Slots")
+                        .HasForeignKey("SoloRaidMuseumTeamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Team");
                 });
 
             modelBuilder.Entity("EpinelPS.Models.SynchroSlotEntity", b =>
@@ -2561,7 +3580,29 @@ namespace EpinelPS.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("EpinelPS.Models.UserCharacterWishlistEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("EpinelPS.Models.UserClaimedJukeboxReward", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserClearedOutpostScenarioEntity", b =>
                 {
                     b.HasOne("EpinelPS.Models.GameUser", "User")
                         .WithMany()
@@ -2783,6 +3824,17 @@ namespace EpinelPS.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("EpinelPS.Models.UserFieldMapEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("EpinelPS.Models.UserGachaBannerPull", b =>
                 {
                     b.HasOne("EpinelPS.Models.GameUser", "User")
@@ -2857,6 +3909,17 @@ namespace EpinelPS.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("EpinelPS.Models.UserJukeboxPlaylistEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("EpinelPS.Models.UserJukeboxSetting", b =>
                 {
                     b.HasOne("EpinelPS.Models.GameUser", "User")
@@ -2894,6 +3957,17 @@ namespace EpinelPS.Migrations
                         .IsRequired();
 
                     b.Navigation("Liberation");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserLobbyPrivateBannerEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });
@@ -2977,6 +4051,17 @@ namespace EpinelPS.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("EpinelPS.Models.UserMailEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("EpinelPS.Models.UserMainQuestEntity", b =>
                 {
                     b.HasOne("EpinelPS.Models.GameUser", "User")
@@ -2988,7 +4073,40 @@ namespace EpinelPS.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("EpinelPS.Models.UserMapStateEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("EpinelPS.Models.UserMessage", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserMessengerRepairHistoryEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserMinigameEntity", b =>
                 {
                     b.HasOne("EpinelPS.Models.GameUser", "User")
                         .WithMany()
@@ -3174,6 +4292,39 @@ namespace EpinelPS.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("EpinelPS.Models.UserStageClearHistoryEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserSubQuestEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.UserTacticAcademyLessonEntity", b =>
+                {
+                    b.HasOne("EpinelPS.Models.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("EpinelPS.Models.UserTeamGroupEntity", b =>
                 {
                     b.HasOne("EpinelPS.Models.GameUser", "User")
@@ -3326,6 +4477,47 @@ namespace EpinelPS.Migrations
                     b.Navigation("SelectableDispatches");
 
                     b.Navigation("SynchroSlots");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.SoloRaidEntity", b =>
+                {
+                    b.Navigation("Levels");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.SoloRaidLevelEntity", b =>
+                {
+                    b.Navigation("Logs");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.SoloRaidLogEntity", b =>
+                {
+                    b.Navigation("Characters");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.SoloRaidMuseumLogEntity", b =>
+                {
+                    b.Navigation("Characters");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.SoloRaidMuseumModeEntity", b =>
+                {
+                    b.Navigation("Logs");
+
+                    b.Navigation("OpenTeams");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.SoloRaidMuseumStageEntity", b =>
+                {
+                    b.Navigation("MissionClaims");
+
+                    b.Navigation("Modes");
+
+                    b.Navigation("Teams");
+                });
+
+            modelBuilder.Entity("EpinelPS.Models.SoloRaidMuseumTeamEntity", b =>
+                {
+                    b.Navigation("Slots");
                 });
 
             modelBuilder.Entity("EpinelPS.Models.UserBond", b =>

@@ -34,7 +34,7 @@ public class EnrollSubquest : LobbyMessage
             SubQuestId = req.SubquestId
         };
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

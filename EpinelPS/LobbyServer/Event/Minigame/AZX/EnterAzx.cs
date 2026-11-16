@@ -24,7 +24,7 @@ public class EnterAzx : LobbyMessage
         if (req.AzxId > 0 && req.PlayBoardId > 0 && req.PlayCharacterId > 0)
             AzxHelper.EnterAzx(user, ref response, req.AzxId, req.PlayBoardId, req.PlayCharacterId);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

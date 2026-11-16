@@ -72,15 +72,15 @@ public abstract class LobbyMessage
 
     public User GetUser()
     {
-        return JsonDb.GetUser(UserId) ?? throw new UnauthorizedAccessException("Invalid authentication token");
+        return UserSessionStore.GetUser(UserId) ?? throw new UnauthorizedAccessException("Invalid authentication token");
     }
     public User? GetUser(ulong Id)
     {
-        return JsonDb.GetUser(Id);
+        return UserSessionStore.GetUser(Id);
     }
 
     public RankData GetRank()
     {
-        return JsonDb.GetRank();
+        return new RankData();
     }
 }

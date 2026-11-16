@@ -26,6 +26,6 @@ public class GetChallengeInfo : LobbyMessage
 
         await WriteDataAsync(response);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
     }
 }

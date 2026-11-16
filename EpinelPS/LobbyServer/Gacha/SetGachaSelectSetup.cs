@@ -21,7 +21,7 @@ public class SetGachaSelectSetup : LobbyMessage
         else
             user.GachaSelectupChoices.Add(req.GachaSelectupData.GachaTypeId, req.GachaSelectupData.GachaSelectupId);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         Logging.WriteLine($"[SetGachaSelectSetup] Updated selection for user {user.ID} to GachaTypeId {req.GachaSelectupData.GachaTypeId} - GachaSelectupId {user.GachaSelectupChoices[req.GachaSelectupData.GachaTypeId]}");
 

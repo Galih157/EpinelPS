@@ -14,7 +14,7 @@ public class RenewShop : LobbyMessage
             Shop = NormalShopHelper.GetShopData(user, req.ShopCategory, reroll: true),
         };
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

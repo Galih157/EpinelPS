@@ -48,11 +48,8 @@ public class RegUserHandler(IExecutionContext context) : BaseHandler<RegUserPara
 
         await db.SaveChangesAsync();
 
-        if (!JsonDb.Instance.Users.Any(u => u.ID == userId))
-        {
-            JsonDb.Instance.Users.Add(new User { ID = userId });
-            JsonDb.Save();
-        }
+        var newUser = UserSessionStore.GetOrAddUser(userId);
+        UserSessionStore.SaveUser(newUser);
 
         return new HandleResult(true, $"User '{parameters.Email}' registered successfully with ID {userId}");
     }

@@ -64,7 +64,7 @@ public class GetOutpostData : LobbyMessage
 
             response.Data.AddRange(defaultBuildings);
             user.OutpostBuildings = defaultBuildings;
-            JsonDb.Save();
+            UserSessionStore.SaveAll();
         }
         else
         {
@@ -77,7 +77,7 @@ public class GetOutpostData : LobbyMessage
                 }
             }
             response.Data.AddRange(user.OutpostBuildings);
-            JsonDb.Save();
+            UserSessionStore.SaveAll();
         }
 
         response.TimeRewardBuffs.AddRange(NetUtils.GetOutpostTimeReward(user));

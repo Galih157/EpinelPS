@@ -25,7 +25,7 @@ public class SetScenarioCompleted : LobbyMessage
             response.Reward = RewardUtils.RegisterRewardsForUser(user, record.RewardId);
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

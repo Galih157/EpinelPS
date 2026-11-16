@@ -32,6 +32,6 @@ public class GetChallengeFinishStackUp : LobbyMessage
 
         await WriteDataAsync(new ResFinishArcadePlaySodaStackUpChallenge());
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
     }
 }

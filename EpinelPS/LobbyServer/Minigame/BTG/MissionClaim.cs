@@ -39,7 +39,7 @@ public class MissionClaim : LobbyMessage
 
         
         // TODO
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

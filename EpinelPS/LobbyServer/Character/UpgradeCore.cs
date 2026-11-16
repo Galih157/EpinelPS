@@ -65,7 +65,7 @@ public class CoreUpgrade : LobbyMessage
                     user.AddTrigger(Trigger.CharacterGradeMax, 1);
                 }
 
-                JsonDb.Save();
+                UserSessionStore.SaveAll();
             }
         }
 

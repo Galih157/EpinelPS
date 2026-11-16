@@ -47,7 +47,7 @@ public class ObtainFavoriteItemQuestReward : LobbyMessage
                 NetRewardData rewardData = RewardUtils.RegisterRewardsForUser(user, reward);
                 ResObtainFavoriteItemQuestReward genericResponse = new() { UserReward = rewardData };
                 userQuest.Received = true;
-                JsonDb.Save();
+                UserSessionStore.SaveAll();
                 await WriteDataAsync(genericResponse);
                 return;
             }
@@ -76,7 +76,7 @@ public class ObtainFavoriteItemQuestReward : LobbyMessage
 
         ResObtainFavoriteItemQuestReward response = new() { UserReward = finalRewardData };
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

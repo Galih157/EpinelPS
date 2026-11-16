@@ -80,7 +80,7 @@ public class Get : LobbyMessage
         response = isLandData.ToNet();
 
         // TODO
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

@@ -18,7 +18,7 @@ public class SetAzxCharacterUnlocked : LobbyMessage
         if (req.CharacterId > 0 && req.AzxId > 0)
             AzxHelper.SetCharacterUnlocked(user, req.AzxId, req.CharacterId);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

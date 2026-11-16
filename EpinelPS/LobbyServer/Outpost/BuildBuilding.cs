@@ -115,7 +115,7 @@ public class BuildBuilding : LobbyMessage
             user.OutpostBuildings.Add(newBuilding);
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         ResBuilding response = new()
         {

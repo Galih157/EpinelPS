@@ -32,7 +32,7 @@ public class FastClearEventStage : LobbyMessage
         response.Reward = reward;
         response.BonusReward = bonusReward;
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

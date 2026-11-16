@@ -48,7 +48,7 @@ public class SynchroLevelUp : LobbyMessage
 
         user.AddTrigger(Trigger.CharacterLevelUpCount, 1);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

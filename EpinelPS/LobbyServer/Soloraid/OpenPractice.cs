@@ -27,7 +27,7 @@ public class OpenPractice : LobbyMessage
             Logging.WriteLine($"OpenSoloRaid error: {ex.Message}", LogType.Error);
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

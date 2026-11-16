@@ -106,7 +106,7 @@ public class WearHarmonyCube : LobbyMessage
 
         response.HarmonyCubes.Add(netHarmonyCube);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 

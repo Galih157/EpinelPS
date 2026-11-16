@@ -22,7 +22,7 @@ public class SetTableId : LobbyMessage
             user.LobbyMusic.TableId = req.JukeboxTableId;
             user.LobbyMusic.Type = NetJukeboxBgmType.JukeboxTableId;
         }
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

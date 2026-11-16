@@ -36,7 +36,7 @@ public class Statistics : LobbyMessage
             response.StatisticsList.Add(statistics);
         }
         // TODO
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

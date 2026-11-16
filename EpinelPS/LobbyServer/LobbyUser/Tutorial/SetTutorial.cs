@@ -26,7 +26,7 @@ public class SetTutorial : LobbyMessage
         {
             user.ClearedTutorialDataNew[cleared.GroupId] = tutorial;
         }
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         ResSetTutorial response = new();
         await WriteDataAsync(response);

@@ -54,7 +54,7 @@ public class CompleteMission : LobbyMessage
 
 
         // TODO
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

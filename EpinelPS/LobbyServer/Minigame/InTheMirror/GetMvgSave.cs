@@ -15,6 +15,6 @@ public class GetMvgSave : LobbyMessage
 
         await WriteDataAsync(new ResSaveArcadeMvgData());
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
     }
 }

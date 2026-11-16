@@ -19,7 +19,7 @@ public class SeenSave : LobbyMessage
         }
 
         // TODO
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

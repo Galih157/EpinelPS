@@ -48,7 +48,7 @@ public class ClearBattleFast : LobbyMessage
             log.Error($"ClearBattleFast Response BuffOptions Exception: {e.Message}");
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

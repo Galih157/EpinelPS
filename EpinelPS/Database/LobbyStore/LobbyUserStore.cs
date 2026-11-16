@@ -1,18 +1,36 @@
+using EpinelPS.Database.Domains;
 using EpinelPS.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace EpinelPS.Database;
 
-public static partial class LobbyUserStore
+public static class LobbyUserStore
 {
     private static readonly object SyncLock = new();
+
+    private static readonly IUserDomainStore[] DomainStores =
+    [
+        new InventoryStore(),
+        new OutpostStore(),
+        new ProgressStore(),
+        new ResetStore(),
+        new TeamStore(),
+        new CosmeticsStore(),
+        new GachaShopPassStore(),
+        new EventsStore(),
+        new BondLiberationStore(),
+        new SocialMailStore(),
+        new ExplorationStore(),
+        new SoloRaidStore(),
+        new MinigameStore()
+    ];
 
     public static void LoadUser(GameContext db, User user)
     {
         lock (SyncLock)
         {
-            LoadPart1(db, user);
-            LoadPart2(db, user);
+            foreach (var store in DomainStores)
+                store.Load(db, user);
         }
     }
 
@@ -51,8 +69,8 @@ public static partial class LobbyUserStore
         lock (SyncLock)
         {
             UserDbHelper.GetOrCreateGameUser(db, user.ID);
-            SavePart1(db, user);
-            SavePart2(db, user);
+            foreach (var store in DomainStores)
+                store.Save(db, user);
             db.SaveChanges();
         }
     }
@@ -83,8 +101,8 @@ public static partial class LobbyUserStore
             foreach (var user in snapshot)
             {
                 UserDbHelper.GetOrCreateGameUser(db, user.ID);
-                SavePart1(db, user);
-                SavePart2(db, user);
+                foreach (var store in DomainStores)
+                    store.Save(db, user);
             }
             db.SaveChanges();
             tx.Commit();

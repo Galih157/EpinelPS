@@ -14,7 +14,7 @@ public class StageEnter : LobbyMessage
         user.DDRDatas.LastPlayCharacter = req.CharacterId;
         user.DDRDatas.Phase = req.Phase;
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

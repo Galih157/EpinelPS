@@ -148,7 +148,7 @@ public class UsePiece : LobbyMessage
 
         response.Reward = reward;
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

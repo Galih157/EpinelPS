@@ -91,7 +91,7 @@ public static class PassHelper
                     user.UserPassInfo[userPass.PassId] = userPass;
             }
             log.Debug($"UserPassInfo after completing missions: {JsonConvert.SerializeObject(userPass)}");
-            JsonDb.Save();
+            UserSessionStore.SaveAll();
         }
         catch (Exception ex)
         {
@@ -195,7 +195,7 @@ public static class PassHelper
                     }
                     log.Debug($"Updated pass rank info for user {user.ID} with PassId: {passId}, Ranks: {string.Join(", ", rankList)} userPassInfo: {JsonConvert.SerializeObject(passData)}");
                 }
-                JsonDb.Save();
+                UserSessionStore.SaveAll();
             }
             else
             {
@@ -320,7 +320,7 @@ public static class PassHelper
             };
             user.UserPassInfo.Add(passId, passData);
         }
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
     }
 
     public static void CompletePassMissions(User user, ref NetRewardData reward, int passId, List<int> missionIds)
@@ -375,6 +375,6 @@ public static class PassHelper
             Value = completedPoints,
             FinalValue = passData.PassPoint
         };
-        JsonDb.Save(); // Save user data after updating pass info
+        UserSessionStore.SaveAll(); // Save user data after updating pass info
     }
 }

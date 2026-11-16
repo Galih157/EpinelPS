@@ -80,7 +80,7 @@ public class ProceedNikkeFunction : LobbyMessage
         var team = SimRoomHelper.GetTeamData(user, 1, null);
         if (team is not null) response.Teams.Add(team);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 

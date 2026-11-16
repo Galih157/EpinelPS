@@ -47,7 +47,7 @@ public class Quit : LobbyMessage
         user.ResetableData.SimRoomData.Buffs = [];
         user.ResetableData.SimRoomData.CurrentSeasonData.IsOverclock = false;
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

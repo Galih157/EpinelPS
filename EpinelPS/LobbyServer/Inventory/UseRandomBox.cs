@@ -26,7 +26,7 @@ public class UseRandomBox : LobbyMessage
         // update client sIde box count
         response.Reward.UserItems.Add(NetUtils.UserItemDataToNet(box));
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

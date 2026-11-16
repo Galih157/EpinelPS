@@ -32,6 +32,6 @@ public class GetChallengeFinishClimbing : LobbyMessage
 
         await WriteDataAsync(new ResFinishArcadePlaySodaClimbingChallenge());
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
     }
 }

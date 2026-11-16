@@ -13,7 +13,7 @@ public class QuickClearStage : LobbyMessage
         ResFastClearLostSectorStage response = new();
 
         ClearStage.ClearLostSectorStage(user, req.StageId);
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

@@ -21,7 +21,7 @@ public class SelectUserHandler(IExecutionContext context) : BaseHandler<SelectUs
 
     protected async override Task<HandleResult> ExecuteAsync(SelectUserParameter parameters)
     {
-        var user = JsonDb.Instance.Users.FirstOrDefault(u => u.ID == parameters.UserId);
+        var user = UserSessionStore.GetUser(parameters.UserId);
         if (user == null)
             return new HandleResult(false, $"User with ID {parameters.UserId} does not exist");
 

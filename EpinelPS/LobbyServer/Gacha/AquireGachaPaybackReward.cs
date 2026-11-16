@@ -34,7 +34,7 @@ public class AquireGachaPaybackReward : LobbyMessage
             response.Reward = RewardUtils.RegisterRewardsForUser(GetUser(), reward);
            
             // Save
-            JsonDb.Save();
+            UserSessionStore.SaveAll();
         }
 
         await WriteDataAsync(response);

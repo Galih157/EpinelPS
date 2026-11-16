@@ -85,7 +85,7 @@ public class BmHelper
             }
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
     }
 }
 

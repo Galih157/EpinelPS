@@ -23,7 +23,7 @@ public class FastClearArchiveStage : LobbyMessage
             // Update the LastStage in EventData
             eventData.LastStage = stgid;
         }
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         ResFastClearArchiveStage response = new();
 
         // Send the response back to the client

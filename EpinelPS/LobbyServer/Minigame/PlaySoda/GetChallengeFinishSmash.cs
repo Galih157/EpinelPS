@@ -32,6 +32,6 @@ public class GetChallengeFinishSmash : LobbyMessage
 
         await WriteDataAsync(new ResFinishArcadePlaySodaSmashChallenge());
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
     }
 }

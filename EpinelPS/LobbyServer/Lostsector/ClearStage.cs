@@ -16,7 +16,7 @@ public class ClearStage : LobbyMessage
         if (req.BattleResult == 1)
         {
             ClearLostSectorStage(user, req.StageId);
-            JsonDb.Save();
+            UserSessionStore.SaveAll();
         }
 
         await WriteDataAsync(response);

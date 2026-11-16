@@ -39,7 +39,7 @@ public class RegisterSynchroDevice : LobbyMessage
             }
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

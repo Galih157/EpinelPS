@@ -35,7 +35,7 @@ public class AllClearEquipment : LobbyMessage
         }
 
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

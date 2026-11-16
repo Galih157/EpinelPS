@@ -122,7 +122,7 @@ public class StageClear : LobbyMessage
         response.Score = score;
         response.TruncatedDuration = req.Duration;
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         // TODO
         await WriteDataAsync(response);
     }

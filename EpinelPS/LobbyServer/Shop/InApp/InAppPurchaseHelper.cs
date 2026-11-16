@@ -33,7 +33,7 @@ internal static class InAppPurchaseHelper
             return false;
 
         PendingRewards[(user.ID, productId)] = reward.Clone();
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         return true;
     }
 

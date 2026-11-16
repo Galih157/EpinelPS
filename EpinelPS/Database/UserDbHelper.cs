@@ -8,11 +8,11 @@ public static class UserDbHelper
     {
         ulong maxSdkId = db.SdkUsers.Select(u => u.ID).AsEnumerable().DefaultIfEmpty(0UL).Max();
         ulong maxGameId = db.Users.Select(u => u.ID).AsEnumerable().DefaultIfEmpty(0UL).Max();
-        ulong maxJsonId = File.Exists(DatabasePaths.JsonConfiguration) && JsonDb.Instance.Users.Count > 0
-            ? JsonDb.Instance.Users.Max(u => u.ID)
+        ulong maxCachedId = UserSessionStore.Users.Count > 0
+            ? UserSessionStore.Users.Max(u => u.ID)
             : 0;
 
-        ulong next = Math.Max(10000UL, Math.Max(maxSdkId, Math.Max(maxGameId, maxJsonId))) + 1;
+        ulong next = Math.Max(10000UL, Math.Max(maxSdkId, Math.Max(maxGameId, maxCachedId))) + 1;
         while (db.SdkUsers.Any(u => u.ID == next) || db.Users.Any(u => u.ID == next))
             next++;
 
@@ -53,7 +53,7 @@ public static class UserDbHelper
 
     public static UserBan? GetActiveBan(GameContext db, ulong userId)
     {
-        var ban = db.UserBans
+        var ban = db.Set<UserBan>()
             .Where(b => b.UserId == userId && b.IsBanned)
             .OrderByDescending(b => b.BanStart)
             .FirstOrDefault();
@@ -74,7 +74,7 @@ public static class UserDbHelper
     public static void SetBanState(GameContext db, ulong userId, bool isBanned, DateTime? banStart = null, DateTime? banEnd = null, int banId = 0)
     {
         GetOrCreateGameUser(db, userId);
-        var activeBans = db.UserBans.Where(b => b.UserId == userId && b.IsBanned).ToList();
+        var activeBans = db.Set<UserBan>().Where(b => b.UserId == userId && b.IsBanned).ToList();
 
         if (!isBanned)
         {
@@ -92,7 +92,7 @@ public static class UserDbHelper
         var current = activeBans.FirstOrDefault();
         if (current == null)
         {
-            db.UserBans.Add(new UserBan
+            db.Set<UserBan>().Add(new UserBan
             {
                 Id = Utils.UlidGenerator.NewUlid(),
                 UserId = userId,

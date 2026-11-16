@@ -103,7 +103,7 @@ public class UpgradeOption : LobbyMessage
             IsOption3DisposableLock = newOption.IsOption3DisposableLock
         };
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 

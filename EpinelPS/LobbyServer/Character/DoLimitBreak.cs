@@ -59,7 +59,7 @@ public class DoLimitBreak : LobbyMessage
                 user.RemoveItemBySerialNumber(req.Isn, req.Count);
                 response.Items.Add(NetUtils.ToNet(bodyItem));
 
-                JsonDb.Save();
+                UserSessionStore.SaveAll();
             }
         }
 

@@ -31,7 +31,7 @@ public class Buy : LobbyMessage
         
         }
         
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         // TODO
         await WriteDataAsync(response);
     }

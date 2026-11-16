@@ -32,7 +32,7 @@ public class ShopEnter : LobbyMessage
 
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         // TODO
         await WriteDataAsync(response);
     }

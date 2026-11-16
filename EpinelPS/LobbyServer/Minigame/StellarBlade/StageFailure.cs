@@ -66,7 +66,7 @@ public class StageFailure : LobbyMessage
         response.RewardData = ret;
         response.Score = score;
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         // TODO
         await WriteDataAsync(response);

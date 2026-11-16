@@ -35,7 +35,7 @@ public class ProceedBuffFunction : LobbyMessage
         }
         SimRoomHelper.UpdateUserSimRoomEvent(user, index: simRoomEventIndex, events: events, selectionNumber: req.SelectionNumber, isDone: true);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

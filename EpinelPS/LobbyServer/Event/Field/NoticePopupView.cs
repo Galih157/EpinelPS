@@ -22,7 +22,7 @@ public class NoticePopupView : LobbyMessage
         {            
             user.ViewedNoticePopupTableIds.TryAdd(req.EventFieldId, list);
         }
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         // TODO
         await WriteDataAsync(response);
     }

@@ -44,7 +44,7 @@ public class FinishSubquest : LobbyMessage
                     {
                         msg.State = 2;
                     }
-                    JsonDb.Save();
+                    UserSessionStore.SaveAll();
                 }
                 await WriteDataAsync(response);
                 return;
@@ -82,7 +82,7 @@ public class FinishSubquest : LobbyMessage
         // Reconcile eligible subquests (e.g. next subquest in chain)
         MessengerMessageCreator.CreateEligibleSubquestOpeners(user);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

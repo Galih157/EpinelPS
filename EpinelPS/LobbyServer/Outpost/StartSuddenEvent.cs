@@ -33,7 +33,7 @@ public class StartSuddenEvent : LobbyMessage
         };
 
         user.ClearedOutpostScenarioIds.Add(suddenEvent.Id);
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

@@ -62,7 +62,7 @@ public class SaveObject : LobbyMessage
 
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         // TODO
         await WriteDataAsync(response);
     }

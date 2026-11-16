@@ -86,7 +86,7 @@ public class AwakeningEquipment : LobbyMessage
 
         response.Items.Add(NetUtils.ToNet(equipmentToAwaken));
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 

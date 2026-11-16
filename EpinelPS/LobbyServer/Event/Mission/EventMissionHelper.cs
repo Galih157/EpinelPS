@@ -155,7 +155,7 @@ public static class EventMissionHelper
         user.EventMissionInfo[eventId] = userEvent;
         log.Debug($"ObtainReward UserEvent After: {JsonConvert.SerializeObject(userEvent)}");
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
     }
 
 
@@ -165,7 +165,7 @@ public static class EventMissionHelper
         if (userEvent.LastDay == dateDay) return;
         user.EventMissionInfo[eventId].DailyMissionIdList = [];
         user.EventMissionInfo[eventId].LastDay = dateDay;
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
     }
 
     /// <summary>

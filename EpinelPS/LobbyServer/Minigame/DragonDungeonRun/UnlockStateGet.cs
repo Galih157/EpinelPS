@@ -19,7 +19,7 @@ public class UnlockStateGet : LobbyMessage
         response.OwnedCharacterIdList.AddRange(user.DDRDatas.Characters);
 
         // TODO
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

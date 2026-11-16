@@ -16,7 +16,7 @@ public class MoveBuilding : LobbyMessage
         if (src != null && dst != null)
         {
             (src.SlotId, dst.SlotId) = (dst.SlotId, src.SlotId);
-            JsonDb.Save();
+            UserSessionStore.SaveAll();
         }
 
         ResMoveBuilding response = new();

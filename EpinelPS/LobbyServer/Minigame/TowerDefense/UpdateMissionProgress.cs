@@ -24,7 +24,7 @@ public class UpdateMissionProgress : LobbyMessage
             response.MissionProgressList.AddRange(missprolist);
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         // TODO
         await WriteDataAsync(response);
     }

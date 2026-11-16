@@ -70,7 +70,7 @@ public class GetDailyMessage : LobbyMessage
             Logging.WriteLine($"[Messenger] Daily pick: user {user.ID} picked condition {conditionId} (Tid={record.Tid})", LogType.Info);
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

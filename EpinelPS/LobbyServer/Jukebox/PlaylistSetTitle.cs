@@ -15,7 +15,7 @@ public class SetJukeboxPlaylistTitle : LobbyMessage
         if (playlist != null)
         {
             playlist.Title = req.Title;
-            JsonDb.Save();
+            UserSessionStore.SaveAll();
             response.Playlist = playlist;
         }
 

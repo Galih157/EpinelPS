@@ -35,7 +35,7 @@ public class BuyProduct : LobbyMessage
         response.Product.BuyCount = purchase.BuyCount;
         GrantProduct(user, ref response, purchase.Product, purchase.Quantity);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 

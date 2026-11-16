@@ -18,7 +18,7 @@ public class FinishMainQuest : LobbyMessage
         user.AddTrigger(Trigger.CampaignClear, 1, completedQuest.ConditionId[0].ConditionId);
         user.AddTrigger(Trigger.MainQuestClear, 1, completedQuest.Id);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         ResFinMainQuest response = new();
         await WriteDataAsync(response);
     }

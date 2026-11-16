@@ -14,7 +14,7 @@ public class LevelUp : LobbyMessage
         user.PirateCafeData.SkillLevel = req.SkillLevel;
         response.Data = MiniGameHelper.ToProto<NetArcadePirateCafeData, ArcadePirateCafeData>(user.PirateCafeData);
         // TODO
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

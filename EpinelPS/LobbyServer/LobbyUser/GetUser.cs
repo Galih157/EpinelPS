@@ -31,7 +31,7 @@ public class GetUser : LobbyMessage
             user.Guild ??= new GuildData();
             user.Guild.guildId = 10001;
             user.Guild.LeaveAt = 0;
-            JsonDb.Save();
+            UserSessionStore.SaveAll();
         }
         response.Gsn = gsn;
 
@@ -40,7 +40,7 @@ public class GetUser : LobbyMessage
         if (user.GetCurrencyVal(CurrencyType.GuildCoin) < defaultUnionChips)
         {
             user.Currency[CurrencyType.GuildCoin] = defaultUnionChips;
-            JsonDb.Save();
+            UserSessionStore.SaveAll();
         }
 
 

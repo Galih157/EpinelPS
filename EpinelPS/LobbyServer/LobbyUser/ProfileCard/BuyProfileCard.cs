@@ -20,7 +20,7 @@ public class BuyProfileCard : LobbyMessage
         requiredItemInInventory.Count -= card.RequireItemValue;
         response.ProfileCardTicketMaterialSync = NetUtils.UserItemDataToNet(requiredItemInInventory);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

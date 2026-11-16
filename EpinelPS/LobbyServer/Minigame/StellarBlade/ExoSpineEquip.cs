@@ -17,7 +17,7 @@ public class ExoSpineEquip : LobbyMessage
             stellar.CharacterData.ExoSpineSbItemId = req.ExoSpineItemId;
         }        
 
-        JsonDb.Save();     
+        UserSessionStore.SaveAll();     
         // TODO
         await WriteDataAsync(response);
     }

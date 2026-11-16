@@ -17,7 +17,7 @@ public class DeleteReadMail : LobbyMessage
             user.MailDatas.Remove(key);
         }
         // TODO
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

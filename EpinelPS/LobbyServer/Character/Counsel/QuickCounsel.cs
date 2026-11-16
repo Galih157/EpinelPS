@@ -69,7 +69,7 @@ public class QuickCounsel : LobbyMessage
             };
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

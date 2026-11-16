@@ -28,7 +28,7 @@ public class UseSelectBox : LobbyMessage
         response.Reward = NetUtils.UseSelectBox(user, selectBox.ItemType, req.Select);
         response.Reward.UserItems.Add(NetUtils.UserItemDataToNet(selectBox));
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

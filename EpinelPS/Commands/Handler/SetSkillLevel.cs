@@ -26,7 +26,7 @@ public class SetSkillLevelHandler(IExecutionContext context) : BaseHandler<SetSk
             return new HandleResult(false, "No user selected");
 
         var rsp = AdminCommands.SetSkillLevel(context.SelectedUser, parameters.Level);
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         return rsp.ok
             ? new HandleResult(true, $"Set all characters' skills to level {parameters.Level} successfully")
             : new HandleResult(false, rsp.error);

@@ -26,7 +26,7 @@ public class ObtainStepUpReward : LobbyMessage
             .Where(x => x.Id == req.StepUpRewardId).FirstOrDefault();
         ret = RewardUtils.RegisterRewardsForUser(user, rewardid.RewardId);
         response.Reward = ret;
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         // TODO
         await WriteDataAsync(response);
     }

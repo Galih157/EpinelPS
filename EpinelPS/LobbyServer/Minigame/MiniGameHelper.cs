@@ -2,6 +2,7 @@
 using EpinelPS.Database;
 using EpinelPS.Utils;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 
 namespace EpinelPS.LobbyServer.Minigame;
@@ -18,20 +19,21 @@ public class MiniGameHelper
     /// <returns></returns>
     public static IEnumerable<(ArcadeScoreRecord Record, int Rank)> GetFullLeaderboard(long guildId, int arcadeId, int modeId = 0)
     {
-        RankData rank = JsonDb.GetRank();
-        var result = new List<(ArcadeScoreRecord Record, int Rank)>();
+        using var db = GameContext.CreateNew();
+        var records = db.Set<ArcadeScoreEntity>()
+            .AsNoTracking()
+            .Where(x => x.ArcadeId == arcadeId && x.GuildId == guildId)
+            .ToList();
 
-        // 从字典中获取该 ArcadeId 的所有记录
-        if (!rank.ArcadeScore.TryGetValue(arcadeId, out var records) || records.Count == 0)
-            return result;
+        if (records.Count == 0)
+            return [];
 
         // 筛选指定 GuildId 的记录，按 UserId 分组求和
         var grouped = records
-            .Where(x => x.GuildId == guildId)
             .GroupBy(x => x.UserId)
             .Select(g => new
             {
-                UserId = g.Key,
+                UserId = (ulong)g.Key,
                 TotalScore = g.Sum(x => x.Score),
                 ModeId = modeId  // 如果 ModeId 可能不同，需要根据业务决定
             })
@@ -39,6 +41,7 @@ public class MiniGameHelper
             .ToList();
 
         // 计算排名
+        var result = new List<(ArcadeScoreRecord Record, int Rank)>(grouped.Count);
         for (int i = 0; i < grouped.Count; i++)
         {
             var record = new ArcadeScoreRecord
@@ -100,19 +103,21 @@ public class MiniGameHelper
     /// <returns></returns>
     public static IEnumerable<(ArcadeScoreRecord Record, int Rank)> GetArcadeBoard(int arcadeId)
     {
-        RankData rank = JsonDb.GetRank();
-        var result = new List<(ArcadeScoreRecord Record, int Rank)>();
+        using var db = GameContext.CreateNew();
+        var records = db.Set<ArcadeScoreEntity>()
+            .AsNoTracking()
+            .Where(x => x.ArcadeId == arcadeId)
+            .ToList();
 
-        // 从字典中获取该 ArcadeId 的所有记录
-        if (!rank.ArcadeScore.TryGetValue(arcadeId, out var records) || records.Count == 0)
-            return result;
+        if (records.Count == 0)
+            return [];
 
         // 按 UserId 分组求和，并计算排名
         var grouped = records
             .GroupBy(x => x.UserId)
             .Select(g => new
             {
-                UserId = g.Key,
+                UserId = (ulong)g.Key,
                 TotalScore = g.Sum(x => x.Score),
                 ModeId = g.First().ModeId,  // 如果 ModeId 可能不同，需要根据业务决定
                 GuildId = g.First().GuildId
@@ -121,6 +126,7 @@ public class MiniGameHelper
             .ToList();
 
         // 计算排名
+        var result = new List<(ArcadeScoreRecord Record, int Rank)>(grouped.Count);
         for (int i = 0; i < grouped.Count; i++)
         {
             var record = new ArcadeScoreRecord
@@ -143,42 +149,65 @@ public class MiniGameHelper
     /// </summary>
     public static void InsertOrUpdate(int arcadeId, ulong userId, int guildId, long score, int modeId)
     {
-        RankData rank = JsonDb.GetRank();
+        const string arcadeMinigameType = "Arcade";
+        using var db = GameContext.CreateNew();
+        long uid = (long)userId;
+        long gid = guildId;
 
-        // 确保字典中有该 ArcadeId 的列表
-        if (!rank.ArcadeScore.TryGetValue(arcadeId, out var list))
-        {
-            list = [];
-            rank.ArcadeScore[arcadeId] = list;
-        }
-
-        // 查找是否已有相同记录（UserId + GuildId + ModeId + ArcadeId）
-        var existing = list.FirstOrDefault(x =>
-            x.UserId == userId &&
-            x.GuildId == guildId &&
+        var existingScore = db.Set<ArcadeScoreEntity>().FirstOrDefault(x =>
+            x.ArcadeId == arcadeId &&
+            x.UserId == uid &&
+            x.GuildId == gid &&
             x.ModeId == modeId);
 
-        if (existing != null)
+        if (existingScore != null)
         {
-            // 更新现有记录
-            existing.Score = score;
+            existingScore.Score = score;
         }
         else
         {
-            // 插入新记录
-            var newRecord = new ArcadeScoreRecord
+            db.Set<ArcadeScoreEntity>().Add(new ArcadeScoreEntity
             {
-                Id = list.Count > 0 ? list.Max(x => x.Id) + 1 : 1,
-                UserId = userId,
-                GuildId = guildId,
+                UserId = uid,
+                GuildId = gid,
                 Score = score,
                 ArcadeId = arcadeId,
                 ModeId = modeId
-            };
-            list.Add(newRecord);
+            });
         }
 
-        JsonDb.Save();
+        long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var existingLeaderboard = db.Set<MiniGameLeaderboardEntity>().FirstOrDefault(x =>
+            x.MinigameType == arcadeMinigameType &&
+            x.ArcadeId == arcadeId &&
+            x.ModeId == modeId &&
+            x.UserId == userId &&
+            x.GuildId == gid);
+
+        if (existingLeaderboard != null)
+        {
+            if (existingLeaderboard.Score != score)
+            {
+                existingLeaderboard.Score = score;
+                existingLeaderboard.UpdatedAt = now;
+            }
+        }
+        else
+        {
+            UserDbHelper.GetOrCreateGameUser(db, userId);
+            db.Set<MiniGameLeaderboardEntity>().Add(new MiniGameLeaderboardEntity
+            {
+                MinigameType = arcadeMinigameType,
+                ArcadeId = arcadeId,
+                ModeId = modeId,
+                UserId = userId,
+                GuildId = gid,
+                Score = score,
+                UpdatedAt = now
+            });
+        }
+
+        db.SaveChanges();
     }
 
 
@@ -284,7 +313,7 @@ public class MiniGameHelper
 
             stellar.LastEnteredStageId = first.Id;
 
-            JsonDb.Save();
+            UserSessionStore.SaveAll();
         }
     }
 
@@ -463,7 +492,7 @@ public class MiniGameHelper
                 break;
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
     }
 
 
@@ -511,7 +540,7 @@ public class MiniGameHelper
                     currency.Amount += reward.RewardAmount;
                 }
 
-                JsonDb.Save();
+                UserSessionStore.SaveAll();
                 break;
             case SBRewardType.SBItem:
                 // TODO: 处理道具奖励
@@ -554,7 +583,7 @@ public class MiniGameHelper
                 break;
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         return result;
     }
 
@@ -595,7 +624,7 @@ public class MiniGameHelper
         }
 
         user.TowerDefenseDatas.TryAdd(aid, defenseData);
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         return defenseData;
     }
@@ -646,7 +675,7 @@ public class MiniGameHelper
             }
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
     }
 
 

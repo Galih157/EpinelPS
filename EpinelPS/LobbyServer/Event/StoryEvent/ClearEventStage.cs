@@ -46,7 +46,7 @@ public class ClearEventStage : LobbyMessage
         response.Reward = reward;
         response.BonusReward = bonusReward;
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

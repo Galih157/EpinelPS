@@ -31,7 +31,7 @@ public class PasswordDoorUnlock : LobbyMessage
 
 
         // TODO
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

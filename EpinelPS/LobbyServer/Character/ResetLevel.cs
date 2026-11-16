@@ -73,7 +73,7 @@ public class ResetLevel : LobbyMessage
                 break;
             }
         }
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

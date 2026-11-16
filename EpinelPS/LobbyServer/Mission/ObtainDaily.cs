@@ -50,7 +50,7 @@ public class ObtainDaily : LobbyMessage
         response.EventBonusReward = new() { PassPoint = new() };
         response.Reward.PassPoint = new();
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

@@ -54,7 +54,7 @@ public class Get : LobbyMessage
 
 
         // TODO
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

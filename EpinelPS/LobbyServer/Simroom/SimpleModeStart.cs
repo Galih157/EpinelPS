@@ -43,7 +43,7 @@ public class SimpleModeStart : LobbyMessage
                         SimRoomHelper.GetBuffOptions(user, location);
                     }
                 }
-                JsonDb.Save();
+                UserSessionStore.SaveAll();
 
                 var userSimRoomEvents = user.ResetableData.SimRoomData.Events;
                 if (userSimRoomEvents is not null)

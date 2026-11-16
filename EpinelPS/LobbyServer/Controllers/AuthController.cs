@@ -52,7 +52,7 @@ public class AuthController(IUserService UserService, GameContext db) : Controll
         }
 
         var UserId = sdkUser.ID;
-        User? user = JsonDb.GetUser(UserId);
+        User? user = UserSessionStore.GetUser(UserId);
         if (user == null)
         {
             Logging.WriteLine("Invalid user data!!", LogType.Error);
@@ -92,7 +92,7 @@ public class AuthController(IUserService UserService, GameContext db) : Controll
         if (sdkUser == null) return Problem(type: NetUtils.InvalidSessionErrorType);
         var UserId = sdkUser.ID;
 
-        User? user = JsonDb.GetUser(UserId);
+        User? user = UserSessionStore.GetUser(UserId);
         if (user == null) return Problem(type: NetUtils.InvalidSessionErrorType);
 
 

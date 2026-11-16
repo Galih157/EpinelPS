@@ -73,7 +73,7 @@ public class SynchroOneClick : LobbyMessage
             response.Currencies.Add(new NetUserCurrencyData() { Type = (int)currency.Key, Value = currency.Value });
 
         user.AddTrigger(Trigger.CharacterLevelUpCount, response.Characters.Count);
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

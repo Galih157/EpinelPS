@@ -25,7 +25,7 @@ public class ClearSideStoryStage : LobbyMessage
                     response.Reward = RewardUtils.RegisterRewardsForUser(user, rewardData);
             }
 
-            JsonDb.Save();
+            UserSessionStore.SaveAll();
         }
 
 

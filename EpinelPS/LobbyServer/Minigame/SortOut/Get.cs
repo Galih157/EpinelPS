@@ -18,7 +18,7 @@ public class Get : LobbyMessage
         response.TotalAccumulatedScore = user.SortOutData.TotalAccumulatedScore;
 
         // TODO
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

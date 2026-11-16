@@ -27,7 +27,7 @@ public class ObtainInfracoreReward : LobbyMessage
 
                 var reward = RewardUtils.RegisterRewardsForUser(user, gradeData.RewardId);
                 response.Reward = reward;
-                JsonDb.Save();
+                UserSessionStore.SaveAll();
             }
         }
 

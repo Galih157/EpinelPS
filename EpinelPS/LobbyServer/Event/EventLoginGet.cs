@@ -22,7 +22,7 @@ public class EventLoginGet : LobbyMessage
         {
             loginEventData = new LoginEventData();
             user.LoginEventInfo.Add(evId, loginEventData);
-            JsonDb.Save();
+            UserSessionStore.SaveAll();
         }
         // Populate response with event data
         int day = 1;

@@ -44,7 +44,7 @@ public class ChangeSynchroDevice : LobbyMessage
             response.Slots.Add(new NetSynchroSlot() { Slot = item.Slot, AvailableRegisterAt = item.AvailableAt, Csn = item.CharacterSerialNumber });
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

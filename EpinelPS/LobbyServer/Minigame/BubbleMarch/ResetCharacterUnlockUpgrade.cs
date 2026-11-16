@@ -43,7 +43,7 @@ public class ResetCharacterUnlockUpgrade : LobbyMessage
         }
 
         // TODO
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

@@ -38,7 +38,7 @@ public class SimpleModeSelectBuff : LobbyMessage
 
         user.ResetableData.SimRoomData.Entered = false;
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

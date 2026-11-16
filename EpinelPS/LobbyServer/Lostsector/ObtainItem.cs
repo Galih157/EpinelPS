@@ -38,7 +38,7 @@ public class ObtainItem : LobbyMessage
             lostSectorUser.ReceivedFinalReward = true;
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

@@ -22,7 +22,7 @@ public class MissionGet : LobbyMessage
             response.AchievementMissionDataList.AddRange(misslist);
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         // TODO
         await WriteDataAsync(response);
     }

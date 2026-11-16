@@ -12,7 +12,7 @@ public class UserService(IHttpContextAccessor httpContextAccessor) : IUserServic
         var id = _httpContextAccessor.HttpContext.Items["UserID"];
         if (id != null && id is ulong u)
         {
-            return JsonDb.GetUser(u);
+            return UserSessionStore.GetUser(u);
         }
         else
         {

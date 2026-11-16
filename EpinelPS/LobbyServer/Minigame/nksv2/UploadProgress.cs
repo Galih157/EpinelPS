@@ -23,7 +23,7 @@ public class UploadProgress : LobbyMessage
        
 
         // TODO
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

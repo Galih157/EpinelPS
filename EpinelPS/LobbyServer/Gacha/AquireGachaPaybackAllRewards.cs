@@ -38,7 +38,7 @@ public class AquireGachaPaybackAllRewards : LobbyMessage
                         user.GachaPaybackData[req.GachaId].RewardedStepList.Add(step.Step);
 
                 // Save
-                JsonDb.Save();
+                UserSessionStore.SaveAll();
             }
         }
 

@@ -25,7 +25,7 @@ public class ClearArchiveStage : LobbyMessage
             // Update the LastStage in EventData
             eventData.LastStage = stgid;
         }
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         ResClearArchiveStage response = new();
 
         // Send the response back to the client

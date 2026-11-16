@@ -16,7 +16,7 @@ public class CreateJukeboxPlaylist : LobbyMessage
             Title = req.Title
         };
         user.PlayLists.Add(playlist);
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(new ResCreateJukeboxPlaylist { Playlist = playlist });
     }

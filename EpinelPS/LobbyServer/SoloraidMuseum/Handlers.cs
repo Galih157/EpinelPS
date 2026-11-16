@@ -291,7 +291,7 @@ public class AcquireChallengeMission : LobbyMessage
                 Logging.WriteLine($"[SoloRaidMuseum] mission claimed id={missionId}, noLimit={noLimit}, reward={mission.RewardId}", LogType.Info);
             }
             if (rewards.Count > 0) reward = NetUtils.MergeRewards(rewards, user);
-            JsonDb.Save();
+            UserSessionStore.SaveAll();
         }
     }
 }

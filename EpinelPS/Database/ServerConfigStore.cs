@@ -11,6 +11,9 @@ public static class ServerConfigStore
     private static readonly Lock SyncLock = new();
     private static bool _initialized;
 
+    public static readonly byte[] ServerPrivateKey = Convert.FromBase64String("FSUY8Ohd942n5LWAfxn6slK3YGwc8OqmyJoJup9nNos=");
+    public static readonly byte[] ServerPublicKey = Convert.FromBase64String("04hFDd1e/BOEF2h4b0MdkX2h6W5REeqyW+0r9+eSeh0=");
+
     private static ServerSettings _settings = new();
     private static ServerSecrets _secrets = new();
     private static List<int> _activeEventBannerIds = [];
@@ -56,31 +59,24 @@ public static class ServerConfigStore
     {
         lock (SyncLock)
         {
-            bool hasJsonDb = File.Exists(DatabasePaths.JsonConfiguration);
-
-            var settings = context.ServerSettings.Find(1);
+            var settings = context.Set<ServerSettings>().Find(1);
             if (settings == null)
             {
                 settings = new ServerSettings
                 {
                     Id = 1,
-                    LogLevel = hasJsonDb ? JsonDb.Instance.LogLevel : LogType.Debug,
-                    MaxInterceptionCount = hasJsonDb ? JsonDb.Instance.MaxInterceptionCount : 3,
-                    ResetHourUtcTime = hasJsonDb ? JsonDb.Instance.ResetHourUtcTime : 20
+                    LogLevel = LogType.Debug,
+                    MaxInterceptionCount = 3,
+                    ResetHourUtcTime = 20
                 };
-                context.ServerSettings.Add(settings);
+                context.Set<ServerSettings>().Add(settings);
             }
 
-            var secrets = context.ServerSecrets.Find(1);
+            var secrets = context.Set<ServerSecrets>().Find(1);
             if (secrets == null)
             {
-                byte[] launcherKey = hasJsonDb && JsonDb.Instance.LauncherTokenKey.Length > 0
-                    ? JsonDb.Instance.LauncherTokenKey
-                    : new PasetoBuilder().Use(ProtocolVersion.V4, Purpose.Local).GenerateSymmetricKey().Key.ToArray();
-
-                byte[] encryptionKey = hasJsonDb && JsonDb.Instance.EncryptionTokenKey.Length > 0
-                    ? JsonDb.Instance.EncryptionTokenKey
-                    : new PasetoBuilder().Use(ProtocolVersion.V4, Purpose.Local).GenerateSymmetricKey().Key.ToArray();
+                byte[] launcherKey = new PasetoBuilder().Use(ProtocolVersion.V4, Purpose.Local).GenerateSymmetricKey().Key.ToArray();
+                byte[] encryptionKey = new PasetoBuilder().Use(ProtocolVersion.V4, Purpose.Local).GenerateSymmetricKey().Key.ToArray();
 
                 secrets = new ServerSecrets
                 {
@@ -88,7 +84,7 @@ public static class ServerConfigStore
                     LauncherTokenKey = launcherKey,
                     EncryptionTokenKey = encryptionKey
                 };
-                context.ServerSecrets.Add(secrets);
+                context.Set<ServerSecrets>().Add(secrets);
             }
             else
             {
@@ -104,26 +100,14 @@ public static class ServerConfigStore
                     updated = true;
                 }
                 if (updated)
-                    context.ServerSecrets.Update(secrets);
-            }
-
-            if (!context.EventBanners.Any() && hasJsonDb && JsonDb.Instance.ActiveEventBannerIds.Count > 0)
-            {
-                foreach (int bannerId in JsonDb.Instance.ActiveEventBannerIds.Distinct())
-                {
-                    context.EventBanners.Add(new EventBanner
-                    {
-                        BannerId = bannerId.ToString(CultureInfo.InvariantCulture),
-                        IsActive = true
-                    });
-                }
+                    context.Set<ServerSecrets>().Update(secrets);
             }
 
             context.SaveChanges();
 
             _settings = settings;
             _secrets = secrets;
-            _activeEventBannerIds = context.EventBanners
+            _activeEventBannerIds = context.Set<EventBanner>()
                 .Where(b => b.IsActive)
                 .AsEnumerable()
                 .Select(b => int.TryParse(b.BannerId, NumberStyles.Integer, CultureInfo.InvariantCulture, out int id) ? id : 0)
@@ -139,10 +123,10 @@ public static class ServerConfigStore
     {
         lock (SyncLock)
         {
-            var settings = context.ServerSettings.Find(1) ?? new ServerSettings { Id = 1 };
+            var settings = context.Set<ServerSettings>().Find(1) ?? new ServerSettings { Id = 1 };
             settings.LogLevel = level;
             if (context.Entry(settings).State == Microsoft.EntityFrameworkCore.EntityState.Detached)
-                context.ServerSettings.Add(settings);
+                context.Set<ServerSettings>().Add(settings);
             context.SaveChanges();
 
             _settings.LogLevel = level;
@@ -159,7 +143,7 @@ public static class ServerConfigStore
 
         lock (SyncLock)
         {
-            var existing = context.EventBanners.ToList();
+            var existing = context.Set<EventBanner>().ToList();
             foreach (var banner in existing)
             {
                 banner.IsActive = activeStrings.Contains(banner.BannerId);
@@ -170,7 +154,7 @@ public static class ServerConfigStore
             {
                 if (!existingIds.Contains(idStr))
                 {
-                    context.EventBanners.Add(new EventBanner
+                    context.Set<EventBanner>().Add(new EventBanner
                     {
                         BannerId = idStr,
                         IsActive = true

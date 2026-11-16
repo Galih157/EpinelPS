@@ -41,7 +41,7 @@ public class AllObtain : LobbyMessage
         response.Reward = ret;
         
         // TODO
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

@@ -83,15 +83,6 @@ public class AccountController(GameContext DbContext) : ControllerBase
         bool admin = !dbContext.SdkUsers.Any();
         var registerTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
-        if (!JsonDb.Instance.Users.Any(u => u.ID == uid))
-        {
-            JsonDb.Instance.Users.Add(new User()
-            {
-                ID = uid
-            });
-            JsonDb.Save();
-        }
-
         dbContext.SdkUsers.Add(new SdkUser()
         {
             ID = uid,
@@ -106,6 +97,9 @@ public class AccountController(GameContext DbContext) : ControllerBase
             ID = uid // todo remove later
         });
         dbContext.SaveChanges();
+
+        var newUser = UserSessionStore.GetOrAddUser(uid);
+        UserSessionStore.SaveUser(newUser);
 
         AccessToken tok = CreateLauncherTokenForUser(uid);
 

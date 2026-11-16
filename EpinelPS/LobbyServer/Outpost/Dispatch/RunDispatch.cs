@@ -47,7 +47,7 @@ public class RunDispatch : LobbyMessage
             StartAt = startTime.Ticks
         });
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         // TODO
         await WriteDataAsync(response);
     }

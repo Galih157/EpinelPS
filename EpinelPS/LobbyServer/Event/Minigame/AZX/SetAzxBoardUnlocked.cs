@@ -18,7 +18,7 @@ public class SetAzxBoardUnlocked : LobbyMessage
         if (req.BoardId > 0 && req.AzxId > 0)
             AzxHelper.SetBoardUnlocked(user, req.AzxId, req.BoardId);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

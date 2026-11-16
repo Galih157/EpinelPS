@@ -47,6 +47,6 @@ public class GetStartMvgNewGamePlus : LobbyMessage
 
         await WriteDataAsync(new ResStartArcadeMvgNewGamePlus());
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
     }
 }

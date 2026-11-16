@@ -30,7 +30,7 @@ public class SynchroAddSlotByItem : LobbyMessage
 
         response.Slot = newSlot;
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

@@ -15,6 +15,6 @@ public class GetAcquireMvgCollectable : LobbyMessage
 
         await WriteDataAsync(new ResAcquireArcadeMvgCollectable());
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
     }
 }

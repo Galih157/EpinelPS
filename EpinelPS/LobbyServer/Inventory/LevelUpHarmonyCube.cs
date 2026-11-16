@@ -87,7 +87,7 @@ public class LevelUpHarmonyCube : LobbyMessage
             Value = user.GetCurrencyVal(CurrencyType.Gold)
         };
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

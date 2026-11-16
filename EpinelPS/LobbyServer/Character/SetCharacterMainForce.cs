@@ -18,7 +18,7 @@ public class SetCharacterMainForce : LobbyMessage
                 break;
             }
         }
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         ResSetCharacterMainForce response = new();
 

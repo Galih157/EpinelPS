@@ -31,7 +31,7 @@ public class DoWipeout : LobbyMessage
 
         user.AddTrigger(Trigger.OutpostFastBattleReward, 1);
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

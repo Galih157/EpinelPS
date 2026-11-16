@@ -25,7 +25,7 @@ public class AddCharacterHandler(IExecutionContext context) : BaseHandler<AddCha
             return new HandleResult(false, "No user selected");
 
         var rsp = AdminCommands.AddCharacter(context.SelectedUser, parameters.CharacterId);
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         return rsp.ok
             ? new HandleResult(true, $"Added character {parameters.CharacterId} successfully")
             : new HandleResult(false, rsp.error);

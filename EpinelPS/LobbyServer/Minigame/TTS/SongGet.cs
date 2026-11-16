@@ -65,7 +65,7 @@ public class SongGet : LobbyMessage
             }
 
         }
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

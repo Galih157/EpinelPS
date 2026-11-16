@@ -17,7 +17,7 @@ public class ReloadDbHandler(IExecutionContext context) : BaseHandler<ReloadDbPa
 
     protected async override Task<HandleResult> ExecuteAsync(ReloadDbParameter parameters)
     {
-        JsonDb.Reload();
+        UserSessionStore.LoadAllUsers();
         return new HandleResult(true, "Database reloaded successfully");
     }
 }

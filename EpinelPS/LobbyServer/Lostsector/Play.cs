@@ -33,7 +33,7 @@ public class Play : LobbyMessage
             MaxClearStageCount = 0, // TODO
         };
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }

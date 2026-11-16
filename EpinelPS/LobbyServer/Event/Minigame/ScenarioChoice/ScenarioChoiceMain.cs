@@ -24,7 +24,7 @@ public class ScenarioChoiceMain
         c.Id = id;
 
         user.MiniGameStoryChoice.Add(id, c);
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         return Convert(c);
     }
 
@@ -46,7 +46,7 @@ public class ScenarioChoiceMain
                 val.SeenChoices.Add(item);
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         return GetData(user, id);
     }

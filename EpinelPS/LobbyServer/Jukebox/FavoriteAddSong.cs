@@ -17,7 +17,7 @@ public class AddJukeboxFavoriteSong : LobbyMessage
                 JukeboxTableId = req.JukeboxTableId,
                 Order = user.FavoriteSongs.Songs.Count == 0 ? 1 : user.FavoriteSongs.Songs.Max(s => s.Order) + 1
             });
-            JsonDb.Save();
+            UserSessionStore.SaveAll();
         }
 
         await WriteDataAsync(new ResAddJukeboxFavoriteSong { FavoriteSongs = user.FavoriteSongs });

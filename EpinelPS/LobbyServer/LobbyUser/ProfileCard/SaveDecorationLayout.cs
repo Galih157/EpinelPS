@@ -11,7 +11,7 @@ public class SaveDecorationLayout : LobbyMessage
         var user = GetUser();
         user.ProfileCardDecoration = req.Layout;
         var res = new ResSaveProfileCardDecorationLayout();
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(res);
     }
 }

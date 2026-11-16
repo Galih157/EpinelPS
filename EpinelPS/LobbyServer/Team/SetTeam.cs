@@ -38,7 +38,7 @@ public class SetTeam : LobbyMessage
                     museumStage.Teams.Add(newTeam.Clone());
             }
 
-            JsonDb.Save();
+            UserSessionStore.SaveAll();
             await WriteDataAsync(response);
             return;
         }
@@ -105,7 +105,7 @@ public class SetTeam : LobbyMessage
             }
         }
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

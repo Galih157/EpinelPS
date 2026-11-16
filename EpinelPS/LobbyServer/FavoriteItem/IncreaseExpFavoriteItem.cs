@@ -102,7 +102,7 @@ public class IncreaseExpFavoriteItem : LobbyMessage
         response.ItemData = NetUtils.ToNet(userItem);
         response.LoopCount = actualLoopsUsed;
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
 
         await WriteDataAsync(response);
     }

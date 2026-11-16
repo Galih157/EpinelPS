@@ -5,5 +5,5 @@ namespace EpinelPS.Commands.Core;
 public class CliContext : IExecutionContext
 {
     public User? SelectedUser { get; set; }
-    public void Save() => JsonDb.Save();
+    public void Save() => UserSessionStore.SaveAll();
 }

@@ -39,7 +39,7 @@ public class GetGacha : LobbyMessage
             if (!user.GachaSelectupChoices.ContainsKey(selectup.Key))
             {
                 user.GachaSelectupChoices.Add(selectup.Key, selectup.First().Value.Id);
-                JsonDb.Save();
+                UserSessionStore.SaveAll();
             }
 
             response.GachaSelectupData.Add(new NetUserGachaSelectupData()

@@ -45,7 +45,7 @@ public class GetStoryDungeon : LobbyMessage
         });
         // TODO
 
-        JsonDb.Save();
+        UserSessionStore.SaveAll();
         await WriteDataAsync(response);
     }
 }
