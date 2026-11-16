@@ -30,7 +30,6 @@ public sealed class GachaShopPassRepository(GameContext db)
         {
             set.Add(new UserGachaBannerPull
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = user.ID,
                 BannerId = bannerId,
                 MaxPulls = pullCount
@@ -78,7 +77,6 @@ public sealed class GachaShopPassRepository(GameContext db)
         {
             set.Add(new UserGachaPityCount
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 BannerId = pityBannerId,
                 ExecuteCount = pullCount
@@ -120,7 +118,6 @@ public sealed class GachaShopPassRepository(GameContext db)
         UserDbHelper.GetOrCreateGameUser(db, userId);
         set.Add(new UserGachaSelectupChoice
         {
-            Id = UlidGenerator.NewUlid(),
             UserId = userId,
             BannerId = bannerId,
             CharacterTid = defaultSelectupId
@@ -140,7 +137,6 @@ public sealed class GachaShopPassRepository(GameContext db)
         {
             set.Add(new UserGachaSelectupChoice
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 BannerId = bannerId,
                 CharacterTid = selectupId
@@ -207,7 +203,6 @@ public sealed class GachaShopPassRepository(GameContext db)
 
             set.Add(new UserCharacterWishlistEntity
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 BannerId = key.BannerId,
                 CharacterId = key.CharacterId
@@ -231,7 +226,6 @@ public sealed class GachaShopPassRepository(GameContext db)
         UserDbHelper.GetOrCreateGameUser(db, userId);
         db.Set<UserGachaDailyFreePull>().Add(new UserGachaDailyFreePull
         {
-            Id = UlidGenerator.NewUlid(),
             UserId = userId,
             GachaId = gachaId
         });
@@ -283,7 +277,6 @@ public sealed class GachaShopPassRepository(GameContext db)
         {
             row = new UserGachaPayback
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 GachaId = gachaId,
                 GachaCount = count
@@ -310,7 +303,6 @@ public sealed class GachaShopPassRepository(GameContext db)
         {
             row = new UserGachaPayback
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 GachaId = gachaId,
                 GachaCount = 0
@@ -331,9 +323,8 @@ public sealed class GachaShopPassRepository(GameContext db)
 
             rewardSet.Add(new UserGachaPaybackReward
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
-                PaybackId = row.Id,
+                Payback = row,
                 StepId = stepId
             });
         }
@@ -383,7 +374,6 @@ public sealed class GachaShopPassRepository(GameContext db)
         {
             row = new UserNormalShopState
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 ShopCategory = shopCategory,
                 RenewCount = state.RenewCount,
@@ -420,9 +410,8 @@ public sealed class GachaShopPassRepository(GameContext db)
             {
                 orderSet.Add(new UserNormalShopOrder
                 {
-                    Id = UlidGenerator.NewUlid(),
                     UserId = userId,
-                    ShopStateId = row.Id,
+                    ShopState = row,
                     OrderIndex = idx,
                     ProductId = productId,
                     BuyCount = buyCount
@@ -447,9 +436,8 @@ public sealed class GachaShopPassRepository(GameContext db)
             {
                 pinnedSet.Add(new UserNormalShopPinnedBuy
                 {
-                    Id = UlidGenerator.NewUlid(),
                     UserId = userId,
-                    ShopStateId = row.Id,
+                    ShopState = row,
                     ProductId = kvp.Key,
                     BuyCount = kvp.Value
                 });
@@ -504,7 +492,6 @@ public sealed class GachaShopPassRepository(GameContext db)
         {
             row = new UserPass
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 PassId = passData.PassId,
                 PassPoint = passData.PassPoint,
@@ -544,9 +531,8 @@ public sealed class GachaShopPassRepository(GameContext db)
             {
                 rankSet.Add(new UserPassRank
                 {
-                    Id = UlidGenerator.NewUlid(),
                     UserId = userId,
-                    UserPassId = row.Id,
+                    UserPass = row,
                     PassRank = rank.PassRank,
                     IsNormalRewarded = rank.IsNormalRewarded,
                     IsPremiumRewarded = rank.IsPremiumRewarded
@@ -574,9 +560,8 @@ public sealed class GachaShopPassRepository(GameContext db)
             {
                 missionSet.Add(new UserPassMission
                 {
-                    Id = UlidGenerator.NewUlid(),
                     UserId = userId,
-                    UserPassId = row.Id,
+                    UserPass = row,
                     PassMissionId = mission.PassMissionId,
                     IsComplete = mission.IsComplete
                 });

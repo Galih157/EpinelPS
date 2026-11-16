@@ -53,7 +53,6 @@ public sealed class SoloRaidRepository(GameContext db)
 
             var levelEntity = new SoloRaidLevelEntity
             {
-                SoloRaidId = raidEntity.Id,
                 RaidLevel = level.RaidLevel,
                 RaidJoinCount = level.RaidJoinCount,
                 Hp = level.Hp,
@@ -70,7 +69,6 @@ public sealed class SoloRaidRepository(GameContext db)
                 var log = logs[seq];
                 var logEntity = new SoloRaidLogEntity
                 {
-                    SoloRaidLevelId = levelEntity.Id,
                     Sequence = seq,
                     Damage = log.Damage,
                     Kill = log.Kill
@@ -84,7 +82,6 @@ public sealed class SoloRaidRepository(GameContext db)
 
                     logEntity.Characters.Add(new SoloRaidLogCharacterEntity
                     {
-                        SoloRaidLogId = logEntity.Id,
                         Slot = ch.Slot,
                         Csn = ch.Csn,
                         Tid = ch.Tid,
@@ -156,14 +153,13 @@ public sealed class SoloRaidRepository(GameContext db)
             DebugDamageMultiplier = stage.DebugDamageMultiplier
         };
 
-        stageEntity.Modes.Add(MapMuseumModeToEntity(stageEntity.Id, SoloRaidMuseumStageMode.Challenge, stage.Challenge));
-        stageEntity.Modes.Add(MapMuseumModeToEntity(stageEntity.Id, SoloRaidMuseumStageMode.NoLimit, stage.NoLimit));
+        stageEntity.Modes.Add(MapMuseumModeToEntity(SoloRaidMuseumStageMode.Challenge, stage.Challenge));
+        stageEntity.Modes.Add(MapMuseumModeToEntity(SoloRaidMuseumStageMode.NoLimit, stage.NoLimit));
 
         foreach (int missionId in (stage.ReceivedChallengeMissions ?? Enumerable.Empty<int>()).Distinct())
         {
             stageEntity.MissionClaims.Add(new SoloRaidMuseumMissionClaimEntity
             {
-                SoloRaidMuseumStageId = stageEntity.Id,
                 ModeType = (int)SoloRaidMuseumStageMode.Challenge,
                 MissionId = missionId
             });
@@ -173,7 +169,6 @@ public sealed class SoloRaidRepository(GameContext db)
         {
             stageEntity.MissionClaims.Add(new SoloRaidMuseumMissionClaimEntity
             {
-                SoloRaidMuseumStageId = stageEntity.Id,
                 ModeType = (int)SoloRaidMuseumStageMode.NoLimit,
                 MissionId = missionId
             });
@@ -187,7 +182,6 @@ public sealed class SoloRaidRepository(GameContext db)
 
             var teamEntity = new SoloRaidMuseumTeamEntity
             {
-                SoloRaidMuseumStageId = stageEntity.Id,
                 TeamNumber = team.TeamNumber
             };
 
@@ -199,7 +193,6 @@ public sealed class SoloRaidRepository(GameContext db)
 
                 teamEntity.Slots.Add(new SoloRaidMuseumTeamSlotEntity
                 {
-                    SoloRaidMuseumTeamId = teamEntity.Id,
                     Slot = slot.Slot,
                     Value = slot.Value,
                     ValueType = slot.ValueType
@@ -380,7 +373,6 @@ public sealed class SoloRaidRepository(GameContext db)
     }
 
     private static SoloRaidMuseumModeEntity MapMuseumModeToEntity(
-        string stageEntityId,
         SoloRaidMuseumStageMode modeType,
         SoloRaidMuseumModeData? modeData)
     {
@@ -388,7 +380,6 @@ public sealed class SoloRaidRepository(GameContext db)
 
         var modeEntity = new SoloRaidMuseumModeEntity
         {
-            SoloRaidMuseumStageId = stageEntityId,
             ModeType = (int)modeType,
             StageJoinCount = modeData.StageJoinCount,
             TotalDamage = modeData.TotalDamage,
@@ -407,7 +398,6 @@ public sealed class SoloRaidRepository(GameContext db)
 
             modeEntity.OpenTeams.Add(new SoloRaidMuseumOpenTeamEntity
             {
-                SoloRaidMuseumModeId = modeEntity.Id,
                 TeamNumber = teamNumber,
                 Sequence = openSeq++
             });
@@ -436,7 +426,6 @@ public sealed class SoloRaidRepository(GameContext db)
 
             var logEntity = new SoloRaidMuseumLogEntity
             {
-                SoloRaidMuseumModeId = modeEntity.Id,
                 LogSet = logSet,
                 TeamNumber = log.TeamNumber,
                 Sequence = seq++,
@@ -452,7 +441,6 @@ public sealed class SoloRaidRepository(GameContext db)
 
                 logEntity.Characters.Add(new SoloRaidMuseumLogCharacterEntity
                 {
-                    SoloRaidMuseumLogId = logEntity.Id,
                     Slot = ch.Slot,
                     Csn = ch.Csn,
                     Tid = ch.Tid,

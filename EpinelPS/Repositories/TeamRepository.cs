@@ -52,7 +52,6 @@ public sealed class TeamRepository(GameContext db)
         {
             group = new UserTeamGroupEntity
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 TeamType = teamType,
                 LastContentsTeamNumber = lastContentsTeamNumber
@@ -88,9 +87,8 @@ public sealed class TeamRepository(GameContext db)
 
                 db.Set<UserTeamSlotEntity>().Add(new UserTeamSlotEntity
                 {
-                    Id = UlidGenerator.NewUlid(),
                     UserId = userId,
-                    TeamGroupId = group.Id,
+                    TeamGroup = group,
                     TeamNumber = teamNumber,
                     Slot = slot.Slot,
                     Value = slot.Value,
@@ -122,7 +120,6 @@ public sealed class TeamRepository(GameContext db)
         {
             set.Add(new UserRepresentationTeamSlotEntity
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 Slot = i,
                 CharacterCsn = characterCsns[i]

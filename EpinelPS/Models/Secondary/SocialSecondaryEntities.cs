@@ -1,15 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using EpinelPS.Utils;
-
 namespace EpinelPS.Models;
 
 [Table("UserLobbyPrivateBanners")]
 public class UserLobbyPrivateBannerEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int BannerId { get; set; }
@@ -21,8 +18,7 @@ public class UserLobbyPrivateBannerEntity
 public class UserJukeboxPlaylistEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public long PlaylistUid { get; set; }
@@ -37,8 +33,7 @@ public class UserJukeboxPlaylistEntity
 public class UserCharacterWishlistEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int BannerId { get; set; }
@@ -51,8 +46,7 @@ public class UserCharacterWishlistEntity
 public class UserMailEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public long Msn { get; set; }
@@ -75,8 +69,7 @@ public class UserMailEntity
 public class UserMessengerRepairHistoryEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public string AuditId { get; set; } = "";

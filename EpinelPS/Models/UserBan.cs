@@ -5,8 +5,7 @@ namespace EpinelPS.Models;
 public class UserBan
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = "";
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public bool IsBanned { get; set; }

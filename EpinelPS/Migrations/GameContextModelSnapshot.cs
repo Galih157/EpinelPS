@@ -49,9 +49,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.CharacterEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("CostumeId")
                         .HasColumnType("INTEGER");
@@ -93,9 +93,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.DispatchClearItemEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("DispatchId")
                         .HasColumnType("INTEGER");
@@ -113,9 +113,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.DispatchEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<long>("EndAt")
                         .HasColumnType("INTEGER");
@@ -142,9 +142,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.EquipmentAwakeningEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsNewData")
                         .HasColumnType("INTEGER");
@@ -158,10 +158,8 @@ namespace EpinelPS.Migrations
                     b.Property<bool>("IsOption3DisposableLock")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("ItemId")
-                        .IsRequired()
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("ItemId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("Option1Id")
                         .HasColumnType("INTEGER");
@@ -288,9 +286,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.InfraCoreRewardEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("InfraCoreLevel")
                         .HasColumnType("INTEGER");
@@ -308,17 +306,15 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.ItemCharacterAssignmentEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<long>("CharacterCsn")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("ItemId")
-                        .IsRequired()
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("ItemId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("Position")
                         .HasColumnType("INTEGER");
@@ -341,9 +337,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.ItemEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("Corp")
                         .HasColumnType("INTEGER");
@@ -384,9 +380,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.MiniGameLeaderboardEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("ArcadeId")
                         .HasColumnType("INTEGER");
@@ -423,9 +419,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.OutpostBuildingEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("BuildingId")
                         .HasColumnType("INTEGER");
@@ -506,9 +502,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.ResearchProgressEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("Attack")
                         .HasColumnType("INTEGER");
@@ -572,9 +568,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.SelectableDispatchEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("DispatchGroupId")
                         .HasColumnType("INTEGER");
@@ -643,9 +639,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.SoloRaidEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("LastDateDay")
                         .HasColumnType("INTEGER");
@@ -672,9 +668,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.SoloRaidLevelEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<long>("Hp")
                         .HasColumnType("INTEGER");
@@ -691,10 +687,8 @@ namespace EpinelPS.Migrations
                     b.Property<int>("RaidLevel")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("SoloRaidId")
-                        .IsRequired()
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("SoloRaidId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("Status")
                         .HasColumnType("INTEGER");
@@ -715,9 +709,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.SoloRaidLogCharacterEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("Combat")
                         .HasColumnType("INTEGER");
@@ -734,10 +728,8 @@ namespace EpinelPS.Migrations
                     b.Property<int>("Slot")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("SoloRaidLogId")
-                        .IsRequired()
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("SoloRaidLogId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("Tid")
                         .HasColumnType("INTEGER");
@@ -752,9 +744,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.SoloRaidLogEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<long>("Damage")
                         .HasColumnType("INTEGER");
@@ -765,10 +757,8 @@ namespace EpinelPS.Migrations
                     b.Property<int>("Sequence")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("SoloRaidLevelId")
-                        .IsRequired()
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("SoloRaidLevelId")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
@@ -780,9 +770,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.SoloRaidMuseumLogCharacterEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("Combat")
                         .HasColumnType("INTEGER");
@@ -799,10 +789,8 @@ namespace EpinelPS.Migrations
                     b.Property<int>("Slot")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("SoloRaidMuseumLogId")
-                        .IsRequired()
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("SoloRaidMuseumLogId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("Tid")
                         .HasColumnType("INTEGER");
@@ -817,9 +805,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.SoloRaidMuseumLogEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<long>("Damage")
                         .HasColumnType("INTEGER");
@@ -832,10 +820,8 @@ namespace EpinelPS.Migrations
                     b.Property<int>("Sequence")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("SoloRaidMuseumModeId")
-                        .IsRequired()
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("SoloRaidMuseumModeId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("Step")
                         .HasColumnType("INTEGER");
@@ -856,9 +842,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.SoloRaidMuseumMissionClaimEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("MissionId")
                         .HasColumnType("INTEGER");
@@ -866,10 +852,8 @@ namespace EpinelPS.Migrations
                     b.Property<int>("ModeType")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("SoloRaidMuseumStageId")
-                        .IsRequired()
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("SoloRaidMuseumStageId")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
@@ -881,9 +865,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.SoloRaidMuseumModeEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<long>("BestDamage")
                         .HasColumnType("INTEGER");
@@ -897,10 +881,8 @@ namespace EpinelPS.Migrations
                     b.Property<int>("ModeType")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("SoloRaidMuseumStageId")
-                        .IsRequired()
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("SoloRaidMuseumStageId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("StageJoinCount")
                         .HasColumnType("INTEGER");
@@ -921,17 +903,15 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.SoloRaidMuseumOpenTeamEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("Sequence")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("SoloRaidMuseumModeId")
-                        .IsRequired()
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("SoloRaidMuseumModeId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("TeamNumber")
                         .HasColumnType("INTEGER");
@@ -949,9 +929,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.SoloRaidMuseumStageEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<double>("DebugDamageMultiplier")
                         .HasColumnType("REAL");
@@ -978,14 +958,12 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.SoloRaidMuseumTeamEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
-                    b.Property<string>("SoloRaidMuseumStageId")
-                        .IsRequired()
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("SoloRaidMuseumStageId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("TeamNumber")
                         .HasColumnType("INTEGER");
@@ -1000,17 +978,15 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.SoloRaidMuseumTeamSlotEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("Slot")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("SoloRaidMuseumTeamId")
-                        .IsRequired()
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("SoloRaidMuseumTeamId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<long>("Value")
                         .HasColumnType("INTEGER");
@@ -1075,9 +1051,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.TtsSongScoreEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("Difficulty")
                         .HasColumnType("INTEGER");
@@ -1112,9 +1088,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.TtsTotalScoreEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("RankType")
                         .HasColumnType("INTEGER");
@@ -1140,9 +1116,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserArchiveUnlock", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Kind")
                         .IsRequired()
@@ -1165,9 +1141,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserBadge", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("BadgeContent")
                         .HasColumnType("INTEGER");
@@ -1196,9 +1172,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserBan", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("BanEnd")
                         .HasColumnType("TEXT");
@@ -1224,9 +1200,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserBond", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("CanCounselToday")
                         .HasColumnType("INTEGER");
@@ -1262,14 +1238,12 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserBondProgressItem", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
-                    b.Property<string>("BondId")
-                        .IsRequired()
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("BondId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("ItemId")
                         .HasColumnType("INTEGER");
@@ -1294,9 +1268,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserCharacterWishlistEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("BannerId")
                         .HasColumnType("INTEGER");
@@ -1317,9 +1291,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserClaimedJukeboxReward", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("TriggerId")
                         .HasColumnType("INTEGER");
@@ -1337,9 +1311,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserClearedOutpostScenarioEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("ScenarioId")
                         .HasColumnType("INTEGER");
@@ -1357,9 +1331,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserClearedTutorialEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("TutorialGroupId")
                         .HasColumnType("INTEGER");
@@ -1383,9 +1357,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserCompletedAchievement", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("AchievementId")
                         .HasColumnType("INTEGER");
@@ -1403,9 +1377,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserCompletedDailyMissionEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("MissionId")
                         .HasColumnType("INTEGER");
@@ -1423,9 +1397,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserCompletedScenarioEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("ScenarioId")
                         .IsRequired()
@@ -1444,9 +1418,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserCompletedWeeklyMissionEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("MissionId")
                         .HasColumnType("INTEGER");
@@ -1464,9 +1438,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserContentsUnlockEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("ButtonAnimationPlayed")
                         .HasColumnType("INTEGER");
@@ -1490,9 +1464,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserCurrencyEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<long>("Amount")
                         .HasColumnType("INTEGER");
@@ -1513,9 +1487,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserDailyCounselCountEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("Count")
                         .HasColumnType("INTEGER");
@@ -1536,9 +1510,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserDailyTowerCountEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("CorporationType")
                         .HasColumnType("INTEGER");
@@ -1559,9 +1533,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserEvent", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("Diff")
                         .HasColumnType("INTEGER");
@@ -1591,17 +1565,15 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserEventClearedStage", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("StageId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("UserEventId")
-                        .IsRequired()
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("UserEventId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<ulong>("UserId")
                         .HasColumnType("INTEGER");
@@ -1618,18 +1590,16 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserEventCompletedScenario", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("ScenarioId")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("UserEventId")
-                        .IsRequired()
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("UserEventId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<ulong>("UserId")
                         .HasColumnType("INTEGER");
@@ -1646,9 +1616,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserEventMission", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("AllClear")
                         .HasColumnType("INTEGER");
@@ -1675,9 +1645,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserEventMissionEntry", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsDaily")
                         .HasColumnType("INTEGER");
@@ -1685,10 +1655,8 @@ namespace EpinelPS.Migrations
                     b.Property<int>("MissionId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("UserEventMissionId")
-                        .IsRequired()
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("UserEventMissionId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<ulong>("UserId")
                         .HasColumnType("INTEGER");
@@ -1705,9 +1673,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserEventShopBuy", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("BuyCount")
                         .HasColumnType("INTEGER");
@@ -1731,9 +1699,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserFavoriteItem", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<long>("Csn")
                         .HasColumnType("INTEGER");
@@ -1763,9 +1731,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserFavoriteItemQuest", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("Clear")
                         .HasColumnType("INTEGER");
@@ -1789,9 +1757,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserFieldMapEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("DataJson")
                         .IsRequired()
@@ -1817,9 +1785,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserGachaBannerPull", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("BannerId")
                         .HasColumnType("INTEGER");
@@ -1840,9 +1808,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserGachaDailyFreePull", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("GachaId")
                         .HasColumnType("INTEGER");
@@ -1860,9 +1828,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserGachaPayback", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("GachaCount")
                         .HasColumnType("INTEGER");
@@ -1883,14 +1851,12 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserGachaPaybackReward", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
-                    b.Property<string>("PaybackId")
-                        .IsRequired()
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("PaybackId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("StepId")
                         .HasColumnType("INTEGER");
@@ -1910,9 +1876,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserGachaPityCount", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("BannerId")
                         .HasColumnType("INTEGER");
@@ -1933,9 +1899,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserGachaSelectupChoice", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("BannerId")
                         .HasColumnType("INTEGER");
@@ -1956,9 +1922,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserJukeboxPlaylistEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsFavorite")
                         .HasColumnType("INTEGER");
@@ -1987,9 +1953,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserJukeboxSetting", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("BgmType")
                         .HasColumnType("INTEGER");
@@ -2016,9 +1982,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserLiberation", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("CharacterId")
                         .HasColumnType("INTEGER");
@@ -2048,9 +2014,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserLiberationMission", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<long>("CreatedAt")
                         .HasColumnType("INTEGER");
@@ -2058,10 +2024,8 @@ namespace EpinelPS.Migrations
                     b.Property<int>("LiberateCharacterId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("LiberationId")
-                        .IsRequired()
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("LiberationId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<long>("MissionId")
                         .HasColumnType("INTEGER");
@@ -2096,9 +2060,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserLobbyPrivateBannerEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("BannerId")
                         .HasColumnType("INTEGER");
@@ -2116,9 +2080,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserLoginEvent", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("EventId")
                         .HasColumnType("INTEGER");
@@ -2142,9 +2106,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserLoginEventDay", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("Day")
                         .HasColumnType("INTEGER");
@@ -2152,10 +2116,8 @@ namespace EpinelPS.Migrations
                     b.Property<ulong>("UserId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("UserLoginEventId")
-                        .IsRequired()
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("UserLoginEventId")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
@@ -2169,9 +2131,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserLostSector", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("CompletedPerfectly")
                         .HasColumnType("INTEGER");
@@ -2212,17 +2174,15 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserLostSectorClearedStage", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("ClearState")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("LostSectorId")
-                        .IsRequired()
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("LostSectorId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("StageKey")
                         .IsRequired()
@@ -2243,9 +2203,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserLostSectorObject", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<long>("ActionAt")
                         .HasColumnType("INTEGER");
@@ -2254,10 +2214,8 @@ namespace EpinelPS.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("LostSectorId")
-                        .IsRequired()
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("LostSectorId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("ObjectKey")
                         .IsRequired()
@@ -2289,9 +2247,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserMailEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("AppNoticeId")
                         .IsRequired()
@@ -2347,9 +2305,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserMainQuestEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("QuestTid")
                         .HasColumnType("INTEGER");
@@ -2370,9 +2328,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserMapStateEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("MapId")
                         .IsRequired()
@@ -2395,9 +2353,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserMessage", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("ConversationId")
                         .IsRequired()
@@ -2429,9 +2387,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserMessengerRepairHistoryEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Action")
                         .IsRequired()
@@ -2465,9 +2423,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserMinigameEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("ArcadeId")
                         .HasColumnType("INTEGER");
@@ -2496,9 +2454,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserNormalShopOrder", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("BuyCount")
                         .HasColumnType("INTEGER");
@@ -2509,10 +2467,8 @@ namespace EpinelPS.Migrations
                     b.Property<int>("ProductId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("ShopStateId")
-                        .IsRequired()
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("ShopStateId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<ulong>("UserId")
                         .HasColumnType("INTEGER");
@@ -2529,9 +2485,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserNormalShopPinnedBuy", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("BuyCount")
                         .HasColumnType("INTEGER");
@@ -2539,10 +2495,8 @@ namespace EpinelPS.Migrations
                     b.Property<int>("ProductId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("ShopStateId")
-                        .IsRequired()
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("ShopStateId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<ulong>("UserId")
                         .HasColumnType("INTEGER");
@@ -2559,9 +2513,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserNormalShopState", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<long>("NextRenewAt")
                         .HasColumnType("INTEGER");
@@ -2588,9 +2542,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserOpenLiberateType", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("LiberateTypeId")
                         .HasColumnType("INTEGER");
@@ -2608,9 +2562,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserPass", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("LastCompleteAt")
                         .IsRequired()
@@ -2643,9 +2597,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserPassMission", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsComplete")
                         .HasColumnType("INTEGER");
@@ -2656,10 +2610,8 @@ namespace EpinelPS.Migrations
                     b.Property<ulong>("UserId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("UserPassId")
-                        .IsRequired()
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("UserPassId")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
@@ -2673,9 +2625,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserPassRank", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsNormalRewarded")
                         .HasColumnType("INTEGER");
@@ -2689,10 +2641,8 @@ namespace EpinelPS.Migrations
                     b.Property<ulong>("UserId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("UserPassId")
-                        .IsRequired()
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("UserPassId")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
@@ -2706,9 +2656,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserPickedMessage", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("ConversationId")
                         .IsRequired()
@@ -2733,9 +2683,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserProfileCardDecoration", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("BackgroundId")
                         .HasColumnType("INTEGER");
@@ -2756,9 +2706,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserProfileCardSticker", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("Layer")
                         .HasColumnType("INTEGER");
@@ -2794,9 +2744,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserRepresentationTeamSlotEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<long>("CharacterCsn")
                         .HasColumnType("INTEGER");
@@ -2817,9 +2767,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserResetStateEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("ClearedSimulationRoom")
                         .HasColumnType("INTEGER");
@@ -2856,9 +2806,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserSideStoryStage", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsCompleted")
                         .HasColumnType("INTEGER");
@@ -2882,9 +2832,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserStageClearHistoryEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<long>("ClearedAt")
                         .HasColumnType("INTEGER");
@@ -2912,9 +2862,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserSubQuestEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("ReceivedReward")
                         .HasColumnType("INTEGER");
@@ -2935,9 +2885,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserTacticAcademyLessonEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("LessonId")
                         .HasColumnType("INTEGER");
@@ -2955,9 +2905,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserTeamGroupEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("LastContentsTeamNumber")
                         .HasColumnType("INTEGER");
@@ -2978,17 +2928,15 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserTeamSlotEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("Slot")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("TeamGroupId")
-                        .IsRequired()
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("TeamGroupId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("TeamNumber")
                         .HasColumnType("INTEGER");
@@ -3014,9 +2962,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserTowerProgressEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("ClearedFloor")
                         .HasColumnType("INTEGER");
@@ -3037,9 +2985,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserUnlockedCosmetic", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Category")
                         .IsRequired()
@@ -3062,9 +3010,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserViewedNoticePopupEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("CategoryId")
                         .HasColumnType("INTEGER");
@@ -3085,9 +3033,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserWallpaperBackground", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("LobbyDecoBackgroundId")
                         .HasColumnType("INTEGER");
@@ -3108,9 +3056,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserWallpaperFavorite", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsShuffled")
                         .HasColumnType("INTEGER");
@@ -3131,9 +3079,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserWallpaperJukebox", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("JukeboxListTableId")
                         .HasColumnType("INTEGER");
@@ -3154,9 +3102,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserWallpaperPlaylist", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsShuffled")
                         .HasColumnType("INTEGER");
@@ -3180,9 +3128,9 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.UserWallpaperSlot", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("OrderIndex")
                         .HasColumnType("INTEGER");

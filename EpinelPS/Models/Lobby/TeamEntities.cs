@@ -1,15 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using EpinelPS.Utils;
-
 namespace EpinelPS.Models;
 
 [Table("UserTeamGroups")]
 public class UserTeamGroupEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int TeamType { get; set; }
@@ -23,13 +20,11 @@ public class UserTeamGroupEntity
 public class UserTeamSlotEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
 
-    [MaxLength(26)]
-    public string TeamGroupId { get; set; } = "";
+    public long TeamGroupId { get; set; }
 
     public int TeamNumber { get; set; }
     public int Slot { get; set; }
@@ -44,8 +39,7 @@ public class UserTeamSlotEntity
 public class UserRepresentationTeamSlotEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int Slot { get; set; }

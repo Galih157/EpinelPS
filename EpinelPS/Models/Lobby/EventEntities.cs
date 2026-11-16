@@ -1,15 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using EpinelPS.Utils;
-
 namespace EpinelPS.Models;
 
 [Table("UserEvents")]
 public class UserEvent
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int EventId { get; set; }
@@ -27,13 +24,11 @@ public class UserEvent
 public class UserEventCompletedScenario
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
 
-    [MaxLength(26)]
-    public string UserEventId { get; set; } = "";
+    public long UserEventId { get; set; }
 
     public string ScenarioId { get; set; } = "";
 
@@ -45,13 +40,11 @@ public class UserEventCompletedScenario
 public class UserEventClearedStage
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
 
-    [MaxLength(26)]
-    public string UserEventId { get; set; } = "";
+    public long UserEventId { get; set; }
 
     public int StageId { get; set; }
 
@@ -63,8 +56,7 @@ public class UserEventClearedStage
 public class UserLoginEvent
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int EventId { get; set; }
@@ -79,13 +71,11 @@ public class UserLoginEvent
 public class UserLoginEventDay
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
 
-    [MaxLength(26)]
-    public string UserLoginEventId { get; set; } = "";
+    public long UserLoginEventId { get; set; }
 
     public int Day { get; set; }
 
@@ -97,8 +87,7 @@ public class UserLoginEventDay
 public class UserEventMission
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int EventId { get; set; }
@@ -114,13 +103,11 @@ public class UserEventMission
 public class UserEventMissionEntry
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
 
-    [MaxLength(26)]
-    public string UserEventMissionId { get; set; } = "";
+    public long UserEventMissionId { get; set; }
 
     public bool IsDaily { get; set; }
     public int MissionId { get; set; }
@@ -133,8 +120,7 @@ public class UserEventMissionEntry
 public class UserEventShopBuy
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int EventId { get; set; }

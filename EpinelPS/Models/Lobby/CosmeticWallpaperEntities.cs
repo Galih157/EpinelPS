@@ -1,15 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using EpinelPS.Utils;
-
 namespace EpinelPS.Models;
 
 [Table("UserProfileCardDecorations")]
 public class UserProfileCardDecoration
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public bool ShowCharacterSpine { get; set; }
@@ -22,8 +19,7 @@ public class UserProfileCardDecoration
 public class UserProfileCardSticker
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int Position { get; set; }
@@ -41,8 +37,7 @@ public class UserProfileCardSticker
 public class UserUnlockedCosmetic
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
 
@@ -58,8 +53,7 @@ public class UserUnlockedCosmetic
 public class UserJukeboxSetting
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int Location { get; set; }
@@ -74,8 +68,7 @@ public class UserJukeboxSetting
 public class UserClaimedJukeboxReward
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int TriggerId { get; set; }
@@ -87,8 +80,7 @@ public class UserClaimedJukeboxReward
 public class UserWallpaperSlot
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int OrderIndex { get; set; }
@@ -103,8 +95,7 @@ public class UserWallpaperSlot
 public class UserWallpaperBackground
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int OrderIndex { get; set; }
@@ -117,8 +108,7 @@ public class UserWallpaperBackground
 public class UserWallpaperJukebox
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int OrderIndex { get; set; }
@@ -131,8 +121,7 @@ public class UserWallpaperJukebox
 public class UserWallpaperFavorite
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int OrderIndex { get; set; }
@@ -145,8 +134,7 @@ public class UserWallpaperFavorite
 public class UserWallpaperPlaylist
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int OrderIndex { get; set; }

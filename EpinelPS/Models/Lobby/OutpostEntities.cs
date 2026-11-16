@@ -1,7 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using EpinelPS.Utils;
-
 namespace EpinelPS.Models;
 
 [Table("Outposts")]
@@ -38,8 +36,7 @@ public class OutpostEntity
 public class DispatchClearItemEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int DispatchId { get; set; }
@@ -51,8 +48,7 @@ public class DispatchClearItemEntity
 public class SelectableDispatchEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int DispatchGroupId { get; set; }
@@ -69,8 +65,7 @@ public class SelectableDispatchEntity
 public class DispatchEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int Tid { get; set; }
@@ -85,8 +80,7 @@ public class DispatchEntity
 public class InfraCoreRewardEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int InfraCoreLevel { get; set; }
@@ -109,8 +103,7 @@ public class SynchroSlotEntity
 public class ResearchProgressEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int ResearchId { get; set; }
@@ -126,8 +119,7 @@ public class ResearchProgressEntity
 public class OutpostBuildingEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int SlotId { get; set; }

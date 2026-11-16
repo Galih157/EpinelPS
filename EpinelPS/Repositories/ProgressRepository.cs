@@ -59,7 +59,6 @@ public sealed class ProgressRepository(GameContext db)
             kv => (int)kv.Key,
             kv => new UserCurrencyEntity
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 CurrencyType = (int)kv.Key,
                 Amount = kv.Value
@@ -189,7 +188,6 @@ public sealed class ProgressRepository(GameContext db)
 
             set.Add(new UserCompletedScenarioEntity
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 ScenarioId = scenarioId
             });
@@ -302,7 +300,6 @@ public sealed class ProgressRepository(GameContext db)
         {
             entity = new UserCurrencyEntity
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 CurrencyType = typeInt,
                 Amount = val
@@ -383,7 +380,6 @@ public sealed class ProgressRepository(GameContext db)
             x => x.UserId == userId && x.CurrencyType == typeInt,
             () => new UserCurrencyEntity
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 CurrencyType = typeInt,
                 Amount = val
@@ -410,7 +406,6 @@ public sealed class ProgressRepository(GameContext db)
             x => x.UserId == userId && x.QuestTid == questTid,
             () => new UserMainQuestEntity
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 QuestTid = questTid,
                 ReceivedReward = receivedReward
@@ -431,7 +426,7 @@ public sealed class ProgressRepository(GameContext db)
 
         foreach (var local in set.Local)
         {
-            if (local.UserId == userId && tidSet.Contains(local.QuestTid) && !rows.Any(r => r.Id == local.Id))
+            if (local.UserId == userId && tidSet.Contains(local.QuestTid) && !rows.Contains(local))
                 rows.Add(local);
         }
 
@@ -459,7 +454,6 @@ public sealed class ProgressRepository(GameContext db)
             x => x.UserId == userId && x.SubQuestId == subQuestId,
             () => new UserSubQuestEntity
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 SubQuestId = subQuestId,
                 ReceivedReward = receivedReward
@@ -487,7 +481,6 @@ public sealed class ProgressRepository(GameContext db)
             x => x.UserId == userId && x.CorporationType == corpType,
             () => new UserTowerProgressEntity
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 CorporationType = corpType,
                 ClearedFloor = floor
@@ -526,7 +519,6 @@ public sealed class ProgressRepository(GameContext db)
             x => x.UserId == userId && x.TutorialGroupId == groupId,
             () => new UserClearedTutorialEntity
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 TutorialGroupId = groupId,
                 TutorialId = tutorialId,
@@ -566,7 +558,6 @@ public sealed class ProgressRepository(GameContext db)
             x => x.UserId == userId && x.ContentsOpenId == contentsOpenId,
             () => new UserContentsUnlockEntity
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 ContentsOpenId = contentsOpenId,
                 ButtonAnimationPlayed = buttonAnimationPlayed,
@@ -638,7 +629,6 @@ public sealed class ProgressRepository(GameContext db)
 
             set.Add(new UserViewedNoticePopupEntity
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 CategoryId = categoryId,
                 NoticePopupTableId = popupId
@@ -685,7 +675,6 @@ public sealed class ProgressRepository(GameContext db)
             x => x.UserId == userId && x.MapId == mapId,
             () => new UserMapStateEntity
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 MapId = mapId,
                 StateJson = resolvedJson
@@ -746,7 +735,6 @@ public sealed class ProgressRepository(GameContext db)
             x => x.UserId == userId && x.MapId == mapId,
             () => new UserFieldMapEntity
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 MapId = mapId,
                 DataJson = json,
@@ -805,7 +793,6 @@ public sealed class ProgressRepository(GameContext db)
 
         db.Set<UserStageClearHistoryEntity>().Add(new UserStageClearHistoryEntity
         {
-            Id = UlidGenerator.NewUlid(),
             UserId = userId,
             TeamCombat = entry.TeamCombat,
             ClearedAt = entry.ClearedAt,
@@ -884,7 +871,7 @@ public sealed class ProgressRepository(GameContext db)
     private List<TEntity> GetMergedEntities<TEntity>(
         Func<TEntity, bool> localPredicate,
         Expression<Func<TEntity, bool>> dbPredicate,
-        Func<TEntity, string> keySelector) where TEntity : class
+        Func<TEntity, long> keySelector) where TEntity : class
     {
         var tracked = db.ChangeTracker.Entries<TEntity>()
             .Where(e => localPredicate(e.Entity))
@@ -898,8 +885,8 @@ public sealed class ProgressRepository(GameContext db)
                 .ToList();
         }
 
-        var deletedKeys = new HashSet<string>();
-        var trackedByKey = new Dictionary<string, TEntity>();
+        var deletedKeys = new HashSet<long>();
+        var trackedByKey = new Dictionary<long, TEntity>();
         var added = new List<TEntity>();
 
         foreach (var entry in tracked)
@@ -920,7 +907,7 @@ public sealed class ProgressRepository(GameContext db)
         var result = new List<TEntity>(dbRows.Count + added.Count);
         foreach (var row in dbRows)
         {
-            string key = keySelector(row);
+            long key = keySelector(row);
             if (deletedKeys.Contains(key))
                 continue;
 

@@ -1,15 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using EpinelPS.Utils;
-
 namespace EpinelPS.Models;
 
 [Table("UserMapStates")]
 public class UserMapStateEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public string MapId { get; set; } = string.Empty;
@@ -22,8 +19,7 @@ public class UserMapStateEntity
 public class UserFieldMapEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public string MapId { get; set; } = string.Empty;
@@ -37,8 +33,7 @@ public class UserFieldMapEntity
 public class UserSubQuestEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int SubQuestId { get; set; }
@@ -51,8 +46,7 @@ public class UserSubQuestEntity
 public class UserStageClearHistoryEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int TeamCombat { get; set; }
@@ -67,8 +61,7 @@ public class UserStageClearHistoryEntity
 public class UserClearedOutpostScenarioEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int ScenarioId { get; set; }
@@ -80,8 +73,7 @@ public class UserClearedOutpostScenarioEntity
 public class UserTacticAcademyLessonEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int LessonId { get; set; }

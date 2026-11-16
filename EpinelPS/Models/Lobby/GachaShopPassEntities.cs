@@ -1,15 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using EpinelPS.Utils;
-
 namespace EpinelPS.Models;
 
 [Table("UserGachaBannerPulls")]
 public class UserGachaBannerPull
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int BannerId { get; set; }
@@ -22,8 +19,7 @@ public class UserGachaBannerPull
 public class UserGachaPityCount
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int BannerId { get; set; }
@@ -36,8 +32,7 @@ public class UserGachaPityCount
 public class UserGachaSelectupChoice
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int BannerId { get; set; }
@@ -50,8 +45,7 @@ public class UserGachaSelectupChoice
 public class UserGachaDailyFreePull
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int GachaId { get; set; }
@@ -63,8 +57,7 @@ public class UserGachaDailyFreePull
 public class UserGachaPayback
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int GachaId { get; set; }
@@ -78,13 +71,11 @@ public class UserGachaPayback
 public class UserGachaPaybackReward
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
 
-    [MaxLength(26)]
-    public string PaybackId { get; set; } = "";
+    public long PaybackId { get; set; }
 
     public int StepId { get; set; }
 
@@ -96,8 +87,7 @@ public class UserGachaPaybackReward
 public class UserNormalShopState
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int ShopCategory { get; set; }
@@ -114,13 +104,11 @@ public class UserNormalShopState
 public class UserNormalShopOrder
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
 
-    [MaxLength(26)]
-    public string ShopStateId { get; set; } = "";
+    public long ShopStateId { get; set; }
 
     public int OrderIndex { get; set; }
     public int ProductId { get; set; }
@@ -134,13 +122,11 @@ public class UserNormalShopOrder
 public class UserNormalShopPinnedBuy
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
 
-    [MaxLength(26)]
-    public string ShopStateId { get; set; } = "";
+    public long ShopStateId { get; set; }
 
     public int ProductId { get; set; }
     public int BuyCount { get; set; }
@@ -153,8 +139,7 @@ public class UserNormalShopPinnedBuy
 public class UserPass
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int PassId { get; set; }
@@ -172,13 +157,11 @@ public class UserPass
 public class UserPassRank
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
 
-    [MaxLength(26)]
-    public string UserPassId { get; set; } = "";
+    public long UserPassId { get; set; }
 
     public int PassRank { get; set; }
     public bool IsNormalRewarded { get; set; }
@@ -192,13 +175,11 @@ public class UserPassRank
 public class UserPassMission
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
 
-    [MaxLength(26)]
-    public string UserPassId { get; set; } = "";
+    public long UserPassId { get; set; }
 
     public int PassMissionId { get; set; }
     public bool IsComplete { get; set; }

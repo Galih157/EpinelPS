@@ -48,7 +48,6 @@ public sealed class ExplorationRepository(GameContext db)
 
             set.Add(new UserCompletedAchievement
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 AchievementId = id
             });
@@ -92,7 +91,6 @@ public sealed class ExplorationRepository(GameContext db)
         {
             set.Add(new UserSideStoryStage
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 StageId = stageId,
                 IsCompleted = true,
@@ -132,7 +130,6 @@ public sealed class ExplorationRepository(GameContext db)
             {
                 set.Add(new UserSideStoryStage
                 {
-                    Id = UlidGenerator.NewUlid(),
                     UserId = userId,
                     StageId = stageId,
                     IsCompleted = false,
@@ -178,7 +175,6 @@ public sealed class ExplorationRepository(GameContext db)
         UserDbHelper.GetOrCreateGameUser(db, userId);
         set.Add(new UserArchiveUnlock
         {
-            Id = UlidGenerator.NewUlid(),
             UserId = userId,
             Kind = kind,
             TargetId = targetId
@@ -236,7 +232,6 @@ public sealed class ExplorationRepository(GameContext db)
         {
             row = new UserLostSector
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 SectorId = sectorId,
                 IsOpen = data.IsOpen,
@@ -253,9 +248,8 @@ public sealed class ExplorationRepository(GameContext db)
             {
                 stageSet.Add(new UserLostSectorClearedStage
                 {
-                    Id = UlidGenerator.NewUlid(),
                     UserId = userId,
-                    LostSectorId = row.Id,
+                    LostSector = row,
                     StageKey = stage.Key,
                     ClearState = stage.Value
                 });
@@ -265,9 +259,8 @@ public sealed class ExplorationRepository(GameContext db)
             {
                 objectSet.Add(new UserLostSectorObject
                 {
-                    Id = UlidGenerator.NewUlid(),
                     UserId = userId,
-                    LostSectorId = row.Id,
+                    LostSector = row,
                     ObjectKey = obj.Key,
                     ActionAt = obj.Value.ActionAt,
                     Type = obj.Value.Type,
@@ -302,9 +295,8 @@ public sealed class ExplorationRepository(GameContext db)
                 {
                     stageSet.Add(new UserLostSectorClearedStage
                     {
-                        Id = UlidGenerator.NewUlid(),
                         UserId = userId,
-                        LostSectorId = row.Id,
+                        LostSector = row,
                         StageKey = stageKey,
                         ClearState = clearState
                     });
@@ -331,9 +323,8 @@ public sealed class ExplorationRepository(GameContext db)
                 {
                     objectSet.Add(new UserLostSectorObject
                     {
-                        Id = UlidGenerator.NewUlid(),
                         UserId = userId,
-                        LostSectorId = row.Id,
+                        LostSector = row,
                         ObjectKey = objKey,
                         ActionAt = objVal.ActionAt,
                         Type = objVal.Type,

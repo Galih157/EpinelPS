@@ -1,15 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using EpinelPS.Utils;
-
 namespace EpinelPS.Models;
 
 [Table("Items")]
 public class ItemEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public long Isn { get; set; }
@@ -30,13 +27,11 @@ public class ItemEntity
 public class ItemCharacterAssignmentEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
 
-    [MaxLength(26)]
-    public string ItemId { get; set; } = "";
+    public long ItemId { get; set; }
 
     public long CharacterCsn { get; set; }
     public int Position { get; set; }
@@ -50,8 +45,7 @@ public class ItemCharacterAssignmentEntity
 public class CharacterEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public long Csn { get; set; }
@@ -72,11 +66,9 @@ public class CharacterEntity
 public class EquipmentAwakeningEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
-    [MaxLength(26)]
-    public string ItemId { get; set; } = "";
+    public long ItemId { get; set; }
 
     public bool IsNewData { get; set; }
     public int Option1Id { get; set; }

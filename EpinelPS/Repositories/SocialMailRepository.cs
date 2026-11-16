@@ -40,7 +40,6 @@ public sealed class SocialMailRepository(GameContext db)
         string guid = Guid.NewGuid().ToString();
         db.Set<UserBadge>().Add(new UserBadge
         {
-            Id = UlidGenerator.NewUlid(),
             UserId = userId,
             Seq = seq,
             Location = location ?? "",
@@ -109,7 +108,6 @@ public sealed class SocialMailRepository(GameContext db)
 
         db.Set<UserMailEntity>().Add(new UserMailEntity
         {
-            Id = UlidGenerator.NewUlid(),
             UserId = userId,
             Msn = msn,
             Sender = mail.Sender,
@@ -263,7 +261,6 @@ public sealed class SocialMailRepository(GameContext db)
         long createdAt = explicitCreatedAt ?? DateTime.UtcNow.Ticks;
         db.Set<UserMessage>().Add(new UserMessage
         {
-            Id = UlidGenerator.NewUlid(),
             UserId = userId,
             Seq = seq,
             ConversationId = conversationId ?? "",
@@ -336,7 +333,6 @@ public sealed class SocialMailRepository(GameContext db)
         {
             db.Set<UserPickedMessage>().Add(new UserPickedMessage
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 ConversationId = conversationId,
                 CreatedAtSeconds = createdAt.Seconds,
@@ -378,7 +374,6 @@ public sealed class SocialMailRepository(GameContext db)
 
         db.Set<UserMessengerRepairHistoryEntity>().Add(new UserMessengerRepairHistoryEntity
         {
-            Id = UlidGenerator.NewUlid(),
             UserId = userId,
             AuditId = entry.Id,
             CreatedAtUtc = entry.CreatedAtUtc.Ticks,

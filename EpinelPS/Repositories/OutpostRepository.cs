@@ -173,7 +173,6 @@ public sealed class OutpostRepository(GameContext db)
 
         set.Add(new InfraCoreRewardEntity
         {
-            Id = UlidGenerator.NewUlid(),
             UserId = userId,
             InfraCoreLevel = level
         });
@@ -233,7 +232,6 @@ public sealed class OutpostRepository(GameContext db)
             b => b.SlotId,
             b => new OutpostBuildingEntity
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 SlotId = b.SlotId,
                 BuildingId = b.BuildingId,
@@ -444,7 +442,6 @@ public sealed class OutpostRepository(GameContext db)
         {
             set.Add(new ResearchProgressEntity
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 ResearchId = researchId,
                 Level = progress.Level,
@@ -488,7 +485,6 @@ public sealed class OutpostRepository(GameContext db)
         UserDbHelper.GetOrCreateGameUser(db, userId);
         set.Add(new UserTacticAcademyLessonEntity
         {
-            Id = UlidGenerator.NewUlid(),
             UserId = userId,
             LessonId = lessonId
         });
@@ -527,7 +523,6 @@ public sealed class OutpostRepository(GameContext db)
         UserDbHelper.GetOrCreateGameUser(db, userId);
         set.Add(new UserClearedOutpostScenarioEntity
         {
-            Id = UlidGenerator.NewUlid(),
             UserId = userId,
             ScenarioId = scenarioId
         });
@@ -608,7 +603,6 @@ public sealed class OutpostRepository(GameContext db)
             id => id,
             id => new DispatchClearItemEntity
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 DispatchId = id
             },
@@ -623,7 +617,6 @@ public sealed class OutpostRepository(GameContext db)
         {
             selectableSet.Add(new SelectableDispatchEntity
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 DispatchGroupId = sd.DispatchGroupId,
                 SelectTid = sd.SelectTid,
@@ -643,7 +636,6 @@ public sealed class OutpostRepository(GameContext db)
             d => d.Tid,
             d => new DispatchEntity
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 Tid = d.Tid,
                 IsRun = d.IsRun,

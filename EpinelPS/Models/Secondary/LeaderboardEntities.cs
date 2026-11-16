@@ -1,15 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using EpinelPS.Utils;
-
 namespace EpinelPS.Models;
 
 [Table("TtsSongScores")]
 public class TtsSongScoreEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public long UserId { get; set; }
     public int SongId { get; set; }
@@ -24,8 +21,7 @@ public class TtsSongScoreEntity
 public class TtsTotalScoreEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public long UserId { get; set; }
     public int RankType { get; set; }
@@ -50,8 +46,7 @@ public class ArcadeScoreEntity
 public class MiniGameLeaderboardEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public string MinigameType { get; set; } = "";
     public int ArcadeId { get; set; }

@@ -43,7 +43,6 @@ public sealed class InventoryRepository(GameContext db)
                 validCharacterCsns.Add(c.Csn);
                 return new CharacterEntity
                 {
-                    Id = UlidGenerator.NewUlid(),
                     UserId = userId,
                     Csn = c.Csn,
                     Tid = c.Tid,
@@ -82,7 +81,6 @@ public sealed class InventoryRepository(GameContext db)
             {
                 var entity = new ItemEntity
                 {
-                    Id = UlidGenerator.NewUlid(),
                     UserId = userId,
                     Isn = i.Isn,
                     ItemType = i.ItemType,
@@ -128,7 +126,6 @@ public sealed class InventoryRepository(GameContext db)
 
                 desiredAssignments.Add(new ItemCharacterAssignmentEntity
                 {
-                    Id = UlidGenerator.NewUlid(),
                     UserId = userId,
                     ItemId = itemEntity.Id,
                     CharacterCsn = csn,
@@ -221,7 +218,6 @@ public sealed class InventoryRepository(GameContext db)
 
         var entity = new CharacterEntity
         {
-            Id = UlidGenerator.NewUlid(),
             UserId = userId,
             Csn = csn,
             Tid = character.Tid,
@@ -442,7 +438,6 @@ public sealed class InventoryRepository(GameContext db)
 
         var entity = new ItemEntity
         {
-            Id = UlidGenerator.NewUlid(),
             UserId = userId,
             Isn = isn,
             ItemType = item.ItemType,
@@ -484,11 +479,11 @@ public sealed class InventoryRepository(GameContext db)
         {
             // Clean up any unsaved child entities referencing this item before removing it
             var assignmentSet = db.Set<ItemCharacterAssignmentEntity>();
-            foreach (var localAssignment in assignmentSet.Local.Where(a => a.ItemId == entity.Id).ToList())
+            foreach (var localAssignment in assignmentSet.Local.Where(a => a.Item == entity || (entity.Id != 0 && a.ItemId == entity.Id)).ToList())
                 assignmentSet.Remove(localAssignment);
 
             var awakeningSet = db.Set<EquipmentAwakeningEntity>();
-            foreach (var localAwakening in awakeningSet.Local.Where(a => a.ItemId == entity.Id).ToList())
+            foreach (var localAwakening in awakeningSet.Local.Where(a => a.Item == entity || (entity.Id != 0 && a.ItemId == entity.Id)).ToList())
                 awakeningSet.Remove(localAwakening);
 
             db.Set<ItemEntity>().Remove(entity);
@@ -558,8 +553,9 @@ public sealed class InventoryRepository(GameContext db)
 
         foreach (var local in assignmentSet.Local)
         {
-            if (local.UserId == userId && local.ItemId == itemEntity.Id &&
-                !existingAssignments.Any(e => e.Id == local.Id))
+            if (local.UserId == userId &&
+                (local.Item == itemEntity || (itemEntity.Id != 0 && local.ItemId == itemEntity.Id)) &&
+                !existingAssignments.Contains(local))
             {
                 existingAssignments.Add(local);
             }
@@ -584,9 +580,8 @@ public sealed class InventoryRepository(GameContext db)
         {
             assignmentSet.Add(new ItemCharacterAssignmentEntity
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
-                ItemId = itemEntity.Id,
+                Item = itemEntity,
                 CharacterCsn = desiredCsns[pos],
                 Position = pos
             });
@@ -667,9 +662,9 @@ public sealed class InventoryRepository(GameContext db)
         if (itemEntity == null)
             return [];
 
-        string itemId = itemEntity.Id;
+        long itemId = itemEntity.Id;
         return GetMergedEntities<EquipmentAwakeningEntity>(
-                a => a.ItemId == itemId,
+                a => a.Item == itemEntity || (itemId != 0 && a.ItemId == itemId),
                 a => a.ItemId == itemId,
                 a => a.Id)
             .OrderBy(a => a.IsNewData)
@@ -690,20 +685,19 @@ public sealed class InventoryRepository(GameContext db)
 
         UserDbHelper.GetOrCreateGameUser(db, userId);
 
-        string itemId = itemEntity.Id;
+        long itemId = itemEntity.Id;
         bool isNewData = awakening.IsNewData;
         var opt = awakening.Option ?? new NetEquipmentAwakeningOption();
 
         var existing = FindTrackedEntity<EquipmentAwakeningEntity>(
-            a => a.ItemId == itemId && a.IsNewData == isNewData,
+            a => (a.Item == itemEntity || (itemId != 0 && a.ItemId == itemId)) && a.IsNewData == isNewData,
             a => a.ItemId == itemId && a.IsNewData == isNewData);
 
         if (existing == null)
         {
             db.Set<EquipmentAwakeningEntity>().Add(new EquipmentAwakeningEntity
             {
-                Id = UlidGenerator.NewUlid(),
-                ItemId = itemId,
+                Item = itemEntity,
                 IsNewData = isNewData,
                 Option1Id = opt.Option1Id,
                 Option1Lock = opt.Option1Lock,
@@ -741,7 +735,7 @@ public sealed class InventoryRepository(GameContext db)
         if (itemEntity == null)
             return 0;
 
-        string itemId = itemEntity.Id;
+        long itemId = itemEntity.Id;
         var set = db.Set<EquipmentAwakeningEntity>();
         var matches = set
             .Where(a => a.ItemId == itemId && (!isNewData.HasValue || a.IsNewData == isNewData.Value))
@@ -749,9 +743,9 @@ public sealed class InventoryRepository(GameContext db)
 
         foreach (var local in set.Local)
         {
-            if (local.ItemId == itemId &&
+            if ((local.Item == itemEntity || (itemId != 0 && local.ItemId == itemId)) &&
                 (!isNewData.HasValue || local.IsNewData == isNewData.Value) &&
-                !matches.Any(m => m.Id == local.Id))
+                !matches.Contains(local))
             {
                 matches.Add(local);
             }
@@ -808,7 +802,7 @@ public sealed class InventoryRepository(GameContext db)
         }
     }
 
-    private List<long> GetAssignmentsForItemId(ulong userId, string itemId)
+    private List<long> GetAssignmentsForItemId(ulong userId, long itemId)
     {
         return GetMergedEntities<ItemCharacterAssignmentEntity>(
                 a => a.UserId == userId && a.ItemId == itemId,
@@ -822,7 +816,7 @@ public sealed class InventoryRepository(GameContext db)
     private List<TEntity> GetMergedEntities<TEntity>(
         Func<TEntity, bool> localPredicate,
         Expression<Func<TEntity, bool>> dbPredicate,
-        Func<TEntity, string> keySelector) where TEntity : class
+        Func<TEntity, long> keySelector) where TEntity : class
     {
         var tracked = db.ChangeTracker.Entries<TEntity>()
             .Where(e => localPredicate(e.Entity))
@@ -836,8 +830,8 @@ public sealed class InventoryRepository(GameContext db)
                 .ToList();
         }
 
-        var deletedKeys = new HashSet<string>();
-        var trackedByKey = new Dictionary<string, TEntity>();
+        var deletedKeys = new HashSet<long>();
+        var trackedByKey = new Dictionary<long, TEntity>();
         var added = new List<TEntity>();
 
         foreach (var entry in tracked)
@@ -858,7 +852,7 @@ public sealed class InventoryRepository(GameContext db)
         var result = new List<TEntity>(dbRows.Count + added.Count);
         foreach (var row in dbRows)
         {
-            string key = keySelector(row);
+            long key = keySelector(row);
             if (deletedKeys.Contains(key))
                 continue;
 

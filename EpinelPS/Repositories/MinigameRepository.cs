@@ -116,7 +116,6 @@ public sealed class MinigameRepository(GameContext db)
         {
             set.Add(new UserMinigameEntity
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 MinigameType = minigameType,
                 ArcadeId = arcadeId,

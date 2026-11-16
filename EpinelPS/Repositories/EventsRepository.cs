@@ -64,7 +64,6 @@ public sealed class EventsRepository(GameContext db)
         {
             row = new UserEvent
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 EventId = eventId,
                 Diff = data.Diff,
@@ -78,9 +77,8 @@ public sealed class EventsRepository(GameContext db)
             {
                 scenarioSet.Add(new UserEventCompletedScenario
                 {
-                    Id = UlidGenerator.NewUlid(),
                     UserId = userId,
-                    UserEventId = row.Id,
+                    UserEvent = row,
                     ScenarioId = scenarioId
                 });
             }
@@ -89,9 +87,8 @@ public sealed class EventsRepository(GameContext db)
             {
                 stageSet.Add(new UserEventClearedStage
                 {
-                    Id = UlidGenerator.NewUlid(),
                     UserId = userId,
-                    UserEventId = row.Id,
+                    UserEvent = row,
                     StageId = stageId
                 });
             }
@@ -110,9 +107,8 @@ public sealed class EventsRepository(GameContext db)
             {
                 scenarioSet.Add(new UserEventCompletedScenario
                 {
-                    Id = UlidGenerator.NewUlid(),
                     UserId = userId,
-                    UserEventId = row.Id,
+                    UserEvent = row,
                     ScenarioId = scenarioId
                 });
             }
@@ -124,9 +120,8 @@ public sealed class EventsRepository(GameContext db)
             {
                 stageSet.Add(new UserEventClearedStage
                 {
-                    Id = UlidGenerator.NewUlid(),
                     UserId = userId,
-                    UserEventId = row.Id,
+                    UserEvent = row,
                     StageId = stageId
                 });
             }
@@ -172,7 +167,6 @@ public sealed class EventsRepository(GameContext db)
         {
             row = new UserLoginEvent
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 EventId = eventId,
                 LastDay = data.LastDay,
@@ -184,9 +178,8 @@ public sealed class EventsRepository(GameContext db)
             {
                 daySet.Add(new UserLoginEventDay
                 {
-                    Id = UlidGenerator.NewUlid(),
                     UserId = userId,
-                    UserLoginEventId = row.Id,
+                    UserLoginEvent = row,
                     Day = day
                 });
             }
@@ -203,9 +196,8 @@ public sealed class EventsRepository(GameContext db)
             {
                 daySet.Add(new UserLoginEventDay
                 {
-                    Id = UlidGenerator.NewUlid(),
                     UserId = userId,
-                    UserLoginEventId = row.Id,
+                    UserLoginEvent = row,
                     Day = day
                 });
             }
@@ -255,7 +247,6 @@ public sealed class EventsRepository(GameContext db)
         {
             row = new UserEventMission
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 EventId = eventId,
                 LastDay = data.LastDay,
@@ -268,9 +259,8 @@ public sealed class EventsRepository(GameContext db)
             {
                 entrySet.Add(new UserEventMissionEntry
                 {
-                    Id = UlidGenerator.NewUlid(),
                     UserId = userId,
-                    UserEventMissionId = row.Id,
+                    UserEventMission = row,
                     IsDaily = entry.IsDaily,
                     MissionId = entry.MissionId
                 });
@@ -289,9 +279,8 @@ public sealed class EventsRepository(GameContext db)
             {
                 entrySet.Add(new UserEventMissionEntry
                 {
-                    Id = UlidGenerator.NewUlid(),
                     UserId = userId,
-                    UserEventMissionId = row.Id,
+                    UserEventMission = row,
                     IsDaily = entry.IsDaily,
                     MissionId = entry.MissionId
                 });
@@ -326,7 +315,6 @@ public sealed class EventsRepository(GameContext db)
         {
             row = new UserEventShopBuy
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 EventId = eventId,
                 ProductTid = productTid,

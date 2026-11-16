@@ -1,15 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using EpinelPS.Utils;
-
 namespace EpinelPS.Models;
 
 [Table("SoloRaids")]
 public class SoloRaidEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int RaidId { get; set; }
@@ -25,11 +22,9 @@ public class SoloRaidEntity
 public class SoloRaidLevelEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
-    [MaxLength(26)]
-    public string SoloRaidId { get; set; } = "";
+    public long SoloRaidId { get; set; }
 
     public int RaidLevel { get; set; }
     public int RaidJoinCount { get; set; }
@@ -48,11 +43,9 @@ public class SoloRaidLevelEntity
 public class SoloRaidLogEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
-    [MaxLength(26)]
-    public string SoloRaidLevelId { get; set; } = "";
+    public long SoloRaidLevelId { get; set; }
 
     public int Sequence { get; set; }
     public long Damage { get; set; }
@@ -66,11 +59,9 @@ public class SoloRaidLogEntity
 public class SoloRaidLogCharacterEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
-    [MaxLength(26)]
-    public string SoloRaidLogId { get; set; } = "";
+    public long SoloRaidLogId { get; set; }
 
     public int Slot { get; set; }
     public long Csn { get; set; }
@@ -86,8 +77,7 @@ public class SoloRaidLogCharacterEntity
 public class SoloRaidMuseumStageEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int StageId { get; set; }
@@ -105,11 +95,9 @@ public class SoloRaidMuseumStageEntity
 public class SoloRaidMuseumModeEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
-    [MaxLength(26)]
-    public string SoloRaidMuseumStageId { get; set; } = "";
+    public long SoloRaidMuseumStageId { get; set; }
 
     public int ModeType { get; set; }
     public int StageJoinCount { get; set; }
@@ -128,11 +116,9 @@ public class SoloRaidMuseumModeEntity
 public class SoloRaidMuseumMissionClaimEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
-    [MaxLength(26)]
-    public string SoloRaidMuseumStageId { get; set; } = "";
+    public long SoloRaidMuseumStageId { get; set; }
 
     public int ModeType { get; set; }
     public int MissionId { get; set; }
@@ -144,11 +130,9 @@ public class SoloRaidMuseumMissionClaimEntity
 public class SoloRaidMuseumTeamEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
-    [MaxLength(26)]
-    public string SoloRaidMuseumStageId { get; set; } = "";
+    public long SoloRaidMuseumStageId { get; set; }
 
     public int TeamNumber { get; set; }
 
@@ -160,11 +144,9 @@ public class SoloRaidMuseumTeamEntity
 public class SoloRaidMuseumTeamSlotEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
-    [MaxLength(26)]
-    public string SoloRaidMuseumTeamId { get; set; } = "";
+    public long SoloRaidMuseumTeamId { get; set; }
 
     public int Slot { get; set; }
     public long Value { get; set; }
@@ -177,11 +159,9 @@ public class SoloRaidMuseumTeamSlotEntity
 public class SoloRaidMuseumOpenTeamEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
-    [MaxLength(26)]
-    public string SoloRaidMuseumModeId { get; set; } = "";
+    public long SoloRaidMuseumModeId { get; set; }
 
     public int TeamNumber { get; set; }
     public int Sequence { get; set; }
@@ -193,11 +173,9 @@ public class SoloRaidMuseumOpenTeamEntity
 public class SoloRaidMuseumLogEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
-    [MaxLength(26)]
-    public string SoloRaidMuseumModeId { get; set; } = "";
+    public long SoloRaidMuseumModeId { get; set; }
 
     [MaxLength(16)]
     public string LogSet { get; set; } = "";
@@ -215,11 +193,9 @@ public class SoloRaidMuseumLogEntity
 public class SoloRaidMuseumLogCharacterEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
-    [MaxLength(26)]
-    public string SoloRaidMuseumLogId { get; set; } = "";
+    public long SoloRaidMuseumLogId { get; set; }
 
     public int Slot { get; set; }
     public long Csn { get; set; }

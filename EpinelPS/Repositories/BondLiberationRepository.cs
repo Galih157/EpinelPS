@@ -46,7 +46,6 @@ public sealed class BondLiberationRepository(GameContext db)
         UserDbHelper.GetOrCreateGameUser(db, userId);
         bondSet.Add(new UserBond
         {
-            Id = UlidGenerator.NewUlid(),
             UserId = userId,
             NameCode = nameCode,
             Lv = defaultLv
@@ -71,7 +70,6 @@ public sealed class BondLiberationRepository(GameContext db)
         {
             row = new UserBond
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 NameCode = bond.NameCode,
                 Lv = bond.Lv,
@@ -87,9 +85,8 @@ public sealed class BondLiberationRepository(GameContext db)
             {
                 progressSet.Add(new UserBondProgressItem
                 {
-                    Id = UlidGenerator.NewUlid(),
                     UserId = userId,
-                    BondId = row.Id,
+                    Bond = row,
                     Kind = item.Kind,
                     ItemId = item.ItemId
                 });
@@ -111,9 +108,8 @@ public sealed class BondLiberationRepository(GameContext db)
             {
                 progressSet.Add(new UserBondProgressItem
                 {
-                    Id = UlidGenerator.NewUlid(),
                     UserId = userId,
-                    BondId = row.Id,
+                    Bond = row,
                     Kind = item.Kind,
                     ItemId = item.ItemId
                 });
@@ -172,7 +168,6 @@ public sealed class BondLiberationRepository(GameContext db)
         {
             set.Add(new UserFavoriteItem
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 FavoriteItemId = item.FavoriteItemId,
                 Tid = item.Tid,
@@ -227,7 +222,6 @@ public sealed class BondLiberationRepository(GameContext db)
             {
                 set.Add(new UserFavoriteItem
                 {
-                    Id = UlidGenerator.NewUlid(),
                     UserId = userId,
                     FavoriteItemId = src.FavoriteItemId,
                     Tid = src.Tid,
@@ -281,7 +275,6 @@ public sealed class BondLiberationRepository(GameContext db)
         {
             set.Add(new UserFavoriteItemQuest
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 QuestId = quest.QuestId,
                 Clear = quest.Clear,
@@ -337,7 +330,6 @@ public sealed class BondLiberationRepository(GameContext db)
         {
             row = new UserLiberation
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 CharacterId = data.CharacterId,
                 Step = data.Step,
@@ -351,9 +343,8 @@ public sealed class BondLiberationRepository(GameContext db)
             {
                 missionSet.Add(new UserLiberationMission
                 {
-                    Id = UlidGenerator.NewUlid(),
                     UserId = userId,
-                    LiberationId = row.Id,
+                    Liberation = row,
                     MissionId = m.Id,
                     MissionTid = m.MissionTid,
                     LiberateCharacterId = m.LiberateCharacterId,
@@ -392,9 +383,8 @@ public sealed class BondLiberationRepository(GameContext db)
                 {
                     missionSet.Add(new UserLiberationMission
                     {
-                        Id = UlidGenerator.NewUlid(),
                         UserId = userId,
-                        LiberationId = row.Id,
+                        Liberation = row,
                         MissionId = src.Id,
                         MissionTid = src.MissionTid,
                         LiberateCharacterId = src.LiberateCharacterId,
@@ -432,7 +422,6 @@ public sealed class BondLiberationRepository(GameContext db)
         UserDbHelper.GetOrCreateGameUser(db, userId);
         set.Add(new UserOpenLiberateType
         {
-            Id = UlidGenerator.NewUlid(),
             UserId = userId,
             LiberateTypeId = liberateTypeId
         });

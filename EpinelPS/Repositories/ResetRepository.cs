@@ -21,7 +21,6 @@ public sealed class ResetRepository(GameContext db)
         UserDbHelper.GetOrCreateGameUser(db, userId);
         row = new UserResetStateEntity
         {
-            Id = UlidGenerator.NewUlid(),
             UserId = userId,
             InterceptionTickets = 3
         };
@@ -122,7 +121,6 @@ public sealed class ResetRepository(GameContext db)
         UserDbHelper.GetOrCreateGameUser(db, userId);
         set.Add(new UserCompletedDailyMissionEntity
         {
-            Id = UlidGenerator.NewUlid(),
             UserId = userId,
             MissionId = missionId
         });
@@ -147,7 +145,6 @@ public sealed class ResetRepository(GameContext db)
         UserDbHelper.GetOrCreateGameUser(db, userId);
         set.Add(new UserCompletedWeeklyMissionEntity
         {
-            Id = UlidGenerator.NewUlid(),
             UserId = userId,
             MissionId = missionId
         });
@@ -183,7 +180,6 @@ public sealed class ResetRepository(GameContext db)
         {
             set.Add(new UserDailyTowerCountEntity
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 CorporationType = corpType,
                 UsedCount = count
@@ -218,7 +214,6 @@ public sealed class ResetRepository(GameContext db)
         {
             set.Add(new UserDailyCounselCountEntity
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 KeyId = keyId,
                 Count = count

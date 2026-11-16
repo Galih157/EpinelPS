@@ -1,15 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using EpinelPS.Utils;
-
 namespace EpinelPS.Models;
 
 [Table("UserBonds")]
 public class UserBond
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int NameCode { get; set; }
@@ -28,13 +25,11 @@ public class UserBond
 public class UserBondProgressItem
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
 
-    [MaxLength(26)]
-    public string BondId { get; set; } = "";
+    public long BondId { get; set; }
 
     [MaxLength(64)]
     public string Kind { get; set; } = "";
@@ -49,8 +44,7 @@ public class UserBondProgressItem
 public class UserFavoriteItem
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public long FavoriteItemId { get; set; }
@@ -66,8 +60,7 @@ public class UserFavoriteItem
 public class UserFavoriteItemQuest
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int QuestId { get; set; }
@@ -81,8 +74,7 @@ public class UserFavoriteItemQuest
 public class UserLiberation
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int CharacterId { get; set; }
@@ -99,13 +91,11 @@ public class UserLiberation
 public class UserLiberationMission
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
 
-    [MaxLength(26)]
-    public string LiberationId { get; set; } = "";
+    public long LiberationId { get; set; }
 
     public long MissionId { get; set; }
     public int MissionTid { get; set; }
@@ -124,8 +114,7 @@ public class UserLiberationMission
 public class UserOpenLiberateType
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int LiberateTypeId { get; set; }

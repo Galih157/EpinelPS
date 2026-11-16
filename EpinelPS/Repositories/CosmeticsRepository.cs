@@ -54,7 +54,6 @@ public sealed class CosmeticsRepository(GameContext db)
         UserDbHelper.GetOrCreateGameUser(db, userId);
         db.Set<UserUnlockedCosmetic>().Add(new UserUnlockedCosmetic
         {
-            Id = UlidGenerator.NewUlid(),
             UserId = userId,
             Category = category,
             CosmeticId = cosmeticId
@@ -91,7 +90,6 @@ public sealed class CosmeticsRepository(GameContext db)
 
             db.Set<UserUnlockedCosmetic>().Add(new UserUnlockedCosmetic
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 Category = category,
                 CosmeticId = id
@@ -151,7 +149,6 @@ public sealed class CosmeticsRepository(GameContext db)
         {
             db.Set<UserProfileCardDecoration>().Add(new UserProfileCardDecoration
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 ShowCharacterSpine = layout.ShowCharacterSpine,
                 BackgroundId = layout.BackgroundId
@@ -173,7 +170,6 @@ public sealed class CosmeticsRepository(GameContext db)
             var s = layout.StickerPlacements[idx];
             stickerSet.Add(new UserProfileCardSticker
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 Position = idx,
                 StickerId = s.StickerId,
@@ -222,7 +218,6 @@ public sealed class CosmeticsRepository(GameContext db)
         {
             db.Set<UserJukeboxSetting>().Add(new UserJukeboxSetting
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 Location = loc,
                 BgmType = (int)setting.Type,
@@ -257,7 +252,6 @@ public sealed class CosmeticsRepository(GameContext db)
         UserDbHelper.GetOrCreateGameUser(db, userId);
         db.Set<UserClaimedJukeboxReward>().Add(new UserClaimedJukeboxReward
         {
-            Id = UlidGenerator.NewUlid(),
             UserId = userId,
             TriggerId = triggerId
         });
@@ -292,7 +286,6 @@ public sealed class CosmeticsRepository(GameContext db)
         {
             db.Set<UserJukeboxPlaylistEntity>().Add(new UserJukeboxPlaylistEntity
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 PlaylistUid = 0,
                 IsFavorite = true,
@@ -347,7 +340,6 @@ public sealed class CosmeticsRepository(GameContext db)
         {
             db.Set<UserJukeboxPlaylistEntity>().Add(new UserJukeboxPlaylistEntity
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 PlaylistUid = playlist.JukeboxPlaylistUid,
                 IsFavorite = false,
@@ -468,7 +460,6 @@ public sealed class CosmeticsRepository(GameContext db)
             req.WallpaperList.GroupBy(x => x.Order).Select(g => g.First()),
             s => new UserWallpaperSlot
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 OrderIndex = s.Order,
                 Type = (int)s.Type,
@@ -482,7 +473,6 @@ public sealed class CosmeticsRepository(GameContext db)
             req.WallpaperBackgroundList.GroupBy(x => x.Order).Select(g => g.First()),
             s => new UserWallpaperBackground
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 OrderIndex = s.Order,
                 LobbyDecoBackgroundId = s.LobbyDecoBackgroundId
@@ -494,7 +484,6 @@ public sealed class CosmeticsRepository(GameContext db)
             req.WallpaperJukeboxList.GroupBy(x => x.Order).Select(g => g.First()),
             s => new UserWallpaperJukebox
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 OrderIndex = s.Order,
                 JukeboxListTableId = s.JukeboxListTableId
@@ -506,7 +495,6 @@ public sealed class CosmeticsRepository(GameContext db)
             req.WallpaperFavoriteList.GroupBy(x => x.Order).Select(g => g.First()),
             s => new UserWallpaperFavorite
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 OrderIndex = s.Order,
                 IsShuffled = s.IsShuffled
@@ -518,7 +506,6 @@ public sealed class CosmeticsRepository(GameContext db)
             req.WallpaperPlaylistList.GroupBy(x => x.Order).Select(g => g.First()),
             s => new UserWallpaperPlaylist
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 OrderIndex = s.Order,
                 PlaylistUId = s.PlaylistUId,

@@ -1,15 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using EpinelPS.Utils;
-
 namespace EpinelPS.Models;
 
 [Table("UserCompletedAchievements")]
 public class UserCompletedAchievement
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int AchievementId { get; set; }
@@ -21,8 +18,7 @@ public class UserCompletedAchievement
 public class UserSideStoryStage
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int StageId { get; set; }
@@ -36,8 +32,7 @@ public class UserSideStoryStage
 public class UserArchiveUnlock
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
 
@@ -53,8 +48,7 @@ public class UserArchiveUnlock
 public class UserLostSector
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int SectorId { get; set; }
@@ -75,13 +69,11 @@ public class UserLostSector
 public class UserLostSectorClearedStage
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
 
-    [MaxLength(26)]
-    public string LostSectorId { get; set; } = "";
+    public long LostSectorId { get; set; }
 
     public string StageKey { get; set; } = "";
     public int ClearState { get; set; }
@@ -94,13 +86,11 @@ public class UserLostSectorClearedStage
 public class UserLostSectorObject
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
 
-    [MaxLength(26)]
-    public string LostSectorId { get; set; } = "";
+    public long LostSectorId { get; set; }
 
     public string ObjectKey { get; set; } = "";
     public long ActionAt { get; set; }

@@ -1,15 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using EpinelPS.Utils;
-
 namespace EpinelPS.Models;
 
 [Table("UserCurrencies")]
 public class UserCurrencyEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int CurrencyType { get; set; }
@@ -22,8 +19,7 @@ public class UserCurrencyEntity
 public class UserMainQuestEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int QuestTid { get; set; }
@@ -36,8 +32,7 @@ public class UserMainQuestEntity
 public class UserTowerProgressEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int CorporationType { get; set; }
@@ -50,8 +45,7 @@ public class UserTowerProgressEntity
 public class UserClearedTutorialEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int TutorialGroupId { get; set; }
@@ -65,8 +59,7 @@ public class UserClearedTutorialEntity
 public class UserContentsUnlockEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int ContentsOpenId { get; set; }
@@ -80,8 +73,7 @@ public class UserContentsUnlockEntity
 public class UserViewedNoticePopupEntity
 {
     [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
+    public long Id { get; set; }
 
     public ulong UserId { get; set; }
     public int CategoryId { get; set; }

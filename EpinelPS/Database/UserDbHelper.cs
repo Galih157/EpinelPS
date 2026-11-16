@@ -91,7 +91,6 @@ public static class UserDbHelper
         {
             db.Set<UserBan>().Add(new UserBan
             {
-                Id = Utils.UlidGenerator.NewUlid(),
                 UserId = userId,
                 IsBanned = true,
                 BanStart = banStart ?? DateTime.UtcNow,
