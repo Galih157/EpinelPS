@@ -97,10 +97,6 @@ public class InfraCoreRewardEntity
 [Table("SynchroSlots")]
 public class SynchroSlotEntity
 {
-    [Key]
-    [MaxLength(26)]
-    public string Id { get; set; } = UlidGenerator.NewUlid();
-
     public ulong UserId { get; set; }
     public int Slot { get; set; }
     public long CharacterSerialNumber { get; set; }

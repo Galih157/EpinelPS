@@ -799,6 +799,27 @@ public class GameData
         ZipStream = new MemoryStream();
         DoTransformation(key3[..16], key3[16..], dataMs, ZipStream);
         MainZip = new ZipFile(ZipStream, false);
+        SaveDecryptedCopy();
+    }
+
+    /// <summary>
+    /// Writes a decrypted copy of the static data zip (MemoryPack .mpk entries) to cache/ for inspection.
+    /// Not used by the server.
+    /// </summary>
+    private void SaveDecryptedCopy()
+    {
+        try
+        {
+            string dir = Path.Combine(AppContext.BaseDirectory, "cache");
+            Directory.CreateDirectory(dir);
+            string target = Path.Combine(dir, $"staticdata-decrypted-{Convert.ToHexString(MpkHash)[..12].ToLowerInvariant()}.zip");
+            if (File.Exists(target)) return;
+            File.WriteAllBytes(target, ZipStream.ToArray());
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteLine("Failed to save decrypted static data copy: " + ex.Message, LogType.Warning);
+        }
     }
 
     public static void DoTransformation(byte[] key, byte[] salt, Stream inputStream, Stream outputStream)

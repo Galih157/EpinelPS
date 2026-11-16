@@ -308,6 +308,18 @@ public sealed class OutpostRepository(GameContext db)
             .ToList();
     }
 
+    public const int MaxSynchroSlots = 213;
+
+    public void UnlockAllSynchroSlots(ulong userId)
+    {
+        var slots = GetOrInitializeSynchroSlots(userId);
+        var existing = slots.Select(x => x.Slot).ToHashSet();
+        foreach (var i in Enumerable.Range(1, MaxSynchroSlots).Where(i => !existing.Contains(i)))
+            slots.Add(new SynchroSlot { Slot = i });
+        foreach (var s in slots) s.AvailableAt = 0;
+        SaveSynchroSlots(userId, slots);
+    }
+
     public List<SynchroSlot> GetOrInitializeSynchroSlots(ulong userId)
     {
         var slots = GetSynchroSlots(userId);
@@ -334,7 +346,6 @@ public sealed class OutpostRepository(GameContext db)
             s => s.Slot,
             s => new SynchroSlotEntity
             {
-                Id = UlidGenerator.NewUlid(),
                 UserId = userId,
                 Slot = s.Slot,
                 CharacterSerialNumber = s.CharacterSerialNumber,

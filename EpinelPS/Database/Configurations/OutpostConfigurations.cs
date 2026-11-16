@@ -72,12 +72,11 @@ public class SynchroSlotEntityConfiguration : IEntityTypeConfiguration<SynchroSl
 {
     public void Configure(EntityTypeBuilder<SynchroSlotEntity> entity)
     {
-        entity.HasKey(e => e.Id);
+        entity.HasKey(e => new { e.UserId, e.Slot });
         entity.HasOne(e => e.Outpost)
             .WithMany(o => o.SynchroSlots)
             .HasForeignKey(e => e.UserId)
             .OnDelete(DeleteBehavior.Cascade);
-        entity.HasIndex(e => new { e.UserId, e.Slot }).IsUnique();
     }
 }
 

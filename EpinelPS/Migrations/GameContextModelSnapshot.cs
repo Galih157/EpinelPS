@@ -1028,9 +1028,11 @@ namespace EpinelPS.Migrations
 
             modelBuilder.Entity("EpinelPS.Models.SynchroSlotEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("TEXT");
+                    b.Property<ulong>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Slot")
+                        .HasColumnType("INTEGER");
 
                     b.Property<long>("AvailableAt")
                         .HasColumnType("INTEGER");
@@ -1038,16 +1040,7 @@ namespace EpinelPS.Migrations
                     b.Property<long>("CharacterSerialNumber")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Slot")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<ulong>("UserId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId", "Slot")
-                        .IsUnique();
+                    b.HasKey("UserId", "Slot");
 
                     b.ToTable("SynchroSlots");
                 });
