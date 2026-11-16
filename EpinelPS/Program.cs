@@ -1,4 +1,4 @@
-using EpinelPS.Data;
+﻿using EpinelPS.Data;
 using EpinelPS.Database;
 using EpinelPS.Interfaces;
 using EpinelPS.LobbyServer;
@@ -162,6 +162,7 @@ internal class Program
                 configuration.LogLevelToColorMap[LogLevel.Warning] = ConsoleColor.Yellow;
                 // Replace warning value from appsettings.json of "Red"
                 configuration.LogLevelToColorMap[LogLevel.Error] = ConsoleColor.DarkRed;
+                configuration.LogLevelToColorMap[LogLevel.Critical] = ConsoleColor.Red;
             });
 
 
